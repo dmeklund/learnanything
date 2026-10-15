@@ -1,0 +1,908 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>From Neuron to Transformer</title>
+<meta name="description" content="An interactive history of artificial intelligence: the mathematics and models from the 1943 threshold neuron to today's language models.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg', 'canvas'] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="brand" href="../../index.html">Learn<b>Anything</b></a>
+  <span class="where">Vol. 1 · The evolution of AI</span>
+  <span class="progress" aria-hidden="true"></span>
+</header>
+
+<div class="module">
+  <nav class="rail" aria-label="Chapters by year"><ol></ol></nav>
+
+  <main class="content">
+
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="label">Volume 1 · An interactive history</p>
+        <h1 id="title">From <i>Neuron</i> to Transformer</h1>
+        <p class="dek">Eighty years of artificial intelligence, told through the mathematics that made each step possible. Every idea here is something you can run, break, and rebuild in the page.</p>
+        <div class="meta">
+          <span class="label">18 chapters</span>
+          <span class="label">15 interactive figures</span>
+          <span class="label">1943 → today</span>
+        </div>
+      </div>
+      <figure class="hero-figure" style="margin:0">
+        <canvas id="hero-canvas" aria-label="A small neural network learning to separate two interleaved spirals"></canvas>
+        <div class="readout">
+          <span>2 → 12 → 12 → 1 network · two spirals</span>
+          <span>epoch <span id="hero-epoch" class="tnum">0000</span> · loss <span id="hero-loss" class="tnum">—</span></span>
+        </div>
+        <div class="btns"><button type="button" id="hero-reset">Train again from random weights</button></div>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PROLOGUE -->
+    <section class="chapter" id="prologue" data-year="Pro" data-short="What learning means">
+      <div class="chapter-head">
+        <span class="label kicker">Prologue</span>
+        <h2>What it means for a machine to learn</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The figure above started as a network with random numbers for weights. It knew nothing about spirals. A few thousand small corrections later it draws a boundary that winds between two interleaved arms. Nobody wrote the rule for that boundary. The network found it by repeatedly measuring how wrong it was and nudging each number in the direction that made it less wrong.</p>
+        <p>That loop is the core of nearly everything in this volume. Almost every modern AI system, from a handwriting reader to a chatbot, is a function with adjustable parameters, a way to score its mistakes, and a procedure for adjusting the parameters to reduce the score. In symbols:</p>
+      </div>
+      <div class="math-block">\[ \theta^{\star} \;=\; \arg\min_{\theta} \; \frac{1}{n}\sum_{i=1}^{n} \mathcal{L}\big(f_\theta(x_i),\, y_i\big) \]</div>
+      <div class="prose">
+        <p>Read it as: find the parameters \(\theta\) that make the model \(f_\theta\) produce outputs close to the right answers \(y_i\), averaged over \(n\) examples, where "close" is measured by a loss function \(\mathcal{L}\). The history of AI is largely the history of three questions about this equation. What shape should \(f\) take? How do we measure the loss? How do we search for good \(\theta\) when there are billions of them?</p>
+        <p>The story did not run in a straight line. Two schools competed for most of the twentieth century. The <em>symbolic</em> school held that intelligence is the manipulation of explicit rules and symbols, written down by people. The <em>connectionist</em> school held that it emerges from many simple units whose connections are learned from data. Funding and prestige swung between them, twice collapsing into periods now called AI winters. The connectionists eventually won the argument about perception and language, but only after computers became roughly a billion times faster and the internet supplied the data.</p>
+        <p>The chapters follow the chronology. Each one introduces the mathematical idea that unlocked its era, then gives you a bench to experiment on. The year in the margin marks when the idea first appeared in print.</p>
+      </div>
+      <dl class="defn">
+        <dt>Parameter</dt><dd>An adjustable number inside a model, also called a weight. The models in this volume range from 3 parameters to hundreds of billions.</dd>
+        <dt>Loss</dt><dd>A single number that measures how wrong the model is on some data. Training means making it smaller.</dd>
+        <dt>Gradient</dt><dd>The vector of partial derivatives of the loss with respect to each parameter. It points uphill; learning steps go the other way.</dd>
+      </dl>
+    </section>
+
+    <!-- ===================================================== 1943 -->
+    <section class="chapter" id="neuron" data-year="1943" data-short="The logical neuron">
+      <div class="chapter-head">
+        <span class="year">1943</span>
+        <span class="label kicker">Chapter 1 · McCulloch &amp; Pitts</span>
+        <h2>The logical neuron</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1943 the neurophysiologist Warren McCulloch and the self-taught logician Walter Pitts published <em>A Logical Calculus of the Ideas Immanent in Nervous Activity</em>. Their claim was bold for its time: a brain cell could be modeled as a simple on/off switch, and networks of these switches could compute any proposition of logic.</p>
+        <p>Their model neuron receives binary inputs \(x_i \in \{0,1\}\). Each input has a weight \(w_i\), positive for excitatory connections and negative for inhibitory ones. The neuron adds up its weighted inputs and fires if the sum reaches a threshold \(\theta\):</p>
+      </div>
+      <div class="math-block">\[ y \;=\; \begin{cases} 1 & \text{if } \sum_i w_i x_i \ge \theta \\ 0 & \text{otherwise} \end{cases} \]</div>
+      <div class="prose">
+        <p>With the right weights and threshold, a single unit behaves as an AND gate, an OR gate, or a NOT gate. Since any logical expression can be built from those, a network of these units can in principle compute anything a digital computer can. John von Neumann cited the paper in his 1945 design report for the EDVAC, one of the first stored-program computers. The model neuron and the digital computer were conceived side by side.</p>
+        <p>What the 1943 neuron could not do was <em>learn</em>. Every weight had to be set by hand. Six years later the psychologist Donald Hebb proposed a mechanism in <em>The Organization of Behavior</em> (1949): when one cell repeatedly helps fire another, the connection between them strengthens. "Cells that fire together wire together" became the slogan, and the idea that learning lives in connection strengths has organized the field ever since.</p>
+        <p>Try it below. Adjust the two weights and the threshold and watch which logical function the unit computes. A two-input unit has sixteen possible truth tables. See how many you can reach.</p>
+      </div>
+
+      <figure class="bench" id="fig-mcp">
+        <div class="bench-head"><span class="fig">Fig. 1.1</span><span class="label">Interactive</span><h4>A threshold unit computing logic</h4></div>
+        <div class="stage">
+          <div class="stack">
+            <svg viewBox="0 0 560 220" role="img" aria-label="Diagram of a threshold neuron with two inputs"></svg>
+            <p class="caption">Click an input circle to toggle it between 0 and 1. Dashed amber lines carry negative (inhibitory) weights.</p>
+          </div>
+          <div class="stack">
+            <div class="controls">
+              <div class="ctl"><label for="mcp-w1">w₁ <output>1.0</output></label><input type="range" id="mcp-w1" min="-2" max="2" step="0.5" value="1"></div>
+              <div class="ctl"><label for="mcp-w2">w₂ <output>1.0</output></label><input type="range" id="mcp-w2" min="-2" max="2" step="0.5" value="1"></div>
+              <div class="ctl"><label for="mcp-th">threshold θ <output>1.5</output></label><input type="range" id="mcp-th" min="-2.5" max="3" step="0.5" value="1.5"></div>
+            </div>
+            <div class="btns presets"><span class="label" style="align-self:center">Presets</span></div>
+            <div><span class="label">This unit computes</span><div class="fn-name">AND</div></div>
+            <table class="data tt"><thead><tr><th>x₁</th><th>x₂</th><th>Σ</th><th>y</th></tr></thead><tbody></tbody></table>
+          </div>
+        </div>
+        <div class="stack">
+          <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><span class="label">Boolean functions of two inputs you have reached</span><span class="label fn-count"></span></div>
+          <div class="fn-grid"></div>
+        </div>
+        <figcaption class="caption">Fourteen of the sixteen can be reached. XOR and XNOR never light up, no matter the settings. Chapter 4 explains why, and why that fact froze neural network research for over a decade.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== 1950 -->
+    <section class="chapter" id="turing" data-year="1950" data-short="Can machines think?">
+      <div class="chapter-head">
+        <span class="year">1950</span>
+        <span class="label kicker">Chapter 2 · Turing, Dartmouth, and symbols</span>
+        <h2>Can machines think?</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Alan Turing opened his 1950 paper <em>Computing Machinery and Intelligence</em> with that question, then immediately set it aside as too vague to answer. In its place he proposed a game. An interrogator converses by text with a hidden human and a hidden machine. If the interrogator cannot reliably tell which is which, Turing argued, we have no principled reason to deny the machine intelligence.</p>
+        <p>The "imitation game", now called the Turing test, is often remembered as the paper's point. The more prophetic section comes near the end, titled "Learning Machines". Turing suggested that rather than programming an adult mind directly, it might be easier to build a child mind and educate it. He predicted that by about the year 2000, machines with around 10<sup>9</sup> bits of storage would fool an average interrogator 30% of the time after five minutes. His storage figure was close to the mark. The conversational ability arrived about two decades late.</p>
+        <blockquote>We may hope that machines will eventually compete with men in all purely intellectual fields.<cite>A. M. Turing, Mind, 1950</cite></blockquote>
+        <h3>The naming of the field</h3>
+        <p>In the summer of 1956, John McCarthy, Marvin Minsky, Nathaniel Rochester, and Claude Shannon gathered researchers at Dartmouth College for a two-month workshop. Their funding proposal, written the year before, contains the first use of the phrase <em>artificial intelligence</em> and an ambitious premise: "every aspect of learning or any other feature of intelligence can in principle be so precisely described that a machine can be made to simulate it."</p>
+        <p>The most impressive exhibit was the Logic Theorist, by Allen Newell, Herbert Simon, and Cliff Shaw. It proved 38 of the first 52 theorems in Whitehead and Russell's <em>Principia Mathematica</em>, one of them more elegantly than the original. It worked by search: represent the problem as symbols, apply rules to generate new expressions, and use heuristics to decide which branches to explore. This became the template for the symbolic school.</p>
+        <h3>Search as intelligence</h3>
+        <p>Symbolic AI treats a problem as a graph of states. Solving it means finding a path from the start state to a goal. The difficulty is that these graphs grow exponentially. A game with branching factor \(b\) searched to depth \(d\) has about \(b^d\) positions; chess has \(b \approx 35\), so looking ten moves ahead means roughly \(2.8 \times 10^{15}\) positions. Heuristics, rules of thumb that estimate which states are promising, were the symbolic school's answer. The A* algorithm (Hart, Nilsson, and Raphael, 1968) formalized this by expanding the state with the lowest</p>
+      </div>
+      <div class="math-block">\[ f(n) = g(n) + h(n), \]</div>
+      <div class="prose">
+        <p>where \(g(n)\) is the cost so far and \(h(n)\) is an estimate of the cost remaining. If \(h\) never overestimates, A* is guaranteed to find the cheapest path. Route planners still use descendants of it today.</p>
+        <p>Meanwhile, a quieter line of work pointed elsewhere. In 1959 Arthur Samuel at IBM described a checkers program that improved by playing against itself, and he coined the term <em>machine learning</em> for it. Samuel's program tuned the weights of a scoring function from experience. It eventually beat respectable amateur players, and in its 1962 televised match it defeated a self-described checkers master.</p>
+      </div>
+      <ol class="events">
+        <li><time>1950</time><span>Turing proposes the imitation game and speculates about learning machines.</span></li>
+        <li><time>1951</time><span>Minsky and Dean Edmonds build SNARC, a 40-neuron learning machine from vacuum tubes and a surplus autopilot motor.</span></li>
+        <li><time>1956</time><span>Dartmouth workshop. The Logic Theorist proves theorems from <em>Principia Mathematica</em>.</span></li>
+        <li><time>1958</time><span>McCarthy invents Lisp, which becomes the language of AI research for three decades.</span></li>
+        <li><time>1959</time><span>Samuel's self-improving checkers program; the phrase "machine learning" enters print.</span></li>
+        <li><time>1966</time><span>Joseph Weizenbaum's ELIZA imitates a psychotherapist with simple pattern-matching rules. Users confide in it anyway.</span></li>
+      </ol>
+    </section>
+
+    <!-- ===================================================== 1958 -->
+    <section class="chapter" id="perceptron" data-year="1958" data-short="The perceptron">
+      <div class="chapter-head">
+        <span class="year">1958</span>
+        <span class="label kicker">Chapter 3 · Frank Rosenblatt</span>
+        <h2>The perceptron learns from its mistakes</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Frank Rosenblatt, a psychologist at the Cornell Aeronautical Laboratory, took the McCulloch–Pitts neuron and added the missing piece: a rule for adjusting the weights automatically. His perceptron was first simulated on an IBM 704 in 1957 and then built in hardware as the Mark I Perceptron, whose 400 photocells formed a 20×20 pixel "retina" wired through a layer of fixed random connections to units with motor-driven potentiometers as adjustable weights.</p>
+        <p>The press was not restrained. A 1958 <em>New York Times</em> story reported that the Navy expected the machine to "be able to walk, talk, see, write, reproduce itself and be conscious of its existence." The actual capability was more modest and more interesting: given labeled examples, it found a linear boundary separating two classes, on its own.</p>
+        <h3>The learning rule</h3>
+        <p>Label the classes \(y = +1\) and \(y = -1\). The perceptron predicts with the sign of a weighted sum:</p>
+      </div>
+      <div class="math-block">\[ \hat{y} = \operatorname{sign}(\mathbf{w}\cdot\mathbf{x} + b) \]</div>
+      <div class="prose">
+        <p>The boundary between the classes is the set of points where \(\mathbf{w}\cdot\mathbf{x} + b = 0\): a line in two dimensions, a plane in three, a hyperplane in general. The weight vector \(\mathbf{w}\) is perpendicular to it and points toward the positive side. Learning is almost embarrassingly simple. Go through the examples. When one is misclassified, move the boundary toward it:</p>
+      </div>
+      <div class="math-block">\[ \text{if } \hat{y}_i \neq y_i: \qquad \mathbf{w} \leftarrow \mathbf{w} + \eta\, y_i\, \mathbf{x}_i, \qquad b \leftarrow b + \eta\, y_i \]</div>
+      <div class="prose">
+        <p>Adding \(y_i\mathbf{x}_i\) rotates \(\mathbf{w}\) toward a misclassified positive example or away from a misclassified negative one. The learning rate \(\eta\) sets the step size. Correct examples cause no change at all.</p>
+      </div>
+
+      <figure class="bench" id="fig-perceptron">
+        <div class="bench-head"><span class="fig">Fig. 3.1</span><span class="label">Interactive</span><h4>The perceptron learning rule, one correction at a time</h4></div>
+        <div class="stage">
+          <canvas class="plot" style="aspect-ratio:1" aria-label="Scatter plot of two classes with the perceptron's current decision boundary"></canvas>
+          <div class="stack">
+            <div class="btns">
+              <button type="button" id="pc-step">Step</button>
+              <button type="button" id="pc-run" class="primary">Run</button>
+              <button type="button" id="pc-reset">Reset</button>
+            </div>
+            <div class="ctl"><label for="pc-lr">learning rate η <output>0.30</output></label><input type="range" id="pc-lr" min="0.05" max="1" step="0.05" value="0.3"></div>
+            <div><span class="label">Click the plot to add a point of class</span>
+              <div class="btns" style="margin-top:6px"><button type="button" data-add="1" aria-pressed="true">● A (+1)</button><button type="button" data-add="0" aria-pressed="false">■ B (−1)</button></div>
+            </div>
+            <div class="readouts"></div>
+            <div class="legend"><span><i style="background:var(--s1)"></i>class A</span><span><i style="background:var(--s2);border-radius:0"></i>class B</span><span><i style="background:var(--accent);border-radius:0;height:2px;width:14px"></i>weight vector w</span></div>
+          </div>
+        </div>
+        <figcaption class="caption">Each step finds the next misclassified point (ringed) and applies the update. The dashed line is the boundary before the correction. Add a few points of the wrong class on the wrong side and the data stops being linearly separable: the perceptron will cycle forever.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>A guarantee, and its fine print</h3>
+        <p>In 1962 Albert Novikoff proved the <em>perceptron convergence theorem</em>. Suppose every example lies within distance \(R\) of the origin and some boundary separates the classes with a margin of at least \(\gamma\) on each side. Then the perceptron makes at most</p>
+      </div>
+      <div class="math-block">\[ k \;\le\; \left(\frac{R}{\gamma}\right)^{2} \]</div>
+      <div class="prose">
+        <p>mistakes before it finds a separating boundary, regardless of the order of examples or the dimension of the space. The proof is short: each mistake increases \(\mathbf{w}\cdot\mathbf{w}^\star\) by at least \(\gamma\) while \(\|\mathbf{w}\|^2\) grows by at most \(R^2\), and those two rates are only compatible for a limited number of steps.</p>
+        <p>The fine print is the word <em>separable</em>. If no straight line divides the classes, the guarantee is void and the weights never settle. Around the same time, Bernard Widrow and Ted Hoff at Stanford built ADALINE, which minimized squared error instead of counting mistakes. Their least-mean-squares rule, \(\mathbf{w} \leftarrow \mathbf{w} + \eta (y - \mathbf{w}\cdot\mathbf{x})\mathbf{x}\), is an early form of gradient descent, and it is still used in adaptive filters that cancel echo on phone lines.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== 1969 -->
+    <section class="chapter" id="xor" data-year="1969" data-short="XOR & the first winter">
+      <div class="chapter-head">
+        <span class="year">1969</span>
+        <span class="label kicker">Chapter 4 · Minsky &amp; Papert</span>
+        <h2>One line is not enough</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1969 Marvin Minsky and Seymour Papert published <em>Perceptrons</em>, a rigorous mathematical analysis of what single-layer networks can and cannot compute. Its most famous result is also its simplest. The exclusive-or function, which outputs 1 when exactly one of its two inputs is 1, cannot be computed by any perceptron.</p>
+        <p>The proof takes four lines. Suppose weights \(w_1, w_2\) and bias \(b\) worked. The four cases of XOR require:</p>
+      </div>
+      <div class="math-block">\[ \begin{aligned} (0,0)\mapsto 0:&\quad b \lt  0 \\ (0,1)\mapsto 1:&\quad w_2 + b \ge 0 \\ (1,0)\mapsto 1:&\quad w_1 + b \ge 0 \\ (1,1)\mapsto 0:&\quad w_1 + w_2 + b \lt  0 \end{aligned} \]</div>
+      <div class="prose">
+        <p>Adding the middle two gives \(w_1 + w_2 + 2b \ge 0\), so \(w_1 + w_2 + b \ge -b \gt  0\), which contradicts the last line. Geometrically, the two positive points sit on one diagonal of a square and the two negative points on the other. No straight line can put both diagonals on opposite sides. Try it.</p>
+      </div>
+
+      <figure class="bench" id="fig-xor">
+        <div class="bench-head"><span class="fig">Fig. 4.1</span><span class="label">Interactive</span><h4>XOR in input space, and after one hidden layer</h4></div>
+        <div class="stage">
+          <div class="stack">
+            <span class="label">Input space: drag the handles</span>
+            <canvas class="plot" id="xor-input" style="aspect-ratio:1" aria-label="The four XOR points with a draggable line"></canvas>
+            <p class="readouts xor-score"></p>
+          </div>
+          <div class="stack">
+            <span class="label">Hidden space: h₁ = OR(x₁,x₂), h₂ = NAND(x₁,x₂)</span>
+            <canvas class="plot" id="xor-hidden" style="aspect-ratio:1" aria-label="The same four points mapped through two hidden units, now linearly separable"></canvas>
+            <p class="caption">Two hidden threshold units move (0,1) and (1,0) onto the same spot. Now one line, h₁ + h₂ = 1.5, separates the classes. XOR = AND(OR, NAND).</p>
+          </div>
+        </div>
+        <figcaption class="caption">Circles are XOR = 1, squares are XOR = 0. The shaded side of each line is predicted as class 1. The left panel will never score 4 of 4.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>Minsky and Papert knew that multilayer networks could compute XOR, as the right panel shows. Their pessimism was about <em>learning</em>: nobody had a rule for training the hidden layer, and they doubted one would generalize. The book's influence was enormous. Funding for neural network research largely dried up, and Rosenblatt, its most prominent champion, died in a boating accident in 1971.</p>
+        <h3>The first AI winter</h3>
+        <p>The broader field soon hit trouble too. Early machine translation had promised much during the Cold War; the 1966 ALPAC report concluded it was slower, less accurate, and twice as expensive as human translation, and US funding was cut. In Britain, the 1973 Lighthill report told Parliament that AI had failed to achieve its "grandiose objectives" because of the <em>combinatorial explosion</em>: search methods that worked on toy problems drowned in the exponential growth of real ones. UK funding collapsed. DARPA, under new rules requiring research with direct military application, shifted away from open-ended AI work. The mid-1970s became the first AI winter.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== 1980 -->
+    <section class="chapter" id="experts" data-year="1980" data-short="Expert systems">
+      <div class="chapter-head">
+        <span class="year">1980</span>
+        <span class="label kicker">Chapter 5 · Knowledge engineering</span>
+        <h2>Rules, experts, and the second winter</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The symbolic school regrouped around a narrower ambition. Instead of general intelligence, capture the knowledge of a human specialist in a narrow domain as hundreds or thousands of if–then rules. These <em>expert systems</em> became AI's first commercial success.</p>
+        <p>MYCIN, developed at Stanford in the early 1970s, diagnosed bacterial blood infections and recommended antibiotics using about 600 rules like this one, paraphrased:</p>
+      </div>
+      <div class="math-block">\[ \textsf{IF}\ \text{gram-negative} \wedge \text{rod-shaped} \wedge \text{anaerobic} \ \textsf{THEN}\ \text{organism} = \textit{Bacteroides}\ \ (\text{certainty } 0.6) \]</div>
+      <div class="prose">
+        <p>Each rule carried a certainty factor, and MYCIN combined them with an ad hoc calculus. In a blinded evaluation its recommendations were judged acceptable about as often as those of infectious-disease faculty. It was never used clinically, partly because of liability questions and partly because entering the data took too long.</p>
+        <p>XCON (originally R1), deployed at Digital Equipment Corporation from 1980, configured VAX computer orders. By the mid-1980s it had grown to around 2,500 rules and was credited with saving the company tens of millions of dollars a year. Corporations formed AI departments. Japan launched its Fifth Generation Computer Systems project in 1982 to build massively parallel logic-programming machines, and the US and UK responded with their own programs. Specialized Lisp machines from Symbolics and LMI sold as AI workstations.</p>
+        <h3>Why it stalled</h3>
+        <p>Expert systems were <em>brittle</em>. They failed abruptly at the edge of their rules, with no notion that they were out of their depth. Every new case meant interviewing experts and writing more rules, and rules interacted in ways nobody could predict as systems grew. This "knowledge acquisition bottleneck" was the real limit. The systems could not learn.</p>
+        <p>In 1987 the market for Lisp machines collapsed as cheaper general-purpose workstations from Sun and others caught up. The Fifth Generation project ended in 1992 without reaching its goals. Through the late 1980s and early 1990s, "AI" became a term companies avoided. This was the second AI winter.</p>
+        <p>Underneath the commercial story, the probabilistic view was gaining ground. Judea Pearl's <em>Probabilistic Reasoning in Intelligent Systems</em> (1988) introduced Bayesian networks, which replaced certainty factors with a principled way to reason under uncertainty using Bayes' rule:</p>
+      </div>
+      <div class="math-block">\[ P(H \mid E) = \frac{P(E \mid H)\, P(H)}{P(E)} \]</div>
+      <div class="prose">
+        <p>And in 1986, in the middle of the expert-system boom, a short paper in <em>Nature</em> revived the connectionist program.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== 1986 -->
+    <section class="chapter" id="backprop" data-year="1986" data-short="Backpropagation">
+      <div class="chapter-head">
+        <span class="year">1986</span>
+        <span class="label kicker">Chapter 6 · Rumelhart, Hinton &amp; Williams</span>
+        <h2>Backpropagation: credit assignment by the chain rule</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The obstacle Minsky and Papert identified was the training of hidden units. If the output is wrong, which of the thousands of weights deeper in the network deserve the blame, and by how much? This is the <em>credit assignment problem</em>. Its solution turned out to be the chain rule from first-year calculus, applied systematically.</p>
+        <p>Two changes make it work. First, replace the hard threshold with a smooth function such as the logistic sigmoid \(\sigma(z) = 1/(1+e^{-z})\), so that small weight changes produce small output changes and derivatives exist. Second, choose a differentiable loss. Then every weight has a well-defined partial derivative \(\partial \mathcal{L}/\partial w\): how much the loss would change if that weight changed slightly.</p>
+        <p>Take a single neuron with loss \(\mathcal{L} = \tfrac12(a - y)^2\), where \(a = \sigma(z)\) and \(z = w_1x_1 + w_2x_2 + b\). The chain rule factors the derivative into local pieces:</p>
+      </div>
+      <div class="math-block">\[ \frac{\partial \mathcal{L}}{\partial w_1} \;=\; \underbrace{\frac{\partial \mathcal{L}}{\partial a}}_{a-y}\;\cdot\;\underbrace{\frac{\partial a}{\partial z}}_{\sigma(z)(1-\sigma(z))}\;\cdot\;\underbrace{\frac{\partial z}{\partial w_1}}_{x_1} \]</div>
+      <div class="prose">
+        <p>Backpropagation computes these products efficiently. Run the network forward, storing every intermediate value. Then walk backward from the loss, multiplying each node's incoming gradient by its local derivative and passing the result to its inputs. Every gradient in the network costs about as much to compute as one forward pass, whether there are ten weights or ten billion.</p>
+      </div>
+
+      <figure class="bench" id="fig-graph">
+        <div class="bench-head"><span class="fig">Fig. 6.1</span><span class="label">Interactive</span><h4>Forward and backward through a computation graph</h4></div>
+        <div class="scroll-x"><svg class="plot" viewBox="0 0 820 345" style="min-width:600px" role="img" aria-label="Computation graph of a single sigmoid neuron with forward values and gradients"></svg></div>
+        <div class="controls">
+          <div class="ctl"><label for="g-x1">x₁ <output></output></label><input type="range" id="g-x1" min="-2" max="2" step="0.05" value="1"></div>
+          <div class="ctl"><label for="g-x2">x₂ <output></output></label><input type="range" id="g-x2" min="-2" max="2" step="0.05" value="-0.5"></div>
+          <div class="ctl"><label for="g-w1">w₁ <output></output></label><input type="range" id="g-w1" min="-3" max="3" step="0.05" value="0.8"></div>
+          <div class="ctl"><label for="g-w2">w₂ <output></output></label><input type="range" id="g-w2" min="-3" max="3" step="0.05" value="0.4"></div>
+          <div class="ctl"><label for="g-b">b <output></output></label><input type="range" id="g-b" min="-3" max="3" step="0.05" value="-0.2"></div>
+          <div class="ctl"><label for="g-y">target y <output></output></label><input type="range" id="g-y" min="0" max="1" step="0.05" value="1"></div>
+        </div>
+        <div class="controls">
+          <div class="ctl" style="max-width:240px"><label for="g-eta">step size η <output></output></label><input type="range" id="g-eta" min="0.1" max="5" step="0.1" value="2"></div>
+          <button type="button" id="g-step" class="primary">Take a gradient step on w₁, w₂, b</button>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Blue-outlined nodes are learnable parameters. Each step subtracts η times the gradient from each parameter; watch the loss fall. Note that \(\partial\mathcal{L}/\partial w_1\) equals the gradient at the × node times \(x_1\): a weight attached to a zero input gets no blame.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>The general recursion</h3>
+        <p>For a layered network with pre-activations \(\mathbf{z}^{(l)} = W^{(l)}\mathbf{a}^{(l-1)} + \mathbf{b}^{(l)}\) and activations \(\mathbf{a}^{(l)} = f(\mathbf{z}^{(l)})\), define the error signal \(\boldsymbol{\delta}^{(l)} = \partial\mathcal{L}/\partial\mathbf{z}^{(l)}\). Backpropagation is two equations:</p>
+      </div>
+      <div class="math-block">\[ \boldsymbol{\delta}^{(l)} = \big(W^{(l+1)\top}\boldsymbol{\delta}^{(l+1)}\big)\odot f'\big(\mathbf{z}^{(l)}\big), \qquad \frac{\partial\mathcal{L}}{\partial W^{(l)}} = \boldsymbol{\delta}^{(l)}\,\mathbf{a}^{(l-1)\top} \]</div>
+      <div class="prose">
+        <p>The error flows backward through the transposed weights, gated at each layer by the slope of the activation function. That gating will matter a great deal in Chapter 10.</p>
+        <p>The idea had been found more than once. Seppo Linnainmaa described reverse-mode automatic differentiation in his 1970 master's thesis; Paul Werbos proposed applying it to neural networks in his 1974 dissertation. The 1986 paper by David Rumelhart, Geoffrey Hinton, and Ronald Williams, <em>Learning representations by back-propagating errors</em>, made it famous by showing that hidden units learn useful internal features on their own. In one example, a network trained on family trees discovered hidden units encoding nationality and generation without being told those concepts existed.</p>
+        <h3>Gradient descent and its refinements</h3>
+        <p>Knowing the gradient tells you which way is downhill. Gradient descent takes a step that way:</p>
+      </div>
+      <div class="math-block">\[ \theta_{t+1} = \theta_t - \eta\,\nabla_\theta \mathcal{L}(\theta_t) \]</div>
+      <div class="prose">
+        <p>In practice the gradient is estimated on a small random <em>mini-batch</em> of examples rather than the full dataset, which is called stochastic gradient descent (SGD). The step size \(\eta\) is the most important setting in all of deep learning. Too small and training crawls; too large and it overshoots and diverges.</p>
+        <p>Plain gradient descent struggles in long, narrow valleys, which are common in real loss surfaces. The gradient points mostly across the valley rather than along it, so the optimizer zigzags. <em>Momentum</em> (Polyak, 1964) fixes this by accumulating a velocity that averages out the zigzag. <em>Adam</em> (Kingma and Ba, 2014) also rescales each coordinate by a running estimate of its gradient's magnitude, so that steep and shallow directions move at similar speeds:</p>
+      </div>
+      <div class="math-block">\[ \begin{aligned} \mathbf{m}_t &= \beta_1\mathbf{m}_{t-1} + (1-\beta_1)\,\mathbf{g}_t, & \mathbf{v}_t &= \beta_2\mathbf{v}_{t-1} + (1-\beta_2)\,\mathbf{g}_t^2, \\ \theta_{t+1} &= \theta_t - \eta\,\frac{\hat{\mathbf{m}}_t}{\sqrt{\hat{\mathbf{v}}_t}+\epsilon}, & \hat{\mathbf{m}}_t &= \frac{\mathbf{m}_t}{1-\beta_1^t},\ \ \hat{\mathbf{v}}_t = \frac{\mathbf{v}_t}{1-\beta_2^t}. \end{aligned} \]</div>
+
+      <figure class="bench" id="fig-descent">
+        <div class="bench-head"><span class="fig">Fig. 6.2</span><span class="label">Interactive</span><h4>Three optimizers race down the same loss surface</h4></div>
+        <div class="stage">
+          <canvas class="plot" style="aspect-ratio:1;cursor:crosshair" aria-label="Contour map of a loss function with three optimizer trajectories"></canvas>
+          <div class="stack">
+            <div class="ctl"><label for="gd-surface">Surface</label>
+              <select id="gd-surface"><option value="ravine">Ravine (ill-conditioned)</option><option value="bowl">Round bowl</option><option value="valleys">Two valleys (non-convex)</option><option value="rosen">Rosenbrock banana</option></select>
+            </div>
+            <div class="ctl"><label for="gd-lr">learning rate η <output></output></label><input type="range" id="gd-lr" min="-3" max="0" step="0.05" value="-0.65"></div>
+            <div class="btns"><button type="button" id="gd-replay" class="primary">Replay</button></div>
+            <table class="data opt-table"><thead><tr><th>Optimizer</th><th>Step</th><th>Loss</th></tr></thead><tbody></tbody></table>
+            <p class="caption">Click anywhere on the map to start all three from that point. Darker blue is lower loss; the cross marks the global minimum.</p>
+          </div>
+        </div>
+        <figcaption class="caption">On the ravine, plain gradient descent zigzags while momentum and Adam glide along the floor. Raise η until gradient descent diverges, then compare. On two valleys, the starting point decides which minimum you find: gradient methods only see the local slope.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== 1989 universal approximation -->
+    <section class="chapter" id="approx" data-year="1989" data-short="Universal approximation">
+      <div class="chapter-head">
+        <span class="year">1989</span>
+        <span class="label kicker">Chapter 7 · Cybenko; Hornik, Stinchcombe &amp; White</span>
+        <h2>What a network can represent</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">With backpropagation, multilayer networks could be trained. But how much could they express? In 1989 George Cybenko, and independently Kurt Hornik, Maxwell Stinchcombe, and Halbert White, proved a striking answer: a network with a single hidden layer can approximate any continuous function on a bounded region as closely as you like, given enough hidden units.</p>
+      </div>
+      <div class="math-block">\[ \forall \varepsilon \gt  0\ \ \exists N, \{v_j, \mathbf{w}_j, b_j\}: \quad \sup_{\mathbf{x}\in K}\ \Big|\, F(\mathbf{x}) - \sum_{j=1}^{N} v_j\,\sigma(\mathbf{w}_j\cdot\mathbf{x} + b_j) \Big| \lt  \varepsilon \]</div>
+      <div class="prose">
+        <p>The intuition is constructive. Each hidden unit contributes a soft step along some direction. Two opposite steps make a bump. Enough bumps, scaled and placed, can trace any shape, the way a histogram approximates a curve.</p>
+        <p>The theorem is often misread. It says a good approximation <em>exists</em>; it says nothing about whether gradient descent will find it, how many units you need (it can be exponentially many), or whether the result will generalize to new data. In practice, <em>depth</em> turned out to matter more than width: deep networks can represent many functions with exponentially fewer units than shallow ones, because each layer builds features out of the previous layer's features.</p>
+        <p>The playground below lets you feel these trade-offs. Each small square on the right shows what one neuron in the first hidden layer responds to. Watch them specialize as training proceeds.</p>
+      </div>
+
+      <figure class="bench" id="fig-playground">
+        <div class="bench-head"><span class="fig">Fig. 7.1</span><span class="label">Interactive</span><h4>Network playground</h4></div>
+        <div class="btns" role="group" aria-label="Dataset">
+          <button type="button" data-set="circle" aria-pressed="true">Circle</button>
+          <button type="button" data-set="xor" aria-pressed="false">XOR</button>
+          <button type="button" data-set="gauss" aria-pressed="false">Two clusters</button>
+          <button type="button" data-set="spiral" aria-pressed="false">Spiral</button>
+        </div>
+        <div class="stage">
+          <canvas class="plot" id="pg-canvas" style="aspect-ratio:1" aria-label="Decision boundary of the network over the training data"></canvas>
+          <div class="stack">
+            <div class="btns">
+              <button type="button" id="pg-play" class="primary" aria-pressed="false">Train</button>
+              <button type="button" id="pg-step">+30 epochs</button>
+              <button type="button" id="pg-reset">Reset weights</button>
+            </div>
+            <div class="controls">
+              <div class="ctl"><label for="pg-layers">hidden layers <output></output></label><input type="range" id="pg-layers" min="1" max="3" step="1" value="2"></div>
+              <div class="ctl"><label for="pg-width">neurons per layer <output></output></label><input type="range" id="pg-width" min="1" max="8" step="1" value="6"></div>
+              <div class="ctl"><label for="pg-lr">learning rate <output></output></label><input type="range" id="pg-lr" min="0.01" max="0.5" step="0.01" value="0.08"></div>
+              <div class="ctl"><label for="pg-act">activation</label><select id="pg-act"><option value="tanh">tanh</option><option value="relu">ReLU</option><option value="sigmoid">sigmoid</option></select></div>
+            </div>
+            <label class="check"><input type="checkbox" id="pg-feats"> Add hand-made features x², y², x·y</label>
+            <div class="readouts"></div>
+            <div><span class="label">Training loss</span><canvas id="pg-loss" style="width:100%;height:64px;display:block;border:1px solid var(--rule);border-radius:2px;margin-top:4px" aria-label="Training loss over time"></canvas></div>
+            <div><span class="label">First hidden layer, one square per neuron</span><div class="pg-neurons" style="margin-top:6px"></div></div>
+          </div>
+        </div>
+        <figcaption class="caption">Try the spiral with one layer of two neurons: it cannot be done. Then add layers. Try XOR with zero effort by ticking hand-made features, which gives the network an \(x\cdot y\) input that solves XOR directly. Before deep learning, choosing such features by hand was most of the work in machine learning.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== 1989 CNN -->
+    <section class="chapter" id="convolution" data-year="1989" data-short="Convolutional networks">
+      <div class="chapter-head">
+        <span class="year">1989</span>
+        <span class="label kicker">Chapter 8 · Fukushima; LeCun</span>
+        <h2>Convolution: seeing with shared weights</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A fully connected network treats an image as an unordered list of pixels. It has no idea that neighboring pixels are related or that a cat in the corner is still a cat. A 256×256 image fed into a layer of 1,000 neurons already needs 65 million weights, and each must learn separately what an edge looks like at its particular location.</p>
+        <p>Neuroscience suggested a better design. In the 1950s and 60s, David Hubel and Torsten Wiesel found that neurons in the cat visual cortex respond to edges at particular orientations within small patches of the visual field, and that later stages combine these into more complex patterns. Kunihiko Fukushima built that hierarchy into his Neocognitron in 1980. In 1989, Yann LeCun and colleagues at Bell Labs combined the architecture with backpropagation to read handwritten ZIP codes for the US Postal Service.</p>
+        <p>The key operation is the <em>convolution</em>. A small grid of weights, the kernel, slides across the image. At each position it computes a weighted sum of the pixels underneath:</p>
+      </div>
+      <div class="math-block">\[ (I \ast K)[i, j] \;=\; \sum_{a=-1}^{1}\sum_{b=-1}^{1} K[a, b]\; I[i+a,\, j+b] \]</div>
+      <div class="prose">
+        <p>(Strictly this is cross-correlation, since the kernel is not flipped, but every deep-learning library calls it convolution.) The same nine weights are used at every position. This <em>weight sharing</em> builds in translation equivariance: a feature detector that learns to find a vertical edge finds it anywhere. A 3×3 kernel has 9 weights no matter how large the image is.</p>
+      </div>
+
+      <figure class="bench" id="fig-conv">
+        <div class="bench-head"><span class="fig">Fig. 8.1</span><span class="label">Interactive</span><h4>A 3×3 kernel sliding over a 16×16 image</h4></div>
+        <div class="stage">
+          <div class="stack">
+            <span class="label">Input image: click or drag to paint</span>
+            <canvas class="plot" id="conv-in" style="aspect-ratio:1;cursor:cell" aria-label="16 by 16 pixel input image"></canvas>
+            <div class="btns"><button type="button" id="conv-seven">Load the digit 7</button><button type="button" id="conv-clear">Clear</button></div>
+          </div>
+          <div class="stack">
+            <span class="label">Feature map: hover to inspect</span>
+            <canvas class="plot" id="conv-out" style="aspect-ratio:1" aria-label="Output feature map after convolution"></canvas>
+            <div class="legend"><span><i style="background:var(--s1)"></i>positive response</span><span><i style="background:var(--s2)"></i>negative response</span></div>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="ctl" style="flex:0 1 220px"><label for="conv-kernel">Kernel</label><select id="conv-kernel"></select></div>
+          <div class="ctl" style="flex:0 1 auto"><span class="lab">Weights (editable)</span><div class="kernel"></div></div>
+        </div>
+        <p class="conv-calc"></p>
+        <figcaption class="caption">The amber square on the input is the receptive field of the highlighted output cell. A vertical-edge kernel lights up blue on the left edges of strokes and amber on the right edges. A trained CNN learns its kernels from data, and its first layer usually discovers edge and color detectors much like these.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>A convolutional network stacks these layers. Each layer applies dozens or hundreds of kernels in parallel, producing a stack of feature maps; a nonlinearity follows; and periodically a <em>pooling</em> step downsamples by taking the maximum or average over small windows. Early layers detect edges, middle layers detect textures and parts, and late layers respond to whole objects. Each layer's receptive field covers a larger region of the original image than the last.</p>
+        <p>LeCun's LeNet-5, described in the landmark 1998 paper <em>Gradient-Based Learning Applied to Document Recognition</em>, had about 60,000 parameters. Deployed by NCR in bank check readers, it processed a substantial fraction of checks written in the United States around the turn of the millennium. It was one of the first neural networks to do economically important work at scale, during a decade when most of the field had moved on to other methods.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== 1995 -->
+    <section class="chapter" id="kernels" data-year="1995" data-short="Margins & kernels">
+      <div class="chapter-head">
+        <span class="year">1995</span>
+        <span class="label kicker">Chapter 9 · Vapnik and statistical learning</span>
+        <h2>Margins, kernels, and the statistical turn</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Through the 1990s neural networks had a reputation as finicky: many local minima, many hyperparameters, little theory. A rival approach offered clean mathematics and convex optimization with a single global optimum. For roughly fifteen years it dominated machine learning.</p>
+        <p>Vladimir Vapnik and Alexey Chervonenkis had been developing <em>statistical learning theory</em> since the 1960s in the Soviet Union. Its central question is generalization: when does low error on training data guarantee low error on new data? Their answer bounds the gap using the <em>capacity</em> of the model class, measured by the VC dimension \(h\). With probability at least \(1-\delta\) over \(n\) training samples,</p>
+      </div>
+      <div class="math-block">\[ R(f) \;\le\; \hat{R}_n(f) \;+\; \sqrt{\frac{h\left(\ln\frac{2n}{h}+1\right) + \ln\frac{4}{\delta}}{n}} \]</div>
+      <div class="prose">
+        <p>True risk is at most training risk plus a penalty that grows with capacity and shrinks with data. This formalizes Occam's razor and the danger of <em>overfitting</em>: a model flexible enough to memorize the training set may learn nothing that transfers.</p>
+        <h3>The support vector machine</h3>
+        <p>The perceptron stops at any separating line. Vapnik asked for the best one: the line with the largest margin to the nearest points on either side. With labels \(y_i\in\{-1,+1\}\), Corinna Cortes and Vapnik's 1995 soft-margin formulation is</p>
+      </div>
+      <div class="math-block">\[ \min_{\mathbf{w},\, b,\, \xi}\ \ \tfrac12\|\mathbf{w}\|^2 + C\sum_i \xi_i \quad\text{subject to}\quad y_i(\mathbf{w}\cdot\mathbf{x}_i + b) \ge 1 - \xi_i,\ \ \xi_i \ge 0 \]</div>
+      <div class="prose">
+        <p>The margin width is \(2/\|\mathbf{w}\|\), so minimizing \(\|\mathbf{w}\|\) maximizes it, and the slack variables \(\xi_i\) let a few points violate it at cost \(C\). The problem is convex. The solution depends only on the few training points that touch the margin, the <em>support vectors</em>.</p>
+        <p>The most elegant trick came in the dual form of the problem, where data appear only through dot products \(\mathbf{x}_i\cdot\mathbf{x}_j\). Replace each dot product with a <em>kernel</em> function \(k(\mathbf{x}_i, \mathbf{x}_j) = \phi(\mathbf{x}_i)\cdot\phi(\mathbf{x}_j)\) and the SVM finds a linear boundary in the feature space \(\phi\), which may be enormous or even infinite-dimensional, without ever computing \(\phi\). The radial basis kernel</p>
+      </div>
+      <div class="math-block">\[ k(\mathbf{x}, \mathbf{x}') = \exp\!\big(-\gamma\,\|\mathbf{x}-\mathbf{x}'\|^2\big) \]</div>
+      <div class="prose">
+        <p>corresponds to an infinite-dimensional \(\phi\). This is the same move as the hidden layer in Chapter 4, lifting the data into a space where a line suffices, except that the lift is fixed by the choice of kernel rather than learned. That difference proved decisive. Kernel methods are only as good as their kernel, and for images and language nobody could design kernels as good as features a deep network learns for itself.</p>
+        <p>The same era produced other durable tools: decision-tree ensembles such as AdaBoost (Freund and Schapire, 1995) and random forests (Breiman, 2001), graphical models, and the hidden Markov models that ran most speech recognizers until about 2012. For tabular data, gradient-boosted trees remain hard to beat today.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== 1997 -->
+    <section class="chapter" id="memory" data-year="1997" data-short="RNNs & LSTM">
+      <div class="chapter-head">
+        <span class="year">1997</span>
+        <span class="label kicker">Chapter 10 · Hochreiter &amp; Schmidhuber</span>
+        <h2>Memory, and the vanishing gradient</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Language, speech, and music arrive as sequences, and their meaning depends on order and context. A <em>recurrent neural network</em> (RNN) handles sequences by keeping a hidden state \(\mathbf{h}_t\) that it updates at each step, so information from earlier inputs can influence later outputs:</p>
+      </div>
+      <div class="math-block">\[ \mathbf{h}_t = \tanh\!\big(W\mathbf{h}_{t-1} + U\mathbf{x}_t + \mathbf{b}\big) \]</div>
+      <div class="prose">
+        <p>Training unrolls the network through time, so a sequence of length 100 becomes a 100-layer network with shared weights, and backpropagation runs through all of it. Sepp Hochreiter, in his 1991 diploma thesis, and Yoshua Bengio, Patrice Simard, and Paolo Frasconi, in 1994, identified the problem this creates. The gradient reaching step \(t-k\) is a product of \(k\) Jacobians:</p>
+      </div>
+      <div class="math-block">\[ \frac{\partial \mathbf{h}_t}{\partial \mathbf{h}_{t-k}} = \prod_{j=t-k+1}^{t} \operatorname{diag}\!\big(\tanh'(\mathbf{z}_j)\big)\,W \]</div>
+      <div class="prose">
+        <p>If the factors are typically smaller than 1, the product shrinks exponentially and the network cannot learn long-range dependencies: the gradient <em>vanishes</em>. If they are larger than 1 it <em>explodes</em>. For the sigmoid, \(\sigma'\) never exceeds 0.25, so vanishing is almost guaranteed.</p>
+        <p>Hochreiter and Jürgen Schmidhuber's 1997 <em>Long Short-Term Memory</em> fixed this with a separate memory cell \(\mathbf{c}_t\) updated additively, not by repeated multiplication through a squashing function. Learned gates decide what to forget, what to write, and what to output:</p>
+      </div>
+      <div class="math-block">\[ \begin{aligned} \mathbf{f}_t &= \sigma(W_f[\mathbf{h}_{t-1},\mathbf{x}_t] + \mathbf{b}_f) & \mathbf{i}_t &= \sigma(W_i[\mathbf{h}_{t-1},\mathbf{x}_t] + \mathbf{b}_i) \\ \tilde{\mathbf{c}}_t &= \tanh(W_c[\mathbf{h}_{t-1},\mathbf{x}_t] + \mathbf{b}_c) & \mathbf{o}_t &= \sigma(W_o[\mathbf{h}_{t-1},\mathbf{x}_t] + \mathbf{b}_o) \\ \mathbf{c}_t &= \mathbf{f}_t\odot\mathbf{c}_{t-1} + \mathbf{i}_t\odot\tilde{\mathbf{c}}_t & \mathbf{h}_t &= \mathbf{o}_t\odot\tanh(\mathbf{c}_t) \end{aligned} \]</div>
+      <div class="prose">
+        <p>Along the cell path, \(\partial\mathbf{c}_t/\partial\mathbf{c}_{t-1} = \mathbf{f}_t\). When the forget gate stays near 1, gradients pass back through many steps nearly undiminished. (The forget gate itself was added by Felix Gers, Schmidhuber, and Fred Cummins in 2000.) The comparison below uses the typical size of each factor to show how quickly the signal decays.</p>
+      </div>
+
+      <figure class="bench" id="fig-vanish">
+        <div class="bench-head"><span class="fig">Fig. 10.1</span><span class="label">Interactive</span><h4>How much gradient survives k steps back</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="vg-w">recurrent weight |W| <output></output></label><input type="range" id="vg-w" min="0.5" max="2" step="0.01" value="0.9"></div>
+          <div class="ctl"><label for="vg-act">activation slope</label><select id="vg-act"><option value="0.65">tanh (typical slope 0.65)</option><option value="1">tanh near zero (slope 1.0)</option><option value="0.25">sigmoid (max slope 0.25)</option></select></div>
+          <div class="ctl"><label for="vg-f">LSTM forget gate f <output></output></label><input type="range" id="vg-f" min="0.8" max="1" step="0.001" value="0.97"></div>
+        </div>
+        <div class="chart-wrap"><svg class="plot" role="img" aria-label="Line chart of gradient magnitude versus time steps, log scale"></svg></div>
+        <figcaption class="caption">Log scale: each gridline is a factor of 1,000. The simple RNN's gradient scales as \((|W|\cdot f')^k\), the LSTM cell path as \(f^k\). Push \(|W|\) above about 1.5 with tanh near zero to watch the gradient explode instead. Hover for values.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>LSTMs became the workhorse for sequences. By the mid-2010s they powered speech recognition on phones, Google Translate (from 2016), and handwriting recognition. Their weakness was structural. Each step depends on the previous one, so training cannot be parallelized across the sequence, and information from far back must survive being squeezed through the hidden state at every step in between. Chapter 13 describes the architecture that removed both limits.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== 2012 -->
+    <section class="chapter" id="imagenet" data-year="2012" data-short="The deep learning breakout">
+      <div class="chapter-head">
+        <span class="year">2012</span>
+        <span class="label kicker">Chapter 11 · Krizhevsky, Sutskever &amp; Hinton</span>
+        <h2>Data, GPUs, and the ImageNet moment</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">By 2010 every ingredient of modern deep learning had existed for over a decade except two: data and compute at sufficient scale. Then both arrived at once.</p>
+        <p>The data came from Fei-Fei Li's ImageNet project, which used Amazon Mechanical Turk workers to label over 14 million images into more than 20,000 categories. From 2010, the annual ImageNet Large Scale Visual Recognition Challenge (ILSVRC) asked entrants to classify 1.2 million training images into 1,000 categories, scored by <em>top-5 error</em>: the fraction of test images whose true label was not among the model's five guesses.</p>
+        <p>The compute came from video games. Graphics processors (GPUs) perform thousands of simple arithmetic operations in parallel, which is exactly what multiplying matrices requires. NVIDIA's CUDA platform (2007) made them programmable for general computation.</p>
+        <p>In 2012, Alex Krizhevsky, Ilya Sutskever, and Geoffrey Hinton entered a convolutional network trained on two consumer NVIDIA GTX 580 GPUs over about six days. AlexNet had eight learned layers and about 60 million parameters. It cut the top-5 error from 26% to 15.3%, while the second-best entry scored 26.2%. In a field used to gains of one or two points a year, this was a shock. Within two years nearly every competitive entry was a deep CNN.</p>
+      </div>
+
+      <figure class="bench" id="fig-imagenet">
+        <div class="bench-head"><span class="fig">Fig. 11.1</span><span class="label">Chart</span><h4>ILSVRC winning top-5 classification error, 2010–2017</h4></div>
+        <div class="chart-wrap"><svg class="plot" role="img" aria-label="Bar chart: ImageNet top-5 error fell from 28.2% in 2010 to 2.25% in 2017, with AlexNet at 15.3% in 2012"></svg></div>
+        <figcaption class="caption">Winning entries by year. AlexNet's 2012 result is the highlighted bar. The dashed line is the error rate of one trained human annotator measured by Andrej Karpathy (Russakovsky et al., 2015), a rough benchmark rather than a ceiling. Hover any bar for the entry.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>The tricks that made depth work</h3>
+        <p>AlexNet and its successors relied on a handful of simple ideas that remain standard.</p>
+        <ul>
+          <li><strong>ReLU activations.</strong> \(\mathrm{ReLU}(z) = \max(0, z)\) has slope exactly 1 for positive inputs, so gradients do not shrink through active units. AlexNet trained several times faster with it than with tanh.</li>
+          <li><strong>Dropout</strong> (Hinton et al., 2012; Srivastava et al., 2014). During training, randomly zero each unit with probability \(p\). The network cannot rely on any single unit, which acts like training a huge ensemble of thinned networks and sharply reduces overfitting.</li>
+          <li><strong>Data augmentation.</strong> Random crops, flips, and color shifts multiply the effective size of the training set.</li>
+          <li><strong>Batch normalization</strong> (Ioffe and Szegedy, 2015). Normalize each layer's inputs to zero mean and unit variance across the mini-batch, then rescale with learned parameters. Training becomes faster and far less sensitive to initialization.</li>
+          <li><strong>Residual connections</strong> (He et al., 2015). Instead of learning a mapping \(H(\mathbf{x})\) directly, each block learns a correction: \(\mathbf{y} = \mathbf{x} + F(\mathbf{x})\). The identity path gives gradients a direct route backward, the same insight as the LSTM's cell path. ResNet trained networks of 152 layers and beat the human benchmark.</li>
+        </ul>
+        <p>The same year, deep networks transformed speech recognition: a 2012 paper from Hinton's group with Microsoft, Google, and IBM researchers reported large error reductions from replacing older acoustic models with deep networks. In 2016, DeepMind's AlphaGo, combining deep networks with tree search and reinforcement learning, defeated Lee Sedol four games to one at Go, a game long considered decades away from machine mastery. In 2018 Hinton, LeCun, and Bengio received the Turing Award for the conceptual and engineering breakthroughs that made deep neural networks practical.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== 2013 -->
+    <section class="chapter" id="embeddings" data-year="2013" data-short="Word vectors">
+      <div class="chapter-head">
+        <span class="year">2013</span>
+        <span class="label kicker">Chapter 12 · Mikolov et al.</span>
+        <h2>Meaning as geometry</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Images arrive as numbers. Words do not. The traditional representation was a <em>one-hot</em> vector: a vocabulary of 100,000 words becomes 100,000-dimensional vectors with a single 1. Every pair of words is then equally different, so "cat" is as far from "kitten" as from "carburetor".</p>
+        <p>The fix rests on an old linguistic idea, summarized by J. R. Firth in 1957: "You shall know a word by the company it keeps." Words that appear in similar contexts tend to have similar meanings. In 2013 Tomas Mikolov and colleagues at Google released <em>word2vec</em>, which learns a dense vector of a few hundred numbers for each word by training a shallow network to predict context. The skip-gram variant with negative sampling maximizes, for each word \(w\) and a context word \(c\) observed near it,</p>
+      </div>
+      <div class="math-block">\[ \log\sigma(\mathbf{v}_c\cdot\mathbf{v}_w) \;+\; \sum_{n=1}^{k}\log\sigma(-\mathbf{v}_{n}\cdot\mathbf{v}_w) \]</div>
+      <div class="prose">
+        <p>pushing vectors of co-occurring words together and pulling \(k\) randomly sampled "negative" words apart. Similarity between words is then measured by the cosine of the angle between their vectors:</p>
+      </div>
+      <div class="math-block">\[ \operatorname{sim}(\mathbf{a}, \mathbf{b}) = \frac{\mathbf{a}\cdot\mathbf{b}}{\|\mathbf{a}\|\,\|\mathbf{b}\|} \]</div>
+      <div class="prose">
+        <p>The surprise was that the resulting space had linear structure nobody had asked for. Consistent relationships became consistent directions. The vector from <em>man</em> to <em>woman</em> roughly matched the vector from <em>king</em> to <em>queen</em>, so \(\mathbf{v}_{\text{king}} - \mathbf{v}_{\text{man}} + \mathbf{v}_{\text{woman}}\) landed nearest to \(\mathbf{v}_{\text{queen}}\).</p>
+      </div>
+
+      <figure class="bench" id="fig-embed">
+        <div class="bench-head"><span class="fig">Fig. 12.1</span><span class="label">Interactive</span><h4>Vector arithmetic on word meanings</h4></div>
+        <div class="controls"><div class="ctl" style="flex:0 1 300px"><label for="emb-q">Analogy</label><select id="emb-q"></select></div></div>
+        <div class="scroll-x"><svg class="plot" style="min-width:520px" role="img" aria-label="Two-dimensional map of word vectors showing an analogy as parallel arrows"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">An illustration, not a trained model. Real word2vec vectors have around 300 dimensions; these 20 words were placed by hand in two so the geometry is visible. The blue arrow is the relation (b → a); the amber arrow transplants it onto c and lands near the answer. In real embeddings the analogy test works often but not always, and the same arithmetic also surfaces the social biases present in the training text.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>Embeddings became the standard input layer for language models: a lookup table, learned along with everything else, that maps each token to a vector. The idea generalized well beyond words to products, songs, proteins, and users. Later models would make embeddings <em>contextual</em>, so that "bank" gets a different vector in "river bank" and "bank loan". That required a way for each word to look at the others.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== 2017 -->
+    <section class="chapter" id="attention" data-year="2017" data-short="Attention & transformers">
+      <div class="chapter-head">
+        <span class="year">2017</span>
+        <span class="label kicker">Chapter 13 · Vaswani et al.</span>
+        <h2>Attention is all you need</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 2014 Ilya Sutskever, Oriol Vinyals, and Quoc Le showed that an LSTM could translate by reading a sentence into a single vector and then generating the translation from it. The single vector was a bottleneck: long sentences lost detail. The same year, Dzmitry Bahdanau, Kyunghyun Cho, and Yoshua Bengio let the decoder look back at <em>all</em> the encoder's states, weighting each by relevance. They called the mechanism <em>attention</em>.</p>
+        <p>In June 2017 eight researchers at Google published <em>Attention Is All You Need</em>, which asked what would happen if you removed recurrence entirely and built the network from attention alone. The result, the <em>Transformer</em>, trained faster and translated better than anything before it. Nearly every frontier language model since is a descendant.</p>
+        <h3>Scaled dot-product attention</h3>
+        <p>Each token's vector is projected three ways by learned matrices: a <em>query</em> \(\mathbf{q}\) (what am I looking for?), a <em>key</em> \(\mathbf{k}\) (what do I contain?), and a <em>value</em> \(\mathbf{v}\) (what do I pass along if selected?). Every token compares its query against every key, turns the scores into weights with a softmax, and takes the weighted average of the values. For all tokens at once, with queries, keys, and values stacked into matrices:</p>
+      </div>
+      <div class="math-block">\[ \operatorname{Attention}(Q, K, V) = \operatorname{softmax}\!\left(\frac{QK^{\top}}{\sqrt{d_k}}\right)V, \qquad \operatorname{softmax}(\mathbf{s})_j = \frac{e^{s_j}}{\sum_m e^{s_m}} \]</div>
+      <div class="prose">
+        <p>Dividing by \(\sqrt{d_k}\) keeps the dot products from growing with dimension. Without it the softmax saturates, putting nearly all weight on one token, and gradients vanish. The whole operation is a few matrix multiplications, which GPUs do superbly, and every token is processed in parallel. The path between any two tokens is a single step regardless of how far apart they are.</p>
+      </div>
+
+      <figure class="bench" id="fig-attn">
+        <div class="bench-head"><span class="fig">Fig. 13.1</span><span class="label">Interactive</span><h4>One attention head resolving "it"</h4></div>
+        <div class="btns" role="group" aria-label="Sentence ending">
+          <span class="label" style="align-self:center">The animal didn't cross the street because it was too…</span>
+          <button type="button" data-end="tired" aria-pressed="true">tired</button>
+          <button type="button" data-end="wide" aria-pressed="false">wide</button>
+        </div>
+        <div class="stack">
+          <span class="label">Click a token to make it the query. The amber underline shows how much the query attends to each token.</span>
+          <div class="attn-tokens"></div>
+        </div>
+        <div class="stage">
+          <div class="stack">
+            <span class="label">Top attention weights for the query</span>
+            <div class="attn-bars"></div>
+            <div class="controls">
+              <div class="ctl"><label for="attn-tau">temperature τ <output></output></label><input type="range" id="attn-tau" min="0.2" max="3" step="0.05" value="1"></div>
+            </div>
+            <label class="check"><input type="checkbox" id="attn-causal"> Causal mask (each token sees only earlier tokens, as in GPT)</label>
+            <div class="readouts"></div>
+          </div>
+          <div class="stack">
+            <span class="label">Full attention matrix: rows are queries, columns are keys</span>
+            <canvas id="attn-matrix" style="width:100%;display:block" aria-label="Heatmap of attention weights between all token pairs"></canvas>
+          </div>
+        </div>
+        <figcaption class="caption">A toy with hand-set 4-dimensional queries and keys, built to show the mechanism. Switch "tired" to "wide" and the query for "it" shifts from the animal to the street. In a trained model, that query is produced by earlier layers that have already mixed in the adjective. Lower τ sharpens the softmax toward a single token; raise it and attention spreads out evenly.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>The rest of the block</h3>
+        <p>A Transformer layer runs several attention <em>heads</em> in parallel, each with its own projections, so different heads can track different relationships: one might link pronouns to nouns, another verbs to their objects. Their outputs are concatenated and projected back:</p>
+      </div>
+      <div class="math-block">\[ \operatorname{MultiHead}(X) = \operatorname{Concat}(\text{head}_1,\ldots,\text{head}_h)\,W^O, \qquad \text{head}_i = \operatorname{Attention}(XW_i^Q,\, XW_i^K,\, XW_i^V) \]</div>
+      <div class="prose">
+        <p>Each layer then applies a position-wise feed-forward network, typically expanding to four times the width and back. Both sublayers are wrapped in residual connections and layer normalization, the same tools that made ResNet trainable. A large model stacks dozens of such layers.</p>
+        <p>Attention by itself has no sense of order: shuffle the tokens and each output is shuffled the same way. The original Transformer added a <em>positional encoding</em> to each token's embedding, built from sinusoids of geometrically increasing wavelengths:</p>
+      </div>
+      <div class="math-block">\[ PE_{(p,\,2i)} = \sin\!\left(\frac{p}{10000^{2i/d}}\right), \qquad PE_{(p,\,2i+1)} = \cos\!\left(\frac{p}{10000^{2i/d}}\right) \]</div>
+
+      <figure class="bench" id="fig-posenc">
+        <div class="bench-head"><span class="fig">Fig. 13.2</span><span class="label">Interactive</span><h4>Sinusoidal positional encoding, 64 positions × 64 dimensions</h4></div>
+        <canvas class="plot" aria-label="Heatmap of positional encoding values"></canvas>
+        <div class="readouts"><span>Hover the map to read values</span></div>
+        <figcaption class="caption">Positions run left to right, dimensions top to bottom. Blue is positive, amber negative. The top rows oscillate quickly and the bottom rows slowly, like the hands of a clock, so every position gets a unique pattern and nearby positions get similar ones. Many recent models use rotary embeddings (RoPE, Su et al., 2021), which rotate query and key vectors by position-dependent angles instead.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== 2018 -->
+    <section class="chapter" id="pretraining" data-year="2018" data-short="Pretrained language models">
+      <div class="chapter-head">
+        <span class="year">2018</span>
+        <span class="label kicker">Chapter 14 · GPT and BERT</span>
+        <h2>Predict the next word</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Labeled data is expensive. Unlabeled text is nearly free: the web holds trillions of words. In 2018 two papers showed how to exploit it. Train a Transformer on a simple self-supervised task over a huge corpus, then fine-tune the pretrained network on whatever task you care about.</p>
+        <p>OpenAI's GPT (June 2018) used a decoder-only Transformer with a causal mask and trained it to predict each token from those before it. Google's BERT (October 2018) used an encoder that sees the whole sentence and trained it to fill in randomly masked words. BERT swept the language-understanding benchmarks; within a year it was running inside Google Search. But the next-token objective had a property that would prove more important. It turns a language model into a generator.</p>
+        <p>A language model assigns probability to a sequence by the chain rule of probability, one token at a time:</p>
+      </div>
+      <div class="math-block">\[ P(x_1, \ldots, x_T) = \prod_{t=1}^{T} P_\theta(x_t \mid x_1,\ldots,x_{t-1}), \qquad \mathcal{L}(\theta) = -\frac{1}{T}\sum_{t=1}^{T}\log P_\theta(x_t \mid x_{\lt t}) \]</div>
+      <div class="prose">
+        <p>The loss is the average cross-entropy, measured in nats per token. Its exponential, the <em>perplexity</em>, can be read as the effective number of choices the model is torn between at each step. Getting this number down on diverse text turns out to require modeling grammar, facts, arithmetic, style, and some amount of reasoning, because all of these help predict what comes next.</p>
+        <h3>Tokens</h3>
+        <p>Models read <em>tokens</em>, not words or letters. A word-level vocabulary cannot handle new words or typos; a character-level one makes sequences very long. The usual compromise is <em>byte-pair encoding</em> (BPE), adapted for language by Rico Sennrich and colleagues in 2016 from a 1994 compression algorithm. Start with individual characters. Repeatedly find the most frequent adjacent pair and merge it into a new token. Common words become single tokens; rare words break into reusable pieces.</p>
+      </div>
+
+      <figure class="bench" id="fig-bpe">
+        <div class="bench-head"><span class="fig">Fig. 14.1</span><span class="label">Interactive</span><h4>Learning a byte-pair vocabulary</h4></div>
+        <div class="ctl"><label for="bpe-text">Training text (edit freely)</label><textarea id="bpe-text" rows="3">low lower lowest low newer newest new wider widest wide slow slower slowest the newest model is lower and wider than the slowest model</textarea></div>
+        <div class="ctl" style="max-width:360px"><label for="bpe-n">merges learned <output>0</output></label><input type="range" id="bpe-n" min="0" max="40" step="1" value="8"></div>
+        <div class="stage">
+          <div class="stack"><span class="label">Text as tokens (▁ marks a word end)</span><div class="bpe-out"></div></div>
+          <div class="stack"><span class="label">Merge rules, in the order learned</span><ol class="bpe-merges"></ol></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Shared suffixes such as "est▁" and "er▁" and shared stems such as "low" become tokens early because they recur. Production tokenizers run the same procedure over bytes on terabytes of text and stop at vocabularies of roughly 50,000 to 200,000 tokens. English averages about four characters per token.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>From probabilities to text</h3>
+        <p>To generate, the model computes a score (a <em>logit</em>) \(z_i\) for every token in its vocabulary, turns the scores into probabilities with a softmax, picks a token, appends it, and repeats. How it picks matters. Always taking the most probable token produces repetitive text. Sampling directly from the distribution produces occasional nonsense from the long tail. Two controls tame this. <em>Temperature</em> \(T\) rescales the logits before the softmax:</p>
+      </div>
+      <div class="math-block">\[ p_i = \frac{\exp(z_i / T)}{\sum_j \exp(z_j / T)} \]</div>
+      <div class="prose">
+        <p>\(T &lt; 1\) sharpens the distribution toward the top choice; \(T &gt; 1\) flattens it. <em>Nucleus</em> or top-\(p\) sampling (Holtzman et al., 2019) keeps only the smallest set of tokens whose probabilities sum to at least \(p\), renormalizes, and samples from those.</p>
+      </div>
+
+      <figure class="bench" id="fig-sample">
+        <div class="bench-head"><span class="fig">Fig. 14.2</span><span class="label">Interactive</span><h4>Choosing the next token</h4></div>
+        <p class="prompt-line">The cat sat on the <span>____</span></p>
+        <div class="stage">
+          <div class="stack">
+            <div class="controls">
+              <div class="ctl"><label for="smp-T">temperature T <output></output></label><input type="range" id="smp-T" min="0.1" max="2.5" step="0.05" value="1"></div>
+              <div class="ctl"><label for="smp-p">top-p <output></output></label><input type="range" id="smp-p" min="0.05" max="1" step="0.01" value="0.9"></div>
+            </div>
+            <div class="btns"><button type="button" id="smp-go" class="primary">Sample 40 continuations</button></div>
+            <div class="readouts"></div>
+            <div class="tally"></div>
+          </div>
+          <div class="dist"></div>
+        </div>
+        <figcaption class="caption">Illustrative logits, not taken from a real model. Bars show the final sampling probability; the thin grey tick marks the probability before top-p truncation. At T = 0.1 the model nearly always says "mat". At T = 2.5 with top-p = 1, even "moon" appears.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>GPT-2 (February 2019, 1.5 billion parameters) generated paragraphs coherent enough that OpenAI initially withheld the full model, citing misuse concerns. GPT-3 (May 2020, 175 billion parameters) showed something stranger: <em>in-context learning</em>. Given a few examples of a task written into the prompt, such as English–French pairs or questions with answers, it would continue the pattern for a new input with no change to its weights. The ability had not been designed. It appeared with scale.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== 2020 -->
+    <section class="chapter" id="scaling" data-year="2020" data-short="Scaling laws">
+      <div class="chapter-head">
+        <span class="year">2020</span>
+        <span class="label kicker">Chapter 15 · Kaplan et al.; Hoffmann et al.</span>
+        <h2>Scaling laws</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In January 2020, Jared Kaplan and colleagues at OpenAI reported that a language model's loss falls as a smooth power law in three quantities: parameters \(N\), training tokens \(D\), and compute \(C\). Across seven orders of magnitude, with other factors not limiting,</p>
+      </div>
+      <div class="math-block">\[ \mathcal{L}(N) \approx \left(\frac{N_c}{N}\right)^{\alpha_N}, \qquad \alpha_N \approx 0.076 \]</div>
+      <div class="prose">
+        <p>On a log-log plot, a power law is a straight line. That made AI progress unusually predictable: small, cheap experiments could forecast the performance of a model a thousand times larger before anyone built it. Architecture details such as depth versus width mattered surprisingly little compared to sheer scale.</p>
+      </div>
+
+      <figure class="bench" id="fig-params">
+        <div class="bench-head"><span class="fig">Fig. 15.1</span><span class="label">Chart</span><h4>Parameter counts of notable models, 1998–2024</h4></div>
+        <div class="chart-wrap"><svg class="plot" role="img" aria-label="Scatter plot on a log scale: parameter counts grew from 60 thousand in LeNet-5 to hundreds of billions by 2022"></svg></div>
+        <figcaption class="caption">Log scale: each gridline is a factor of 100. Published counts only; several leading labs stopped disclosing model sizes after 2022. Chinchilla, in amber, is smaller than its predecessors on purpose. DeepSeek-V3 is a mixture-of-experts model: 671 billion parameters in total, 37 billion used for any given token. Hover any point for details.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>Compute-optimal training</h3>
+        <p>Training compute for a dense Transformer is approximately \(C \approx 6ND\) floating-point operations: about 2 per parameter per token for the forward pass and 4 for the backward pass. Given a fixed budget, should you train a bigger model on less data or a smaller one on more?</p>
+        <p>In 2022, Jordan Hoffmann and colleagues at DeepMind trained over 400 models to answer this, and fitted a parametric form:</p>
+      </div>
+      <div class="math-block">\[ \mathcal{L}(N, D) = E + \frac{A}{N^{\alpha}} + \frac{B}{D^{\beta}}, \qquad E = 1.69,\ A = 406.4,\ B = 410.7,\ \alpha = 0.34,\ \beta = 0.28 \]</div>
+      <div class="prose">
+        <p>\(E\) is the irreducible entropy of natural text; the other two terms are the penalties for finite model size and finite data. Minimizing under the constraint \(C = 6ND\) says parameters and data should grow at nearly the same rate, roughly 20 tokens per parameter. Most earlier large models had been undertrained. Their 70-billion-parameter <em>Chinchilla</em>, trained on 1.4 trillion tokens, outperformed their own 280-billion-parameter Gopher, which used the same compute.</p>
+      </div>
+
+      <figure class="bench" id="fig-chinchilla">
+        <div class="bench-head"><span class="fig">Fig. 15.2</span><span class="label">Interactive</span><h4>IsoFLOP curves: spending a compute budget</h4></div>
+        <div class="ctl" style="max-width:420px"><label for="ch-c">compute budget C <output></output></label><input type="range" id="ch-c" min="19" max="25" step="0.05" value="23.76"></div>
+        <div class="chart-wrap"><svg class="plot" role="img" aria-label="Predicted loss versus model size for fixed compute budgets, with the optimum marked"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Each grey curve fixes a budget from 10¹⁹ to 10²⁵ FLOPs and varies model size, with data set by \(D = C/6N\). Too small a model wastes compute on data it cannot absorb; too large a model sees too few tokens. The blue curve is your selected budget and the dashed amber line traces the optimum across budgets. The default, 5.8×10²³ FLOPs, is Chinchilla's own budget. This fit is one of three methods in the paper, and later work has argued for somewhat different constants.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>In practice, models are now often trained far past the compute-optimal point. The Chinchilla analysis minimizes the cost of <em>training</em>. A model that will answer billions of queries is cheaper overall if it is smaller and trained longer, since every query pays for every parameter. Meta's Llama 3 8B model, for example, was trained on over 15 trillion tokens, nearly 2,000 tokens per parameter.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== 2022 -->
+    <section class="chapter" id="alignment" data-year="2022" data-short="Alignment & ChatGPT">
+      <div class="chapter-head">
+        <span class="year">2022</span>
+        <span class="label kicker">Chapter 16 · Learning from human preferences</span>
+        <h2>From predicting text to following instructions</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A pretrained model imitates its training data, and the internet is not a helpful assistant. Ask a raw base model a question and it may answer, or it may continue with five more questions, as if completing a quiz. Turning a predictor into an assistant took a second stage of training aimed at what people actually want.</p>
+        <p>The first step is <em>supervised fine-tuning</em> (SFT): continue training on tens of thousands of example conversations written or curated by people, demonstrating good answers. The second step is <em>reinforcement learning from human feedback</em> (RLHF), developed by Paul Christiano and colleagues in 2017 for simulated robotics and Atari games and applied to language models through 2019–2022.</p>
+        <h3>A reward model from comparisons</h3>
+        <p>People are bad at assigning absolute scores but good at choosing the better of two answers. So labelers compare pairs of responses \(y_w\) (preferred) and \(y_l\) (rejected) to the same prompt \(x\). A reward model \(r_\phi\) is trained under the Bradley–Terry model of paired comparisons, which says the probability of preferring one answer is a logistic function of the reward difference:</p>
+      </div>
+      <div class="math-block">\[ P(y_w \succ y_l \mid x) = \sigma\big(r_\phi(x, y_w) - r_\phi(x, y_l)\big), \qquad \mathcal{L}_{\text{RM}} = -\,\mathbb{E}\big[\log\sigma\big(r_\phi(x, y_w) - r_\phi(x, y_l)\big)\big] \]</div>
+      <div class="prose">
+        <p>Then the language model, now viewed as a policy \(\pi_\theta\), is optimized with reinforcement learning (usually PPO, Schulman et al., 2017) to produce high-reward responses, with a penalty for drifting too far from the fine-tuned reference model \(\pi_{\text{ref}}\):</p>
+      </div>
+      <div class="math-block">\[ \max_{\pi_\theta}\ \ \mathbb{E}_{x,\; y\sim\pi_\theta}\big[r_\phi(x, y)\big] \;-\; \beta\, \mathrm{KL}\big(\pi_\theta(\cdot\mid x)\,\big\|\,\pi_{\text{ref}}(\cdot\mid x)\big) \]</div>
+      <div class="prose">
+        <p>The KL term matters. Without it, the policy learns to exploit flaws in the reward model, producing text that scores well but reads badly, an instance of Goodhart's law: when a measure becomes a target, it ceases to be a good measure.</p>
+        <p>OpenAI's InstructGPT paper (March 2022) reported that labelers preferred outputs from a 1.3-billion-parameter RLHF model over those of the 175-billion-parameter GPT-3. Alignment training could matter more than a hundredfold increase in size. On November 30, 2022, OpenAI released ChatGPT, a model trained with the same recipe, as a free research preview. It reached an estimated 100 million users in about two months, then the fastest adoption of any consumer application on record.</p>
+        <h3>Simpler recipes</h3>
+        <p>Anthropic's <em>Constitutional AI</em> (December 2022) replaced much of the human labeling with AI feedback guided by a written set of principles: the model critiques and revises its own outputs, and preference labels come from a model judging against the constitution. <em>Direct Preference Optimization</em> (DPO; Rafailov et al., 2023) showed that the RLHF objective above has a closed-form optimal policy, which allows skipping the separate reward model and the RL loop entirely:</p>
+      </div>
+      <div class="math-block">\[ \mathcal{L}_{\text{DPO}} = -\,\mathbb{E}\left[\log\sigma\!\left(\beta\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\text{ref}}(y_w\mid x)} - \beta\log\frac{\pi_\theta(y_l\mid x)}{\pi_{\text{ref}}(y_l\mid x)}\right)\right] \]</div>
+      <div class="prose">
+        <p>The model itself acts as an implicit reward model: the log-ratio of its probability to the reference model's plays the role of \(r\). Training is plain supervised learning on preference pairs.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== 2024 -->
+    <section class="chapter" id="today" data-year="2024" data-short="Reasoning & agents">
+      <div class="chapter-head">
+        <span class="year">2024</span>
+        <span class="label kicker">Chapter 17 · The present</span>
+        <h2>Reasoning, tools, and agents</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Through 2023 progress came mainly from scaling pretraining. From 2024 a second axis opened up: spending more computation at the moment of answering, by letting the model think at length before it responds.</p>
+        <p>The seed was <em>chain-of-thought prompting</em> (Wei et al., 2022). Asking a model to write out intermediate steps before the final answer sharply improved accuracy on arithmetic and logic problems. Each generated token is another forward pass through the network, so a model that writes a long derivation is using far more computation on the problem than one that answers in a word.</p>
+        <p><em>Reasoning models</em>, beginning publicly with OpenAI's o1 in September 2024, are trained to do this deliberately using reinforcement learning on problems with checkable answers: math with known solutions, code with unit tests. The model generates many attempts, the verifiable ones are scored, and the policy is updated toward attempts that succeeded. DeepSeek-R1 (January 2025) published such a recipe openly. Its group relative policy optimization (GRPO) scores each of \(G\) sampled answers against the others for the same prompt, avoiding a separate value network:</p>
+      </div>
+      <div class="math-block">\[ \hat{A}_i = \frac{r_i - \operatorname{mean}(r_1,\ldots,r_G)}{\operatorname{std}(r_1,\ldots,r_G)} \]</div>
+      <div class="prose">
+        <p>A notable finding of that work: behaviors such as checking an intermediate result, backtracking, and trying an alternative approach emerged from the reward signal alone, without examples of them. Accuracy on hard benchmarks rises steadily with the length of thinking allowed, giving a <em>test-time scaling law</em> that complements the training-time laws of Chapter 15.</p>
+        <h3>Models that act</h3>
+        <p>Language models can also emit structured requests to call tools: run code, search the web, query a database, operate a browser or a terminal. The results come back into the context window, and the model continues. Looped over many steps, this makes an <em>agent</em> that can carry out multi-step tasks such as fixing a bug across a codebase or researching a question across many sources. Context windows grew from 2,048 tokens for GPT-3 to hundreds of thousands and then millions, letting models work with whole books or repositories at once.</p>
+        <h3>Other threads</h3>
+        <ul>
+          <li><strong>Mixture of experts.</strong> Replace each feed-forward block with many expert sub-networks and a router that sends each token to only a few (Shazeer et al., 2017). Total parameters grow while compute per token stays modest.</li>
+          <li><strong>Multimodality.</strong> CLIP (2021) learned a shared embedding space for images and captions. Current models take images, audio, and video as tokens alongside text.</li>
+          <li><strong>Diffusion models</strong> (Ho et al., 2020) generate images by learning to reverse a gradual noising process, step by step, from pure noise to a picture. They underlie most image and video generators.</li>
+          <li><strong>Science.</strong> AlphaFold 2 (2020) predicted protein structures at close to experimental accuracy. In 2024 the Nobel Prize in Chemistry went to Demis Hassabis and John Jumper for it, shared with David Baker for protein design, and the Nobel Prize in Physics went to John Hopfield and Geoffrey Hinton for foundational work on neural networks.</li>
+          <li><strong>Open weights.</strong> Model families such as Llama, Mistral, Qwen, and DeepSeek published their weights, letting researchers and companies run and adapt capable models on their own hardware.</li>
+        </ul>
+      </div>
+      <ol class="events">
+        <li><time>2016</time><span>AlphaGo defeats Lee Sedol, 4–1.</span></li>
+        <li><time>2017</time><span>The Transformer. Deep RL from human preferences.</span></li>
+        <li><time>2018</time><span>GPT and BERT establish pretraining then fine-tuning.</span></li>
+        <li><time>2020</time><span>GPT-3 and in-context learning. Scaling laws. AlphaFold 2. Diffusion models.</span></li>
+        <li><time>2022</time><span>Chinchilla. InstructGPT. Chain-of-thought prompting. Constitutional AI. ChatGPT.</span></li>
+        <li><time>2023</time><span>GPT-4, Claude, LLaMA and many others; multimodal input becomes standard. DPO.</span></li>
+        <li><time>2024</time><span>Reasoning models trained with RL. Nobel Prizes for Hopfield, Hinton, Hassabis, Jumper, and Baker.</span></li>
+        <li><time>2025</time><span>DeepSeek-R1 publishes an open reasoning recipe. Coding and research agents enter everyday use.</span></li>
+      </ol>
+    </section>
+
+    <!-- ===================================================== EPILOGUE -->
+    <section class="chapter" id="open" data-year="Now" data-short="Open questions">
+      <div class="chapter-head">
+        <span class="label kicker">Chapter 18 · Epilogue</span>
+        <h2>What we still don't know</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The mathematics in this volume explains how these systems are trained. It explains much less about what they learn, and many basic questions are open.</p>
+        <ul>
+          <li><strong>Why does it generalize?</strong> Modern networks have far more parameters than training examples would seem to justify, and can memorize random labels, yet they generalize well on real data. Classical bounds like the VC inequality of Chapter 9 predict the opposite. Explanations involving the implicit biases of gradient descent are partial.</li>
+          <li><strong>What is inside?</strong> <em>Mechanistic interpretability</em> tries to reverse-engineer the algorithms a trained network implements, finding circuits for tasks like copying earlier text and features for concepts that span languages. Most of a large model's computation remains unexplained.</li>
+          <li><strong>How far does scaling go?</strong> The power laws have held for many orders of magnitude, but high-quality text is finite, and it is unclear which abilities continue to improve with scale and which plateau.</li>
+          <li><strong>How do we make it reliable?</strong> Models still state falsehoods fluently, can be manipulated through their inputs, and may pursue the letter of an objective rather than its intent. Making systems robustly honest and aligned with human intentions is an active research field with no settled solution.</li>
+          <li><strong>What is the right comparison to minds?</strong> These systems learn from vastly more text than any human reads, yet still lack much of the sample efficiency and grounding of a child. Whether that gap closes with more of the same or requires new ideas is debated.</li>
+        </ul>
+        <p>The pattern of the past eighty years suggests caution in both directions. Predictions of imminent general intelligence in the 1950s and 1980s proved wrong. So did confident claims that neural networks had hit fundamental limits in 1969 and again in the 1990s. The ideas that eventually worked were usually old ones, waiting for enough data and computation to show what they could do.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== GLOSSARY -->
+    <section class="chapter" id="glossary" data-year="Ref" data-short="Glossary & sources">
+      <div class="chapter-head">
+        <span class="label kicker">Reference</span>
+        <h2>Glossary</h2>
+      </div>
+      <dl class="glossary">
+        <dt>Activation function</dt><dd>The nonlinearity applied after a neuron's weighted sum: step, sigmoid, tanh, ReLU, or GELU. Without it, any stack of layers collapses to a single linear map.</dd>
+        <dt>Attention</dt><dd>A weighted average of value vectors, with weights from the softmax of query–key dot products. Lets every token read from every other token.</dd>
+        <dt>Backpropagation</dt><dd>Computing all gradients of a loss by applying the chain rule backward through a network. Reverse-mode automatic differentiation.</dd>
+        <dt>Cross-entropy</dt><dd>The loss \(-\log p\) of the correct answer. The standard loss for classification and language modeling.</dd>
+        <dt>Convolution</dt><dd>Sliding a small shared kernel of weights across an input. Builds in locality and translation equivariance.</dd>
+        <dt>Embedding</dt><dd>A learned dense vector representing a discrete item such as a token.</dd>
+        <dt>Epoch</dt><dd>One full pass through the training data.</dd>
+        <dt>Fine-tuning</dt><dd>Continuing to train a pretrained model on a smaller, task-specific dataset.</dd>
+        <dt>Gradient descent</dt><dd>Repeatedly stepping parameters against the gradient of the loss. "Stochastic" when the gradient is estimated on mini-batches.</dd>
+        <dt>Hyperparameter</dt><dd>A setting chosen by the practitioner rather than learned, such as the learning rate or number of layers.</dd>
+        <dt>Linearly separable</dt><dd>Two classes that a single hyperplane can divide. The condition under which a perceptron is guaranteed to converge.</dd>
+        <dt>Logit</dt><dd>An unnormalized score, turned into probabilities by a sigmoid or softmax.</dd>
+        <dt>Overfitting</dt><dd>Fitting the training data so closely that performance on new data suffers.</dd>
+        <dt>Perplexity</dt><dd>The exponential of average cross-entropy per token. Lower means the model is less surprised by the text.</dd>
+        <dt>Pretraining</dt><dd>Self-supervised training on a large unlabeled corpus, such as predicting the next token.</dd>
+        <dt>Regularization</dt><dd>Any technique that discourages overfitting: weight decay, dropout, data augmentation, early stopping.</dd>
+        <dt>Reinforcement learning</dt><dd>Learning a policy that maximizes reward through trial and feedback rather than labeled answers.</dd>
+        <dt>Residual connection</dt><dd>Adding a block's input to its output, \(\mathbf{y} = \mathbf{x} + F(\mathbf{x})\), so gradients have a direct path through deep networks.</dd>
+        <dt>Softmax</dt><dd>\(e^{z_i}/\sum_j e^{z_j}\): converts a vector of scores into a probability distribution.</dd>
+        <dt>Token</dt><dd>The unit a language model reads and writes: a word, part of a word, or a byte.</dd>
+        <dt>Transformer</dt><dd>A network built from stacked attention and feed-forward blocks with residual connections and normalization.</dd>
+      </dl>
+
+      <div class="chapter-head" style="margin-top:32px"><h2>Primary sources</h2></div>
+      <ol class="sources">
+        <li>McCulloch, W. S. &amp; Pitts, W. (1943). A logical calculus of the ideas immanent in nervous activity. <em>Bulletin of Mathematical Biophysics</em> 5.</li>
+        <li>Turing, A. M. (1950). Computing machinery and intelligence. <em>Mind</em> 59.</li>
+        <li>McCarthy, J., Minsky, M., Rochester, N. &amp; Shannon, C. (1955). A proposal for the Dartmouth summer research project on artificial intelligence.</li>
+        <li>Rosenblatt, F. (1958). The perceptron: a probabilistic model for information storage and organization in the brain. <em>Psychological Review</em> 65.</li>
+        <li>Novikoff, A. B. J. (1962). On convergence proofs for perceptrons. <em>Symposium on the Mathematical Theory of Automata</em>.</li>
+        <li>Minsky, M. &amp; Papert, S. (1969). <em>Perceptrons</em>. MIT Press.</li>
+        <li>Rumelhart, D. E., Hinton, G. E. &amp; Williams, R. J. (1986). Learning representations by back-propagating errors. <em>Nature</em> 323.</li>
+        <li>Cybenko, G. (1989). Approximation by superpositions of a sigmoidal function. <em>Mathematics of Control, Signals and Systems</em> 2.</li>
+        <li>LeCun, Y. et al. (1989). Backpropagation applied to handwritten zip code recognition. <em>Neural Computation</em> 1.</li>
+        <li>Cortes, C. &amp; Vapnik, V. (1995). Support-vector networks. <em>Machine Learning</em> 20.</li>
+        <li>Hochreiter, S. &amp; Schmidhuber, J. (1997). Long short-term memory. <em>Neural Computation</em> 9.</li>
+        <li>LeCun, Y., Bottou, L., Bengio, Y. &amp; Haffner, P. (1998). Gradient-based learning applied to document recognition. <em>Proceedings of the IEEE</em> 86.</li>
+        <li>Krizhevsky, A., Sutskever, I. &amp; Hinton, G. E. (2012). ImageNet classification with deep convolutional neural networks. <em>NeurIPS</em>.</li>
+        <li>Mikolov, T. et al. (2013). Distributed representations of words and phrases and their compositionality. <em>NeurIPS</em>.</li>
+        <li>Kingma, D. P. &amp; Ba, J. (2014). Adam: a method for stochastic optimization. <em>arXiv:1412.6980</em>.</li>
+        <li>Bahdanau, D., Cho, K. &amp; Bengio, Y. (2014). Neural machine translation by jointly learning to align and translate. <em>arXiv:1409.0473</em>.</li>
+        <li>He, K. et al. (2015). Deep residual learning for image recognition. <em>arXiv:1512.03385</em>.</li>
+        <li>Vaswani, A. et al. (2017). Attention is all you need. <em>NeurIPS</em>.</li>
+        <li>Christiano, P. et al. (2017). Deep reinforcement learning from human preferences. <em>NeurIPS</em>.</li>
+        <li>Devlin, J. et al. (2018). BERT: pre-training of deep bidirectional transformers for language understanding. <em>arXiv:1810.04805</em>.</li>
+        <li>Brown, T. et al. (2020). Language models are few-shot learners. <em>NeurIPS</em>.</li>
+        <li>Kaplan, J. et al. (2020). Scaling laws for neural language models. <em>arXiv:2001.08361</em>.</li>
+        <li>Hoffmann, J. et al. (2022). Training compute-optimal large language models. <em>arXiv:2203.15556</em>.</li>
+        <li>Ouyang, L. et al. (2022). Training language models to follow instructions with human feedback. <em>NeurIPS</em>.</li>
+        <li>Bai, Y. et al. (2022). Constitutional AI: harmlessness from AI feedback. <em>arXiv:2212.08073</em>.</li>
+        <li>Wei, J. et al. (2022). Chain-of-thought prompting elicits reasoning in large language models. <em>NeurIPS</em>.</li>
+        <li>Rafailov, R. et al. (2023). Direct preference optimization: your language model is secretly a reward model. <em>NeurIPS</em>.</li>
+        <li>DeepSeek-AI (2025). DeepSeek-R1: incentivizing reasoning capability in LLMs via reinforcement learning. <em>arXiv:2501.12948</em>.</li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">LearnAnything · Volume 1 · Every figure runs in your browser; nothing is sent anywhere.</footer>
+
+<script src="../../assets/js/lab.js"></script>
+<script src="js/nn.js"></script>
+<script src="js/hero.js"></script>
+<script src="js/early.js"></script>
+<script src="js/learning.js"></script>
+<script src="js/deep.js"></script>
+<script src="js/modern.js"></script>
+<script>Lab.rail();</script>
+</body>
+</html>
