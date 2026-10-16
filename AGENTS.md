@@ -66,7 +66,7 @@ Rules:
 
 ## Design system
 
-All tokens live at the top of `assets/css/site.css`: light palette on `:root`, with dark overrides in both `@media (prefers-color-scheme: dark)` (guarded by `:not([data-theme="light"])`) and `[data-theme="dark"]`. Style components through tokens only, and define any new token in all three places. Reuse the existing components (`.bench`, `.ctl`, `.readouts`, `.chip`, `.defn`, `.events`, `.glossary`, `.sources`) before writing new CSS. Keep running prose inside `.prose` (66ch measure).
+All tokens live at the top of `assets/css/site.css`: light palette on `:root`, with dark overrides in both `@media (prefers-color-scheme: dark)` (guarded by `:not([data-theme="light"])`) and `[data-theme="dark"]`. Style components through tokens only, and define any new token in all three places. A module may give itself its own identity by overriding tokens (colors, `--f-display`, `--f-body`, `--rail`) in a `<style>` block on its page, after the `site.css` link; follow the same three-block light/dark pattern and validate any new chart palette. See `modules/lihtc/index.html`. Reuse the existing components (`.bench`, `.ctl`, `.readouts`, `.chip`, `.defn`, `.events`, `.glossary`, `.sources`) before writing new CSS. Keep running prose inside `.prose` (66ch measure).
 
 ## Writing style
 

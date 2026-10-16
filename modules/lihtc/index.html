@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Section 42</title>
+<meta name="description" content="The Low-Income Housing Tax Credit: its history, how the credit is calculated and allocated, and how developers, agencies, investors, lenders, and managers work together to build and run affordable housing.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400..900;1,400..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..650;1,8..60,400..650&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<style>
+/* Volume II identity: a tax-form and ledger world. Ruled ledger paper, Public Sans
+   (the US government's typeface) for display, Source Serif for reading, and
+   Internal Revenue Code section numbers in the margin rail. */
+:root {
+  --paper: #F1F3F5; --paper-2: #E6EAEE; --paper-3: #FAFBFC;
+  --grid: #E0E5EA; --rule: #C3CBD3;
+  --ink: #121A24; --ink-2: #3A4553; --ink-3: #626D7A;
+  --accent: #006B59; --signal: #9A5C00; --tertiary: #6E4AB0;
+  --s1: #00806A; --s2: #B26B00; --s3: #6E4AB0;
+  --accent-wash: rgba(0, 107, 89, .08);
+  --f-display: "Public Sans", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --rail: 200px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #141B23; --paper-2: #1A222C; --paper-3: #1F2833;
+    --grid: #1C252F; --rule: #334050;
+    --ink: #E3E8EE; --ink-2: #B3BDC8; --ink-3: #8592A0;
+    --accent: #4FC7B3; --signal: #E2A247; --tertiary: #B49AF0;
+    --s1: #1FA390; --s2: #C2801A; --s3: #9A7BE0;
+    --accent-wash: rgba(79, 199, 179, .1);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #141B23; --paper-2: #1A222C; --paper-3: #1F2833;
+  --grid: #1C252F; --rule: #334050;
+  --ink: #E3E8EE; --ink-2: #B3BDC8; --ink-3: #8592A0;
+  --accent: #4FC7B3; --signal: #E2A247; --tertiary: #B49AF0;
+  --s1: #1FA390; --s2: #C2801A; --s3: #9A7BE0;
+  --accent-wash: rgba(79, 199, 179, .1);
+}
+body {
+  background-image: repeating-linear-gradient(to bottom, transparent 0 31px, var(--grid) 31px 32px);
+  background-size: auto;
+  font-size: 1.09rem;
+}
+.hero { grid-template-columns: 1fr; gap: 28px; }
+.hero .dek { max-width: 52ch; }
+.hero h1 { font-weight: 900; letter-spacing: -.035em; line-height: .9; font-size: clamp(3.4rem, 9vw, 6.6rem); }
+.hero h1 i { font-style: normal; color: var(--accent); }
+.hero .dek { font-family: var(--f-body); }
+.chapter-head .year { font-weight: 800; font-size: clamp(2.6rem, 7vw, 4.4rem); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.chapter-head h2 { font-weight: 750; letter-spacing: -.025em; font-size: clamp(2rem, 4.6vw, 3.1rem); line-height: 1.04; }
+.prose h3 { font-family: var(--f-display); font-weight: 700; }
+.prose blockquote { font-family: var(--f-body); }
+.bench-head h4, .volume h2 { font-family: var(--f-display); }
+.rail a { grid-template-columns: 62px 1fr; }
+.rail a .yr { font-size: 11px; }
+.hero-figure svg { width: 100%; display: block; background: var(--paper-3); border: 1px solid var(--rule); border-radius: var(--radius); }
+
+/* Form-line worksheet */
+.form-lines { width: 100%; border-collapse: collapse; font: 400 var(--t-sm)/1.4 var(--f-display); font-variant-numeric: tabular-nums; }
+.form-lines td { padding: 6px 8px; border-bottom: 1px solid var(--rule); vertical-align: baseline; }
+.form-lines td:last-child { text-align: right; font-family: var(--f-mono); white-space: nowrap; }
+.form-lines td.ln { width: 36px; font: 600 var(--t-xs)/1 var(--f-mono); color: var(--ink-3); border-right: 1px solid var(--rule); text-align: center; }
+.form-lines tr.sub td { font-weight: 650; border-top: 1px solid var(--ink-3); }
+.form-lines tr.total td { font-weight: 800; color: var(--accent); border-top: 2px solid var(--ink); border-bottom: 3px double var(--ink); }
+
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--paper-3); }
+b.warn, .warn { color: var(--signal); }
+b.caution { color: var(--signal); }
+.hh-out { display: grid; gap: 10px; font-size: var(--t-sm); }
+.unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(16px, 1fr)); gap: 3px; min-height: 40px; }
+.unit-grid span { aspect-ratio: 1; border-radius: 2px; display: block; }
+.tier-ctls { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px 16px; }
+.tier-ctls .ctl { min-width: 0; }
+
+.party-panel { display: grid; gap: 8px; font-size: var(--t-sm); color: var(--ink-2); align-content: start; }
+.party-panel h5 { margin: 0; font: 700 var(--t-lg)/1.2 var(--f-display); color: var(--ink); }
+.party-panel .sub, .sub { color: var(--ink-3); font-size: var(--t-xs); font-family: var(--f-mono); line-height: 1.6; }
+.parties-stage { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(220px, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 760px) { .parties-stage { grid-template-columns: 1fr; } }
+
+table.qap { width: 100%; border-collapse: collapse; font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
+table.qap th { font: 500 var(--t-xs)/1.3 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--ink-3); }
+table.qap td { padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+table.qap td:nth-child(n+3) { font-family: var(--f-mono); white-space: nowrap; }
+table.qap tr.cut td { color: var(--ink-3); }
+table.qap .np { font: 600 10px/1 var(--f-mono); padding: 2px 4px; border: 1px solid var(--accent); color: var(--accent); border-radius: 2px; vertical-align: 1px; }
+.status { font: 600 var(--t-xs)/1 var(--f-mono); padding: 4px 6px; border-radius: 2px; display: inline-block; }
+.status.funded, .status.set-aside { background: var(--accent); color: var(--paper-3); }
+.status.unfunded { border: 1px solid var(--rule); color: var(--ink-3); }
+
+.callout { max-width: var(--measure); border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; display: grid; gap: 6px; }
+.callout .label { color: var(--accent); }
+.stat-row { display: flex; flex-wrap: wrap; gap: 12px 40px; max-width: var(--measure); padding-block: 8px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.stat-row div { display: grid; gap: 2px; }
+.stat-row b { font: 800 var(--t-xl)/1 var(--f-display); letter-spacing: -.02em; }
+.stat-row span { font: 400 var(--t-xs)/1.3 var(--f-mono); color: var(--ink-3); }
+</style>
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg', 'canvas'] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="brand" href="../../index.html">Learn<b>Anything</b></a>
+  <span class="where">Vol. 2 · The Low-Income Housing Tax Credit</span>
+  <span class="progress" aria-hidden="true"></span>
+</header>
+
+<div class="module">
+  <nav class="rail" aria-label="Chapters"><ol></ol></nav>
+
+  <main class="content">
+
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="label">Volume 2 · Housing finance</p>
+        <h1 id="title">Section <i>42</i></h1>
+        <p class="dek">How a provision of the tax code became the country's main engine for building affordable rental housing, and how the agencies, developers, investors, and lenders behind each building actually work together.</p>
+        <div class="meta">
+          <span class="label">16 chapters</span>
+          <span class="label">8 interactive figures</span>
+          <span class="label">1986 → 2026</span>
+        </div>
+      </div>
+      <figure class="hero-figure" style="margin:0">
+        <svg id="hero-stack" role="img" aria-label="Sources and uses for an example 60-unit 9% credit deal"></svg>
+        <div class="readout"><span>Example: 60 units, 9% credits, $400k per unit</span><span>uses above, sources below</span></div>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PROLOGUE -->
+    <section class="chapter" id="prologue" data-year="Pro" data-short="What the credit is">
+      <div class="chapter-head">
+        <span class="label kicker">Prologue</span>
+        <h2>A subsidy you can sell</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Building an apartment costs about the same whether its tenants earn $30,000 a year or $150,000. Rents set for a low-income household cannot repay the loan that a full-cost building needs. Somebody has to cover the difference. Since 1986, the main way the United States has covered it is a tax credit.</p>
+        <p>The Low-Income Housing Tax Credit (LIHTC, said "lie-tech", and often just "the housing credit") is defined in Section 42 of the Internal Revenue Code. It works through a chain of hand-offs:</p>
+        <ol>
+          <li>Each year the federal government gives every state the authority to award a fixed amount of tax credits, based on population.</li>
+          <li>A state housing agency awards those credits to specific apartment projects through a competition.</li>
+          <li>The developer cannot use tax credits itself, so it sells them, in effect, to investors (mostly banks), who pay cash up front in exchange for ten years of credits against their federal taxes.</li>
+          <li>That cash is equity. It replaces debt, so the building needs less mortgage and can charge lower rents.</li>
+          <li>In return, the owner signs a recorded agreement that keeps the units rent- and income-restricted for at least 30 years.</li>
+        </ol>
+        <p>The figure at the top shows the result for a typical example. Tax credit equity pays for most of the building. The rents can support only a modest loan. A gap remains, filled by a patchwork of state and local money. That shape, and the many parties needed to assemble it, is what this volume explains.</p>
+      </div>
+      <div class="stat-row">
+        <div><b>3.9M</b><span>units in 55,000+ projects placed in service, 1987–2024 (HUD)</span></div>
+        <div><b>$3.416</b><span>credit authority per state resident in 2026, after the 12% increase</span></div>
+        <div><b>30 yrs</b><span>minimum affordability term</span></div>
+      </div>
+      <div class="prose">
+        <p>Most new affordable rental housing in the United States now involves the credit. Unlike public housing, it is privately owned. Unlike housing vouchers, it subsidizes buildings rather than households. And unlike most federal spending, it never appears as an appropriation: its cost shows up as forgone tax revenue, which the Joint Committee on Taxation estimates at $13.7 billion for 2025 and $14.4 billion for 2026.</p>
+      </div>
+      <dl class="defn">
+        <dt>AMI</dt><dd>Area median income, published annually by HUD for each metro area and rural county. LIHTC limits are percentages of it.</dd>
+        <dt>Credit</dt><dd>A dollar-for-dollar reduction in federal income tax owed. Unlike a deduction, its value does not depend on the tax rate.</dd>
+        <dt>HFA</dt><dd>Housing finance agency: the state body that allocates credits and monitors compliance.</dd>
+        <dt>QAP</dt><dd>Qualified Allocation Plan: the state's published rulebook for scoring and awarding credits.</dd>
+      </dl>
+    </section>
+
+    <!-- ===================================================== HISTORY: 1937 -->
+    <section class="chapter" id="before" data-year="1937" data-short="Before the credit">
+      <div class="chapter-head">
+        <span class="year">1937</span>
+        <span class="label kicker">Part I · History · Chapter 1</span>
+        <h2>Fifty years of trying to build it directly</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The federal government's first answer to housing for poor households was to own the buildings. The Housing Act of 1937 created public housing: federally funded, owned and run by local public housing authorities. The Housing Act of 1949 set the goal of "a decent home and a suitable living environment for every American family."</p>
+        <p>From the 1960s, policy shifted toward paying private owners. Section 221(d)(3) (1961) offered below-market-rate mortgages for moderate-income rentals. Section 236 (1968) subsidized mortgage interest down to an effective 1%. Construction boomed, then costs and defaults mounted. In January 1973 the Nixon administration declared a moratorium on new subsidized housing commitments.</p>
+        <p>The Housing and Community Development Act of 1974 created Section 8, which paid private landlords the difference between a tenant's contribution and a fair market rent. Its new construction component produced hundreds of thousands of units with long-term rental assistance contracts, but it was expensive, and Congress ended new construction under it in 1983.</p>
+        <h3>The tax shelter era</h3>
+        <p>Alongside these programs ran a less visible subsidy. Real estate losses could offset other income, and the Economic Recovery Tax Act of 1981 let rental buildings be depreciated over just 15 years. Syndicators packaged apartment projects into limited partnerships and sold interests to high-income individuals, who valued them less for the rent than for the paper losses. Subsidized housing, with its thin cash flow, was a natural host for shelters.</p>
+        <p>By the mid-1980s, shelters were a political liability. Efficient for investors, they were an untargeted way to pay for housing, and much of the benefit went to people with no connection to it.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== 1986 -->
+    <section class="chapter" id="tra86" data-year="1986" data-short="Tax Reform Act">
+      <div class="chapter-head">
+        <span class="year">1986</span>
+        <span class="label kicker">Chapter 2 · The Tax Reform Act</span>
+        <h2>A credit born from closing shelters</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The Tax Reform Act of 1986, signed in October of that year, was the largest overhaul of the income tax in decades. It cut rates, broadened the base, and dismantled the shelter industry. New "passive activity" rules stopped most individuals from using rental losses against wages, and depreciation for residential buildings stretched to 27.5 years.</p>
+        <p>Without shelters, private capital for low-income rental housing would largely disappear. The new Section 42 was the replacement: a targeted credit, limited in amount, tied to explicit income and rent restrictions, and allocated by states rather than claimed by anyone who built.</p>
+        <p>As enacted, the credit was experimental. It was set to expire after 1989. Each state received $1.25 per resident per year in credit authority. Projects had to keep units affordable for a 15-year compliance period. Credits were claimed over ten years, at rates designed to deliver a present value of 70% of construction costs for new buildings or 30% for acquisitions and federally subsidized projects. Those "70% and 30%" targets are still the backbone of the program.</p>
+        <p>The early market was thin. The investors were mostly individuals buying through public funds, and the passive loss rules limited how much credit they could use. Credits sold for well under half their face value in the first years: an investor paid roughly 40 to 45 cents for each dollar of future tax reduction.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== 1989 -->
+    <section class="chapter" id="permanent" data-year="1989" data-short="Rules that stuck">
+      <div class="chapter-head">
+        <span class="year">1989</span>
+        <span class="label kicker">Chapter 3 · 1989–2000</span>
+        <h2>The rules that made it permanent</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The Revenue Reconciliation Act of 1989 rewrote much of Section 42 into the form it still has. Three changes mattered most.</p>
+        <ul>
+          <li><strong>Qualified Allocation Plans.</strong> States must award credits under a published plan that sets out selection criteria and gives preference to projects that serve the lowest-income tenants, stay affordable longest, and help revitalize distressed areas.</li>
+          <li><strong>Extended use.</strong> Owners must record an agreement keeping units affordable for at least 15 years beyond the compliance period, for a minimum of 30 years in total.</li>
+          <li><strong>No more credit than necessary.</strong> The allocating agency must find that the credit awarded is no more than the project needs to be financially feasible. This is §42(m)(2), and it turns every state agency into an underwriter.</li>
+        </ul>
+        <p>The 1989 changes also created the basis boost for projects in high-cost areas and low-income census tracts, covered in Chapter 8. After several short extensions, the Omnibus Budget Reconciliation Act of 1993 made the credit permanent.</p>
+        <h3>Corporations replace individuals</h3>
+        <p>Permanence made the credit bankable. Corporations, with large and predictable tax bills, were not subject to the passive loss limits that constrained individuals. Banks in particular had a second reason to invest: the Community Reinvestment Act of 1977 requires them to meet the credit needs of the communities they serve, and regulators count LIHTC investments toward that obligation. As corporate demand rose, prices rose with it.</p>
+        <p>The Community Renewal Tax Relief Act of 2000 raised the per-capita allocation for the first time, from $1.25 to $1.50 in 2001 and $1.75 in 2002, and indexed it to inflation after that, along with a minimum allocation for small states.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== 2008 -->
+    <section class="chapter" id="crisis" data-year="2008" data-short="Crisis & rescue">
+      <div class="chapter-head">
+        <span class="year">2008</span>
+        <span class="label kicker">Chapter 4 · The financial crisis</span>
+        <h2>When the buyers disappeared</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A credit is only valuable to someone who owes tax. In 2008 the largest buyers stopped owing it. Fannie Mae and Freddie Mac, which together had accounted for roughly 40% of housing credit investment, went into federal conservatorship in September 2008 and stopped investing. Banks that were losing money had no taxable income to offset. Credits that sold for about 95 cents in early 2007 fetched as little as 60 to 68 cents during the downturn, and in many markets deals simply could not be sold.</p>
+        <p>Congress responded twice. The Housing and Economic Recovery Act of 2008 (HERA) temporarily fixed the applicable percentage for new construction at no less than 9%, raised state allocations by 10% for 2008 and 2009, let states give a discretionary basis boost to 9% projects, and let credits offset the alternative minimum tax.</p>
+        <p>When that was not enough, the American Recovery and Reinvestment Act of 2009 created two stopgaps. The Tax Credit Assistance Program (TCAP) sent $2.25 billion through the HOME program to stalled credit projects. The Section 1602 exchange program let states swap unused 2008 credits and up to 40% of their 2009 credit authority for cash grants at 85 cents per dollar of credit, which they then passed to projects directly. For a year, the federal government was in effect the investor.</p>
+        <p>The episode exposed the credit's structural dependence on corporate tax liability. It also showed how tightly the parties are linked: one missing investor, and the agency's award, the lender's commitment, and the contractor's schedule all stall at once.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== 2015-2026 -->
+    <section class="chapter" id="modern" data-year="2015" data-short="The modern program">
+      <div class="chapter-head">
+        <span class="year">2015</span>
+        <span class="label kicker">Chapter 5 · 2015 to 2026</span>
+        <h2>Floors, averaging, and expansion</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Since the crisis, Congress has adjusted the credit repeatedly, mostly by expanding it.</p>
+      </div>
+      <ol class="events">
+        <li><time>2015</time><span>The PATH Act makes the 9% minimum rate permanent for new construction.</span></li>
+        <li><time>2017</time><span>The Tax Cuts and Jobs Act cuts the corporate rate from 35% to 21%. The credit itself is unchanged, but investors' depreciation losses become less valuable and some have less tax to offset. Prices fall, in anticipation, from late 2016.</span></li>
+        <li><time>2018</time><span>The Consolidated Appropriations Act raises state allocations by 12.5% for 2018 through 2021 and creates income averaging (Chapter 7).</span></li>
+        <li><time>2020</time><span>The Consolidated Appropriations Act, 2021 sets a 4% minimum rate for acquisition and bond-financed projects, which had floated near 3%.</span></li>
+        <li><time>2025</time><span>The 2025 budget reconciliation law (Public Law 119-21) permanently raises state 9% allocations by 12% beginning in 2026 and lowers the bond financing threshold for 4% deals from 50% to 25%, for buildings placed in service after 2025 whose bonds issued after 2025 finance at least 5% of the basis.</span></li>
+      </ol>
+      <div class="prose">
+        <p>The last change matters more than it sounds. Four-percent credits are not capped by the per-capita allocation. Any project financed at least half by tax-exempt private activity bonds received them automatically. But bonds are themselves capped by a separate state volume limit, and in the early 2020s many states ran out. Halving the share of bonds required lets the same bond cap support roughly twice as many projects.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== MECHANICS: §42(g) -->
+    <section class="chapter" id="limits" data-year="§42(g)" data-short="Income & rent limits">
+      <div class="chapter-head">
+        <span class="year">§42(g)</span>
+        <span class="label kicker">Part II · Mechanics · Chapter 7</span>
+        <h2>Who can live there, and what they pay</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A building qualifies only if enough of its units are rented to low-income households at restricted rents. The owner picks one of three minimum set-asides when the building is placed in service, and the choice cannot be changed:</p>
+        <ul>
+          <li><strong>20-50:</strong> at least 20% of units go to households earning no more than 50% of AMI.</li>
+          <li><strong>40-60:</strong> at least 40% of units go to households earning no more than 60% of AMI. This is by far the most common.</li>
+          <li><strong>Income averaging:</strong> at least 40% of units are designated at income levels between 20% and 80% of AMI, in 10-point steps, and the designations average no more than 60%.</li>
+        </ul>
+        <p>Meeting the minimum makes the building eligible. In practice most LIHTC buildings are 100% restricted, because credits are earned only on the low-income units.</p>
+        <h3>Income limits</h3>
+        <p>HUD publishes Multifamily Tax Subsidy Project (MTSP) income limits for every county each spring. They start from the four-person limit at 50% of AMI and adjust for household size: a one-person household gets 70% of the four-person figure, two people 80%, three 90%, and each person beyond four adds 8 points. Other percentages are scaled from the 50% figure. (HUD's actual computation includes caps, floors, and hold-harmless rules that keep limits from falling in a project's area.)</p>
+        <h3>Rent limits</h3>
+        <p>Rent limits are tied to the unit, not the tenant. The statute assumes 1.5 people per bedroom (one person for a studio) and caps <em>gross rent</em>, meaning rent plus a utility allowance for tenant-paid utilities, at 30% of the income limit for that imputed household:</p>
+      </div>
+      <div class="math-block">\[ \text{max gross rent}_{\,b\text{ BR}} = \frac{0.30 \times \text{income limit}\big(\text{designation},\ \max(1,\ 1.5\,b)\ \text{persons}\big)}{12} \]</div>
+      <div class="prose">
+        <p>Two consequences surprise people. First, the rent does not depend on the tenant's actual income: a household earning 35% of AMI in a 60% unit pays the 60% rent unless it has other assistance. Second, payments from a Section 8 voucher do not count toward the limit, so an owner can collect more than the LIHTC maximum when a voucher covers the difference.</p>
+      </div>
+
+      <figure class="bench" id="fig-rents">
+        <div class="bench-head"><span class="fig">Fig. 7.1</span><span class="label">Interactive</span><h4>Income and rent limit worksheet</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="rl-ami">4-person AMI <output></output></label><input type="range" id="rl-ami" min="50000" max="200000" step="1000" value="100000"></div>
+          <div class="ctl"><label for="rl-pct">unit designation <output></output></label><input type="range" id="rl-pct" min="20" max="80" step="10" value="60"></div>
+          <div class="ctl"><label for="rl-ua">utility allowance <output></output></label><input type="range" id="rl-ua" min="0" max="400" step="5" value="150"></div>
+        </div>
+        <div class="scroll-x">
+          <table class="data rent-table" style="width:100%"><thead><tr><th>Unit</th><th>Imputed persons</th><th>Income limit</th><th>Max gross rent</th><th>Utility allowance</th><th>Max rent to owner</th></tr></thead><tbody></tbody></table>
+        </div>
+        <div class="stack" style="border-top:1px solid var(--rule);padding-top:14px">
+          <span class="label">Check a household</span>
+          <div class="controls">
+            <div class="ctl"><label for="rl-size">household size <output></output></label><input type="range" id="rl-size" min="1" max="8" step="1" value="3"></div>
+            <div class="ctl"><label for="rl-inc">annual income <output></output></label><input type="range" id="rl-inc" min="5000" max="120000" step="500" value="32000"></div>
+          </div>
+          <div class="hh-out"></div>
+        </div>
+        <figcaption class="caption">A simplified version of HUD's method using a hypothetical area. Real limits come from HUD's published MTSP tables. Lower the household's income to around 30% of AMI and look at its rent burden in a 60% unit: this gap is why many LIHTC tenants also need a voucher.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>Income averaging</h3>
+        <p>Before 2018, a household earning 65% of AMI could not live in a LIHTC unit at all, and nothing rewarded an owner for serving households at 30% of AMI beyond what state QAPs required. Income averaging lets an owner designate some units above 60% and use the extra rent to support units well below it, as long as the average stays at or under 60%. IRS final regulations issued in 2022 settled how the average is computed and how owners can fix a designation that goes wrong.</p>
+      </div>
+
+      <figure class="bench" id="fig-averaging">
+        <div class="bench-head"><span class="fig">Fig. 7.2</span><span class="label">Interactive</span><h4>Designing an income-averaged building</h4></div>
+        <div class="tier-ctls"></div>
+        <div class="unit-grid" aria-label="One square per unit, shaded by income designation"></div>
+        <div class="legend"></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Each square is a unit, darker for higher designations. Revenue compares two-bedroom rents (AMI $100,000, $150 utility allowance) with the same number of units all at 60%. Try moving ten units from 60% to 30% and see how many must move up to 80% to keep the average at 60%.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== §42(b),(d) -->
+    <section class="chapter" id="compute" data-year="§42(b)" data-short="Computing the credit">
+      <div class="chapter-head">
+        <span class="year">§42(b)</span>
+        <span class="label kicker">Chapter 8 · Basis and applicable percentage</span>
+        <h2>How much credit a building earns</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The annual credit is the product of two numbers: the building's <em>qualified basis</em>, a measure of what it cost to build the low-income part, and the <em>applicable percentage</em>. The owner claims that amount every year for ten years.</p>
+      </div>
+      <div class="math-block">\[ \text{annual credit} = \underbrace{\text{eligible basis} \times \text{boost} \times \text{applicable fraction}}_{\text{qualified basis}} \times \text{applicable percentage} \]</div>
+      <div class="prose">
+        <p><strong>Eligible basis</strong> is the depreciable cost of the building: construction, architecture and engineering, construction interest, developer fee, and similar costs. It excludes land, permanent loan costs, syndication costs, and reserves, none of which can be depreciated. Federal grants also reduce it.</p>
+        <p><strong>The basis boost</strong> raises eligible basis to 130% for buildings in a HUD-designated Qualified Census Tract (a tract where at least half of households have incomes under 60% of the area median, or the poverty rate is at least 25%) or a Difficult Development Area (where construction, land, and utility costs are high relative to incomes). Since 2008, states may also designate other 9% projects as needing the boost.</p>
+        <p><strong>The applicable fraction</strong> is the share of the building that is low-income: the smaller of the share of units and the share of floor space. A building with 80 of 100 units restricted, all of average size, has an applicable fraction of 80%.</p>
+        <h3>Where "9%" and "4%" come from</h3>
+        <p>The program's names come from round numbers that were originally approximations. The law aims for ten years of credits worth a present value of 70% of qualified basis (for new construction and substantial rehab without other federal subsidy), or 30% (for acquisition of existing buildings and for bond-financed projects). Treasury computes, each month, the annual rate \(p\) that hits those targets, discounting at 72% of the average applicable federal rate (AFR):</p>
+      </div>
+      <div class="math-block">\[ p \cdot \sum_{t=1}^{10} \frac{1}{(1+d)^t} = 0.70 \quad\Longrightarrow\quad p = \frac{0.70\, d}{1-(1+d)^{-10}}, \qquad d = 0.72 \times \text{AFR} \]</div>
+      <div class="prose">
+        <p>When rates were high, the result was close to 9% and 4%. As interest rates fell after 2000, the floating rates sank, and with them the credit each project earned. Congress fixed the floors at 9% (temporarily in 2008, permanently in 2015) and 4% (from 2021). Today the floors bind whenever rates are anything like recent norms, so the floating formula mostly matters as history.</p>
+      </div>
+
+      <figure class="bench" id="fig-applicable">
+        <div class="bench-head"><span class="fig">Fig. 8.1</span><span class="label">Interactive</span><h4>The floating applicable percentage and the fixed floors</h4></div>
+        <div class="ctl" style="max-width:380px"><label for="ap-afr">average AFR <output></output></label><input type="range" id="ap-afr" min="0.5" max="8" step="0.05" value="4.5"></div>
+        <div class="chart-wrap"><svg class="plot" role="img" aria-label="Line chart: floating applicable percentages rise with interest rates; dashed lines mark the 9% and 4% floors"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Solid curves are the floating rates from the formula above; dashed lines are the statutory floors. At a 3% AFR, the floating "9%" rate would be under 8%, so the floor gives a new-construction project about 15% more credit than the 70% present-value target implies. Hover for values.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>From credits to cash</h3>
+        <p>The developer turns credits into equity by admitting an investor to the ownership partnership. The investor pays a <em>price</em> per dollar of total credits, usually quoted in cents: at $0.88, ten years of $1.93 million in annual credits ($19.3 million in total) brings in about $17 million. Price depends on investor demand, interest rates, the market, and the deal's risk. It has ranged from around 40 cents in the program's first year to a national average of about $1.05 at the peak of bank demand in late 2016, with some heavily bank-driven markets paying more.</p>
+        <p>The worksheet below runs the whole chain, line by line, as the state agency would. Notice line 10: the agency sizes the credit to what the project needs, not to the maximum its basis would support.</p>
+      </div>
+
+      <figure class="bench" id="fig-calc">
+        <div class="bench-head"><span class="fig">Fig. 8.2</span><span class="label">Interactive</span><h4>Credit and equity worksheet</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="dc-units">units <output></output></label><input type="range" id="dc-units" min="20" max="200" step="1" value="60"></div>
+          <div class="ctl"><label for="dc-tdc">cost per unit <output></output></label><input type="range" id="dc-tdc" min="150" max="700" step="5" value="400"></div>
+          <div class="ctl"><label for="dc-lif">low-income share <output></output></label><input type="range" id="dc-lif" min="40" max="100" step="5" value="100"></div>
+          <div class="ctl"><label for="dc-price">credit price <output></output></label><input type="range" id="dc-price" min="0.6" max="1.0" step="0.01" value="0.88"></div>
+          <div class="ctl"><label for="dc-rent">average rent <output></output></label><input type="range" id="dc-rent" min="500" max="2500" step="25" value="1100"></div>
+          <div class="ctl"><label for="dc-rate">mortgage rate <output></output></label><input type="range" id="dc-rate" min="3" max="9" step="0.05" value="6.5"></div>
+          <div class="ctl"><label for="dc-type">credit type</label><select id="dc-type"><option value="9">9% (competitive)</option><option value="4">4% (with tax-exempt bonds)</option></select></div>
+        </div>
+        <label class="check"><input type="checkbox" id="dc-boost"> Located in a QCT or DDA (130% basis boost)</label>
+        <div class="stage">
+          <table class="form-lines"><tbody></tbody></table>
+          <div class="stack">
+            <svg class="plot" role="img" aria-label="Stacked bars of uses and sources"></svg>
+            <div class="legend"><span><i style="background:var(--s1)"></i>tax credit equity</span><span><i style="background:var(--s2)"></i>permanent loan</span><span><i style="background:var(--s3)"></i>gap</span></div>
+            <div class="readouts"></div>
+          </div>
+        </div>
+        <figcaption class="caption">A simplified model with assumed costs: land at 6% and non-depreciable costs at 4.5% of total cost, 5% vacancy, $6,800 per unit per year in operating costs, and a 35-year loan sized at 1.20× debt service coverage. Switch to 4% and watch the gap open: that is why bond deals need much more soft money. Then turn on the basis boost.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== §42(h) -->
+    <section class="chapter" id="allocation" data-year="§42(h)" data-short="Allocation & the QAP">
+      <div class="chapter-head">
+        <span class="year">§42(h)</span>
+        <span class="label kicker">Chapter 9 · State ceilings and the QAP</span>
+        <h2>Allocation: a competition run by each state</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Nine-percent credits are scarce by design. Each state's annual ceiling equals a per-capita amount times its population, with a minimum for small states. The per-capita figure is indexed to inflation: $3.00 in 2025, with a small-state minimum of $3,455,000. For 2026, after the 12% increase, it is $3.416, with a minimum of $3,953,600. States add credits returned from failed projects and may receive a share of a national pool of unused credits.</p>
+        <p>Demand far exceeds supply. In a typical round, applications request well over the available credits, often two or three times as much. Who wins is decided by the state's Qualified Allocation Plan.</p>
+        <h3>What a QAP contains</h3>
+        <p>Federal law sets the frame. A QAP must give preference to projects that serve the lowest-income tenants, that stay affordable longest, and that are in qualified census tracts and contribute to a concerted community revitalization plan. It must consider location, housing needs, the use of existing housing, sponsor characteristics, tenant populations with special needs, public housing waiting lists, individuals with children, projects intended for eventual tenant ownership, energy efficiency, and historic character. At least 10% of the ceiling must be set aside for projects with a qualified nonprofit materially participating.</p>
+        <p>Within that frame, states differ enormously. QAPs run to more than a hundred pages and are revised every year or two after public comment. Most combine <em>threshold</em> requirements (site control, zoning, financial feasibility, experience) with a <em>point system</em>. Many divide the ceiling into pools by geography or population, such as rural, urban, senior, or supportive housing. Ties are broken by rules as specific as cost per unit or a lottery.</p>
+        <p>The QAP is where housing policy is made. The figure below runs a single round with eight illustrative applications. Change the weights and different buildings get built.</p>
+      </div>
+
+      <figure class="bench" id="fig-qap">
+        <div class="bench-head"><span class="fig">Fig. 9.1</span><span class="label">Interactive</span><h4>A 9% round: $5.0 million of annual credit authority</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="qp-opp">weight: high-opportunity location <output></output></label><input type="range" id="qp-opp" min="0" max="10" step="1" value="5"></div>
+          <div class="ctl"><label for="qp-deep">weight: deep affordability <output></output></label><input type="range" id="qp-deep" min="0" max="10" step="1" value="5"></div>
+          <div class="ctl"><label for="qp-cost">weight: cost efficiency <output></output></label><input type="range" id="qp-cost" min="0" max="10" step="1" value="5"></div>
+          <div class="ctl"><label for="qp-ready">weight: readiness to proceed <output></output></label><input type="range" id="qp-ready" min="0" max="10" step="1" value="5"></div>
+        </div>
+        <div class="scroll-x">
+          <table class="qap"><thead><tr><th>Rank</th><th>Application</th><th>Score</th><th>Units</th><th>Annual credit</th><th>Result</th></tr></thead><tbody></tbody></table>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Illustrative applications and scores. The nonprofit set-aside ($0.5M, 10%) is filled first from nonprofit (NP) applications in rank order; the remaining authority goes down the ranked list, skipping any request too large for what is left. Real QAPs differ: some award partial credits, some forward-commit next year's ceiling, and many use separate pools.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>The 4% path</h3>
+        <p>Four-percent credits work differently. They are not limited by the state's 9% ceiling. A project gets them automatically if it is financed largely with tax-exempt private activity bonds, which are capped by a separate state bond volume limit. The agency still reviews the project, issues a determination of the credit amount, and enforces the same rent and income rules, but the competition is for bond cap, not credits. Because 4% credits produce less than half the equity of 9% credits for the same building, these deals lean heavily on bond-financed debt, larger soft loans, and often local subsidies.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== LOGISTICS: parties -->
+    <section class="chapter" id="parties" data-year="Who" data-short="The parties">
+      <div class="chapter-head">
+        <span class="year">Who</span>
+        <span class="label kicker">Part III · Logistics · Chapter 10</span>
+        <h2>Fourteen parties, one building</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A single LIHTC property can involve a dozen organizations or more, each with its own documents, approvals, and incentives. Understanding the program in practice means understanding these relationships: who pays whom, who carries the credits, who signs what, and who watches whom.</p>
+        <p>The central legal fact is the ownership structure. The building is owned by a single-purpose partnership or LLC. The investor is its limited partner with about 99.99% of the interests, so it receives nearly all the credits and depreciation. The developer's affiliate is the general partner with about 0.01% and runs the property. The investor's money comes in as capital contributions; its return comes almost entirely as tax benefits, not cash.</p>
+      </div>
+
+      <figure class="bench" id="fig-parties">
+        <div class="bench-head"><span class="fig">Fig. 10.1</span><span class="label">Interactive</span><h4>The parties to a LIHTC deal, and what flows between them</h4></div>
+        <div class="btns" role="group" aria-label="What to show">
+          <button type="button" data-mode="money" aria-pressed="true">Follow the money</button>
+          <button type="button" data-mode="credits" aria-pressed="false">Follow the credits</button>
+          <button type="button" data-mode="papers" aria-pressed="false">Follow the paperwork</button>
+          <button type="button" data-mode="oversight" aria-pressed="false">Who watches whom</button>
+        </div>
+        <div class="parties-stage">
+          <div class="scroll-x"><svg class="plot" viewBox="0 0 930 510" style="min-width:640px" role="img" aria-label="Network diagram of the parties to a LIHTC deal"></svg></div>
+          <div class="party-panel"></div>
+        </div>
+        <figcaption class="caption">Click a party to read its role and see only its connections; click it again to see everything. The owner partnership is selected to start. Lines bend so that two-way flows between the same pair stay readable.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>The documents that bind them</h3>
+        <ul>
+          <li><strong>Application and reservation.</strong> The developer applies under the QAP; the agency's reservation letter promises credits subject to conditions.</li>
+          <li><strong>Carryover allocation.</strong> If the building will not be finished in the award year, the agency allocates by December 31 and the owner must spend more than 10% of expected basis within 12 months.</li>
+          <li><strong>Limited partnership agreement.</strong> The longest and most negotiated document. It sets the equity price, the installment schedule and conditions for each payment, guarantees from the developer, adjusters if credits come in lower or later than projected, cash flow splits, and the Year 15 exit.</li>
+          <li><strong>Extended use agreement.</strong> Also called a land use restriction agreement (LURA) or regulatory agreement. Recorded against the land, it binds all future owners to the rent and income limits for the full term.</li>
+          <li><strong>Loan documents</strong> for each lender, each with its own regulatory agreement if public money is involved, and an intercreditor agreement ranking them.</li>
+          <li><strong>Cost certification and Form 8609.</strong> After completion, a CPA certifies costs; the agency issues Form 8609 for each building, confirming the credit amount. No 8609, no credits.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================================================== timeline -->
+    <section class="chapter" id="lifecycle" data-year="Deal" data-short="Life of a deal">
+      <div class="chapter-head">
+        <span class="year">Deal</span>
+        <span class="label kicker">Chapter 11 · From application to Year 30</span>
+        <h2>The life of a deal</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A 9% project usually takes three to four years from application to Form 8609, after years of site work and predevelopment beforehand. Its legal life runs at least 30 years after that. The calendar is driven by statutory deadlines, and missing one can cost the credits.</p>
+      </div>
+
+      <figure class="bench" id="fig-timeline">
+        <div class="bench-head"><span class="fig">Fig. 11.1</span><span class="label">Interactive</span><h4>Milestones and deadlines</h4></div>
+        <div class="btns" role="group" aria-label="Time scale">
+          <button type="button" data-view="dev" aria-pressed="true">Development (months)</button>
+          <button type="button" data-view="life" aria-pressed="false">Full term (years)</button>
+        </div>
+        <div class="chart-wrap scroll-x"><svg class="plot" style="min-width:620px" role="img" aria-label="Gantt chart of the stages of a LIHTC deal"></svg></div>
+        <div class="legend"><span><i style="background:var(--s1);border-radius:1px"></i>agency and credit milestones</span><span><i style="background:var(--s2);border-radius:1px"></i>statutory deadlines</span><span><i style="background:var(--ink-3);border-radius:1px"></i>work in progress</span></div>
+        <figcaption class="caption">A typical schedule for a single-round state; real timelines vary widely. The equity installment percentages are an example of a common pattern, not a rule. Hover a row for what happens at that stage.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>Why equity arrives late</h3>
+        <p>Investors pay in installments tied to milestones, because each one removes a risk: closing (the deal exists), construction completion (it was built), stabilization (it leased up with qualified tenants and covers its debt), and Form 8609 (the credits are confirmed). Most of the money arrives after construction. So the developer needs a construction loan sized for nearly the full cost, repaid at conversion by the later equity installments and the permanent loan. A bridge loan against future equity is common.</p>
+        <h3>The developer fee</h3>
+        <p>QAPs typically cap developer fees at a percentage of costs, often around 10 to 15%. The fee is included in eligible basis, so it generates credits. Part of it is usually <em>deferred</em>, paid from the property's cash flow over the following years, which lets the fee double as a source that fills the gap. A deferred fee that cannot plausibly be repaid within the compliance period may be excluded from basis, so agencies and investors scrutinize it.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== investor -->
+    <section class="chapter" id="investor" data-year="Equity" data-short="The investor's view">
+      <div class="chapter-head">
+        <span class="year">Equity</span>
+        <span class="label kicker">Chapter 12 · Why a bank buys credits</span>
+        <h2>The investor's side of the ledger</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">An investor in a LIHTC partnership expects to get back little or no cash. Its return is the credits, plus the tax value of its share of the property's depreciation and interest losses. Because the credits are fixed dollar amounts that arrive on a known schedule, investors treat them much like a bond, and price them to a modest after-tax yield.</p>
+        <p>The return is sensitive to everything that determines the timing and amount of tax benefits: the price paid, when the equity is paid in, how fast the building leases up, and the investor's tax rate, which affects how much the losses are worth but not the credits themselves.</p>
+      </div>
+
+      <figure class="bench" id="fig-investor">
+        <div class="bench-head"><span class="fig">Fig. 12.1</span><span class="label">Interactive</span><h4>Cash out, tax benefits back: $10 million of credits</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="iv-price">price per credit dollar <output></output></label><input type="range" id="iv-price" min="0.6" max="1.05" step="0.01" value="0.88"></div>
+          <div class="ctl"><label for="iv-loss">annual tax losses as % of equity <output></output></label><input type="range" id="iv-loss" min="0" max="12" step="0.5" value="5"></div>
+          <div class="ctl"><label for="iv-tax">investor tax rate</label><select id="iv-tax"><option value="0.21">21% (corporate, after 2017)</option><option value="0.35">35% (corporate, before 2018)</option></select></div>
+        </div>
+        <label class="check"><input type="checkbox" id="iv-staged" checked> Pay equity in installments (20% / 45% / 35% over years 0–2)</label>
+        <div class="chart-wrap"><svg class="plot" role="img" aria-label="Bar chart of investor equity payments and annual tax benefits by year"></svg></div>
+        <div class="legend"><span><i style="background:var(--ink-3);border-radius:1px"></i>equity paid</span><span><i style="background:var(--s1);border-radius:1px"></i>credits</span><span><i style="background:var(--s2);border-radius:1px"></i>tax value of losses</span></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">A simplified model: credits of $1 million a year in years 2 through 11, losses through year 15, no cash flow, and no residual value at exit. Raise the price and watch the yield fall; switch to the pre-2018 tax rate and see why prices dropped when the corporate rate was cut.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>How investors protect themselves</h3>
+        <p>The partnership agreement shifts most risks to the developer. Common protections include a construction completion guarantee; an operating deficit guarantee that funds shortfalls for some years after stabilization, usually capped; a <em>credit adjuster</em> that reduces later equity installments if the credits delivered fall short of projections; and, in serious cases, a repurchase obligation. Reserves held by the partnership (operating, replacement, and sometimes lease-up reserves) back these promises.</p>
+        <p>Investors also care about <em>recapture</em>. If a building falls out of compliance during the 15-year compliance period, part of the credits already claimed must be paid back with interest (Chapter 13). Losses from recapture have been rare: industry surveys have long reported very low foreclosure rates on LIHTC properties, which is part of why banks like the asset.</p>
+        <p>Most investors buy through a syndicator's fund, which spreads risk across dozens of properties and handles 15 years of asset management for a fee. Large banks often invest directly or through proprietary funds built for a single investor.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== compliance -->
+    <section class="chapter" id="compliance" data-year="§42(j)" data-short="Compliance & recapture">
+      <div class="chapter-head">
+        <span class="year">§42(j)</span>
+        <span class="label kicker">Chapter 13 · Compliance</span>
+        <h2>Fifteen years of paperwork</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Credits are earned unit by unit, month by month. If a unit is rented to an over-income household, charges too much rent, or fails inspection, the building's qualified basis can fall, and so do the credits. Most of the program's day-to-day work happens in a leasing office.</p>
+        <h3>What the property must do</h3>
+        <ul>
+          <li><strong>Certify every tenant's income</strong> before move-in, with third-party verification of wages, benefits, and assets, documented on a tenant income certification.</li>
+          <li><strong>Keep rents</strong>, including the utility allowance, at or below the limit for each unit's designation, and update utility allowances annually.</li>
+          <li><strong>Apply the next available unit rule.</strong> A tenant whose income rises above 140% of the limit may stay, and the unit still counts, but the next comparable unit that becomes vacant must go to a qualified household.</li>
+          <li><strong>Keep units suitable for occupancy</strong>, meeting local codes and the agency's physical inspection standards.</li>
+          <li><strong>File annual owner certifications</strong> with the agency and keep records for the life of the deal.</li>
+        </ul>
+        <h3>What the agency must do</h3>
+        <p>Treasury regulations require state agencies to monitor compliance. Agencies review the owner's annual certifications. At least once every three years they inspect every building in each project, and for at least 20% of its low-income units, chosen at random without advance notice, inspect the units and review the tenant files and rent records. They report any noncompliance to the IRS on Form 8823, even if the owner corrects it. Most states charge monitoring fees to pay for this, and many keep monitoring through the extended use period under the recorded agreement.</p>
+        <h3>Recapture</h3>
+        <p>If qualified basis decreases during the 15-year compliance period, the owner must repay the <em>accelerated portion</em> of the credits already taken, plus interest. Because credits are claimed over 10 years but the building owes 15 years of compliance, the accelerated portion of a full ten years' credits is one third:</p>
+      </div>
+      <div class="math-block">\[ \text{accelerated portion} = \text{credits claimed} - \frac{10}{15}\times\text{credits claimed} = \tfrac{1}{3}\times\text{credits claimed} \]</div>
+      <div class="prose">
+        <p>In practice the threat of recapture is what keeps owners, investors, and managers attentive. Before 2008, a seller during the compliance period had to post a bond against recapture. Since HERA, a sale triggers no recapture as long as it is reasonably expected that the building will keep complying.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== Year 15 -->
+    <section class="chapter" id="year15" data-year="Yr 15" data-short="Year 15 and after">
+      <div class="chapter-head">
+        <span class="year">Year 15</span>
+        <span class="label kicker">Chapter 14 · §42(i)(7) and §42(h)(6)</span>
+        <h2>The exit, and what comes after</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">After 15 years the investor has received its credits and most of its losses, and no longer has a reason to stay. The partnership agreement anticipates this. Usually the general partner or an affiliated nonprofit buys the investor's interest for a modest price, often just enough to cover the investor's exit taxes, and the building continues under the extended use agreement.</p>
+        <p>Section 42(i)(7) helps. It allows a nonprofit, tenant organization, or government agency to hold a <em>right of first refusal</em> to buy the property after the compliance period at a minimum price: the outstanding debt plus the investor's exit taxes. The price can be far below market value.</p>
+        <h3>Disputes at exit</h3>
+        <p>In the 2010s, some investor limited partners, and firms that had bought investor interests in older funds, contested nonprofits' rights of first refusal. They argued that, as with a conventional right of first refusal, it could be exercised only after the partnership received and agreed to accept a bona fide third-party offer. Litigation followed. In <em>Homeowner's Rehab, Inc. v. Related Corporate V SLP</em> (2018), the Massachusetts Supreme Judicial Court held, on the terms of that partnership's agreements, that the nonprofit could exercise its right without such an offer. Several states and many new partnership agreements now spell the terms out more precisely.</p>
+        <h3>The qualified contract</h3>
+        <p>For buildings whose owners did not waive it, the 1989 law created a release valve. After year 14, the owner can ask the agency to find a buyer willing to pay a formula price, roughly the outstanding debt plus the investors' adjusted equity. If no buyer is found within a year, the extended use restrictions end, subject to a three-year protection period for existing tenants. Because the formula price often exceeds what an affordable property is worth, many states now require owners to waive the option in exchange for credits.</p>
+        <h3>Preservation</h3>
+        <p>Properties from the program's first decade have now passed 30 years. Some convert to market rate when restrictions expire, especially in strong markets. Many others are recapitalized: acquired by a new partnership, rehabilitated with 4% credits and bonds, and given a new affordability term. The aging of the stock makes preservation a growing share of the program's work.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== debates -->
+    <section class="chapter" id="debates" data-year="Now" data-short="Debates">
+      <div class="chapter-head">
+        <span class="year">Now</span>
+        <span class="label kicker">Chapter 15 · The arguments</span>
+        <h2>What the credit does well, and what it doesn't</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The credit has broad bipartisan support, partly because it uses private capital, puts states in charge, and has a low rate of financial failure. Researchers and practitioners still argue about several of its features.</p>
+        <ul>
+          <li><strong>Cost.</strong> Development costs per unit often exceed those of comparable market-rate buildings, driven by layered financing, prevailing wage and design requirements, and transaction costs. A 2018 GAO review found median new-construction costs ranging from about $126,000 per unit in Texas to about $326,000 in California, and limited federal oversight of costs. It recommended better collection and analysis of cost data.</li>
+          <li><strong>Efficiency.</strong> Because the subsidy passes through investors, syndicators, and developers, less than a dollar of equity reaches the building for each dollar of forgone revenue. Supporters answer that those intermediaries also underwrite, monitor, and guarantee performance, services a direct grant would have to pay for some other way.</li>
+          <li><strong>Depth.</strong> Rents set at 60% of AMI are not affordable to households at 30% of AMI. Research using state tenant data (O'Regan and Horn, 2013) found that a large share of LIHTC tenants have extremely low incomes and that most of them also receive rental assistance. Without vouchers, the credit mostly serves households just below the limits.</li>
+          <li><strong>Location.</strong> The statute rewards building in low-income census tracts, which revitalizes neighborhoods but can concentrate poverty. <em>Texas Department of Housing and Community Affairs v. Inclusive Communities Project</em> (2015), in which the Supreme Court held that disparate-impact claims can be brought under the Fair Housing Act, began as a challenge to how Texas allocated credits. Many QAPs now give points for high-opportunity areas, and the tension between the two goals is unresolved.</li>
+          <li><strong>Neighborhood effects and crowd-out.</strong> Studies have reached different conclusions about how much LIHTC construction adds to the total housing stock rather than displacing private building (Eriksen and Rosenthal, 2010; Baum-Snow and Marion, 2009). Diamond and McQuade (2019) found that new LIHTC developments raised nearby property values and lowered crime in low-income neighborhoods.</li>
+          <li><strong>Permanence.</strong> A 30-year commitment is long for a tax incentive and short for a building. Every year, more units approach the end of their restrictions.</li>
+        </ul>
+        <div class="callout">
+          <span class="label">The core trade-off</span>
+          <p>The credit is a production subsidy: it lowers the cost of building units and caps their rents. Vouchers are a demand subsidy: they close the gap between rent and what a household can pay. Most analysts see them as complements. The credit builds the building; the voucher makes it affordable to the poorest tenants.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== glossary -->
+    <section class="chapter" id="glossary" data-year="Ref" data-short="Glossary & sources">
+      <div class="chapter-head">
+        <span class="label kicker">Reference</span>
+        <h2>Glossary</h2>
+      </div>
+      <dl class="glossary">
+        <dt>4% / 9% credits</dt><dd>Shorthand for the two applicable percentages. 9% credits are competitive and capped by the state ceiling; 4% credits come with tax-exempt bond financing and acquisitions.</dd>
+        <dt>Applicable fraction</dt><dd>The lesser of the share of units and the share of floor space that are low-income.</dd>
+        <dt>Applicable percentage</dt><dd>The annual credit rate, now fixed at no less than 9% or 4%.</dd>
+        <dt>Basis boost</dt><dd>An increase in eligible basis to 130% for projects in a QCT, a DDA, or a state-designated area.</dd>
+        <dt>Carryover allocation</dt><dd>An allocation made before a building is placed in service, requiring the owner to incur more than 10% of expected basis within 12 months.</dd>
+        <dt>Compliance period</dt><dd>The first 15 tax years, during which noncompliance can trigger recapture.</dd>
+        <dt>Cost certification</dt><dd>A CPA's audit of final development costs, required before Form 8609 is issued.</dd>
+        <dt>DDA</dt><dd>Difficult Development Area: a HUD-designated area with high costs relative to incomes.</dd>
+        <dt>Eligible basis</dt><dd>The depreciable development cost of a building, excluding land and certain other costs.</dd>
+        <dt>Extended use agreement</dt><dd>A recorded covenant keeping the property affordable for at least 30 years in total. Also LURA or regulatory agreement.</dd>
+        <dt>Form 8609</dt><dd>The IRS form an agency issues to certify a building's credit allocation; the owner files it to claim credits.</dd>
+        <dt>Form 8823</dt><dd>The form agencies use to report noncompliance to the IRS.</dd>
+        <dt>Gap financing</dt><dd>Soft loans, grants, and deferred fees that cover costs not met by equity and the permanent loan.</dd>
+        <dt>Income averaging</dt><dd>A minimum set-aside in which unit designations range from 20% to 80% of AMI and average no more than 60%.</dd>
+        <dt>MTSP limits</dt><dd>HUD's Multifamily Tax Subsidy Project income limits, used for LIHTC.</dd>
+        <dt>Placed in service</dt><dd>The date a building is ready for occupancy, which starts the credit and compliance periods.</dd>
+        <dt>Private activity bonds</dt><dd>Tax-exempt bonds that finance private projects, subject to a state volume cap. Financing a 4% deal with them triggers its credits.</dd>
+        <dt>QCT</dt><dd>Qualified Census Tract: a HUD-designated low-income tract eligible for the basis boost.</dd>
+        <dt>Qualified basis</dt><dd>Eligible basis, boosted if applicable, times the applicable fraction.</dd>
+        <dt>Qualified contract</dt><dd>A process allowing an owner to exit extended use after year 14 if no buyer pays a formula price.</dd>
+        <dt>Recapture</dt><dd>Repayment of the accelerated portion of credits, with interest, after a loss of qualified basis during the compliance period.</dd>
+        <dt>Syndicator</dt><dd>A firm that raises investor equity, pools deals into funds, and manages the investments.</dd>
+      </dl>
+
+      <div class="chapter-head" style="margin-top:32px"><h2>Sources</h2></div>
+      <ol class="sources">
+        <li>Internal Revenue Code §42, Low-income housing credit; Treasury Regulations §1.42-1 through §1.42-19.</li>
+        <li>Tax Reform Act of 1986, Pub. L. 99-514.</li>
+        <li>Omnibus Budget Reconciliation Act of 1989, Pub. L. 101-239 (Revenue Reconciliation Act of 1989).</li>
+        <li>Omnibus Budget Reconciliation Act of 1993, Pub. L. 103-66.</li>
+        <li>Community Renewal Tax Relief Act of 2000, enacted in Pub. L. 106-554.</li>
+        <li>Housing and Economic Recovery Act of 2008, Pub. L. 110-289; American Recovery and Reinvestment Act of 2009, Pub. L. 111-5.</li>
+        <li>Protecting Americans from Tax Hikes Act of 2015, enacted in Pub. L. 114-113.</li>
+        <li>Consolidated Appropriations Act, 2018, Pub. L. 115-141; Consolidated Appropriations Act, 2021, Pub. L. 116-260.</li>
+        <li>Pub. L. 119-21 (2025 budget reconciliation act), low-income housing credit provisions.</li>
+        <li>Internal Revenue Service, Final regulations on the average income test, T.D. 9958 (2022).</li>
+        <li>Internal Revenue Service, Rev. Proc. 2024-40 (2025 per-capita amount and small-state minimum) and Rev. Proc. 2025-32 (2026 amounts reflecting the 12% increase).</li>
+        <li>Joint Committee on Taxation, <em>Estimates of Federal Tax Expenditures for Fiscal Years 2024–2028</em> (December 2024).</li>
+        <li>National Housing Conference, "The Tax Credit Market During the Great Recession"; Novogradac, "A Look at the LIHTC: Past Pricing Trends, the Current Market and Future Concerns" (2020).</li>
+        <li>Keightley, M. P. <em>An Introduction to the Low-Income Housing Tax Credit</em>. Congressional Research Service, RS22389 (updated periodically).</li>
+        <li>U.S. Department of Housing and Urban Development, LIHTC Database and Multifamily Tax Subsidy Project income limits.</li>
+        <li>U.S. Government Accountability Office (2018). <em>Low-Income Housing Tax Credit: Improved Data and Oversight Would Strengthen Cost Assessment and Fraud Risk Management</em>. GAO-18-637.</li>
+        <li>O'Regan, K. M. &amp; Horn, K. M. (2013). What can we learn about the Low-Income Housing Tax Credit program by looking at the tenants? <em>Housing Policy Debate</em> 23(3).</li>
+        <li>Eriksen, M. D. &amp; Rosenthal, S. S. (2010). Crowd out effects of place-based subsidized rental housing. <em>Journal of Public Economics</em> 94.</li>
+        <li>Baum-Snow, N. &amp; Marion, J. (2009). The effects of low income housing tax credit developments on neighborhoods. <em>Journal of Public Economics</em> 93.</li>
+        <li>Diamond, R. &amp; McQuade, T. (2019). Who wants affordable housing in their backyard? <em>Journal of Political Economy</em> 127(3).</li>
+        <li><em>Texas Department of Housing and Community Affairs v. Inclusive Communities Project, Inc.</em>, 576 U.S. 519 (2015).</li>
+        <li><em>Homeowner's Rehab, Inc. v. Related Corporate V SLP, L.P.</em>, 479 Mass. 741 (2018).</li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">LearnAnything · Volume 2 · Figures use simplified models and illustrative data where noted. Nothing here is tax, legal, or investment advice.</footer>
+
+<script src="../../assets/js/lab.js"></script>
+<script src="js/deal.js"></script>
+<script src="js/rules.js"></script>
+<script src="js/logistics.js"></script>
+<script>Lab.rail();</script>
+</body>
+</html>
