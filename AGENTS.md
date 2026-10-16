@@ -56,6 +56,8 @@ Rules:
 - Give every form control a stable `id` and a `<label for>`.
 - Use seeded randomness (`Lab.rng(seed)`) for datasets so figures look the same on every load.
 - If a figure uses illustrative rather than real data, say so in its caption.
+- `site.css` sets `svg text { font-family: var(--f-mono) }`, which overrides a `font-family` attribute. To use another face in SVG, set it with an inline `style`.
+- Size SVG diagrams to their container (viewBox width = rendered pixel width, redraw with `Lab.onResize`) and switch to a narrower layout on phones, rather than giving them a `min-width` and a horizontal scrollbar. Measure text before drawing it into boxes, and use numbered markers with a key instead of free-floating edge labels when lines can cross.
 
 ## Charts
 
@@ -77,7 +79,7 @@ All tokens live at the top of `assets/css/site.css`: light palette on `:root`, w
 ## Verifying changes
 
 - Syntax-check scripts: `for f in assets/js/lab.js modules/*/js/*.js; do node --check "$f"; done`
-- Render headless and look for console errors (macOS):
+- Render headless and look for console errors (macOS). Headless Chrome will not lay out narrower than 500px, so a 400px screenshot looks clipped even when the page fits; check `document.documentElement.scrollWidth` instead:
   ```sh
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --window-size=1400,5000 \
     --virtual-time-budget=8000 --enable-logging=stderr --v=0 --screenshot=/tmp/shot.png \

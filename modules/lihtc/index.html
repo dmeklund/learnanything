@@ -83,8 +83,18 @@ b.caution { color: var(--signal); }
 .party-panel { display: grid; gap: 8px; font-size: var(--t-sm); color: var(--ink-2); align-content: start; }
 .party-panel h5 { margin: 0; font: 700 var(--t-lg)/1.2 var(--f-display); color: var(--ink); }
 .party-panel .sub, .sub { color: var(--ink-3); font-size: var(--t-xs); font-family: var(--f-mono); line-height: 1.6; }
-.parties-stage { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(220px, 1fr); gap: 20px; align-items: start; }
-@media (max-width: 760px) { .parties-stage { grid-template-columns: 1fr; } }
+.parties-map svg { width: 100%; display: block; background: var(--paper-3); border: 1px solid var(--rule); border-radius: 2px; }
+.parties-map .node { cursor: pointer; }
+.parties-map .node:focus-visible { outline: none; }
+.parties-map .node:focus-visible rect { stroke: var(--accent); stroke-width: 2.5; }
+.parties-info { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 700px) { .parties-info { grid-template-columns: 1fr; } }
+.flow-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; font-size: var(--t-sm); }
+.flow-list li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; align-items: baseline; padding: 4px 6px; border-radius: 2px; color: var(--ink-2); }
+.flow-list li:hover, .flow-list li.hot { background: var(--accent-wash); color: var(--ink); }
+.flow-list li.dim { display: none; }
+.flow-list .n { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--mode, var(--s2)); color: var(--paper-3); font: 600 11px/1 var(--f-mono); }
+.flow-list b { color: var(--ink); font-weight: 600; }
 
 table.qap { width: 100%; border-collapse: collapse; font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
 table.qap th { font: 500 var(--t-xs)/1.3 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--ink-3); }
@@ -441,11 +451,12 @@ table.qap .np { font: 600 10px/1 var(--f-mono); padding: 2px 4px; border: 1px so
           <button type="button" data-mode="papers" aria-pressed="false">Follow the paperwork</button>
           <button type="button" data-mode="oversight" aria-pressed="false">Who watches whom</button>
         </div>
-        <div class="parties-stage">
-          <div class="scroll-x"><svg class="plot" viewBox="0 0 930 510" style="min-width:640px" role="img" aria-label="Network diagram of the parties to a LIHTC deal"></svg></div>
-          <div class="party-panel"></div>
+        <div class="parties-map"><svg role="img" aria-label="Network diagram of the parties to a LIHTC deal and the flows between them"></svg></div>
+        <div class="parties-info">
+          <div class="party-panel" aria-live="polite"></div>
+          <div class="stack"><span class="label flow-head">Flows</span><ol class="flow-list"></ol></div>
         </div>
-        <figcaption class="caption">Click a party to read its role and see only its connections; click it again to see everything. The owner partnership is selected to start. Lines bend so that two-way flows between the same pair stay readable.</figcaption>
+        <figcaption class="caption">Click a party to read its role and isolate its connections; click it again to see everything. Each numbered marker on the map matches a flow in the list. Hover a flow to highlight its line. The owner partnership is selected to start.</figcaption>
       </figure>
 
       <div class="prose">
