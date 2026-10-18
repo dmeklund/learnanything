@@ -218,37 +218,75 @@
       },
     };
     let view = 'dev';
+    const measure = document.createElement('canvas').getContext('2d');
+    function lines(text, maxW) {
+      const out = []; let line = '';
+      text.split(' ').forEach((w) => {
+        const t = line ? line + ' ' + w : w;
+        if (measure.measureText(t).width <= maxW || !line) line = t; else { out.push(line); line = w; }
+      });
+      if (line) out.push(line);
+      return out;
+    }
     function draw() {
       const pal = Lab.palette(), V = VIEWS[view];
-      const W = 760, lw = 236, rh = 26, top = 24, H = top + V.rows.length * rh + 44;
-      svg.innerHTML = ''; svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-      const x = Lab.scale(0, V.max, lw, W - 16);
-      V.ticks.forEach((v) => {
-        Lab.svg('line', { x1: x(v), x2: x(v), y1: top - 6, y2: H - 30, stroke: pal.grid }, svg);
-        const t = Lab.svg('text', { x: x(v), y: H - 14, 'text-anchor': 'middle', 'font-size': 11, fill: pal.ink3 }, svg); t.textContent = v;
+      const W = Math.max(300, Math.round(wrap.clientWidth || 700));
+      const narrow = W < 560, lh = 14, pad = 16;
+      measure.font = `11.5px ${Lab.css('--f-mono')}`;
+      // Wide: labels in a left column sized to the text. Narrow: labels sit above their bars.
+      const lw = narrow ? pad : Math.round(Math.min(W * 0.4, Math.max(150, ...V.rows.map((r) => measure.measureText(r[0]).width + 30))));
+      const labelW = narrow ? W - 2 * pad : lw - 22;
+      const top = 30;
+      let y = top;
+      const rows = V.rows.map((r) => {
+        const ls = lines(r[0], labelW);
+        const h = narrow ? ls.length * lh + 24 : Math.max(26, ls.length * lh + 10);
+        const row = { r, ls, y, h }; y += h; return row;
       });
-      const ul = Lab.svg('text', { x: W - 16, y: 12, 'text-anchor': 'end', 'font-size': 11, fill: pal.ink3 }, svg); ul.textContent = V.unit;
-      V.rows.forEach(([name, a, b, desc], i) => {
-        const y = top + i * rh;
-        const t = Lab.svg('text', { x: lw - 10, y: y + 15, 'text-anchor': 'end', 'font-size': 11.5, fill: pal.ink2 }, svg); t.textContent = name;
+      const marksY = y + (narrow ? 26 : 12), H = (V.marks.length ? marksY + (narrow ? 24 : 14) : y) + 34;
+      svg.innerHTML = ''; svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('height', H);
+      const x = Lab.scale(0, V.max, lw, W - pad - 10);
+      const axisY = H - 14;
+      V.ticks.forEach((v) => {
+        Lab.svg('line', { x1: x(v), x2: x(v), y1: top - 6, y2: axisY - 16, stroke: pal.grid }, svg);
+        if (narrow && v % 12 && V.max > 40) return;
+        const t = Lab.svg('text', { x: x(v), y: axisY, 'text-anchor': 'middle', 'font-size': 11, fill: pal.ink3 }, svg); t.textContent = v;
+      });
+      const ul = Lab.svg('text', { x: W - pad, y: 14, 'text-anchor': 'end', 'font-size': 11, fill: pal.ink3 }, svg); ul.textContent = V.unit;
+      rows.forEach(({ r: [name, a, b, desc], ls, y, h }) => {
+        const by = narrow ? y + ls.length * lh + 4 : y + (h - 15) / 2;
+        ls.forEach((l, j) => {
+          const t = narrow
+            ? Lab.svg('text', { x: pad, y: y + 11 + j * lh, 'font-size': 11.5, fill: pal.ink2 }, svg)
+            : Lab.svg('text', { x: lw - 12, y: y + h / 2 + 4 + (j - (ls.length - 1) / 2) * lh, 'text-anchor': 'end', 'font-size': 11.5, fill: pal.ink2 }, svg);
+          t.textContent = l;
+        });
         const milestone = a === b, deadline = /deadline/i.test(name);
         const col = deadline ? pal.s2 : /credit|8609|award|carryover|closing/i.test(name) ? pal.s1 : pal.ink3;
         if (milestone) {
-          const cx = x(a), cy = y + 11;
+          const cx = x(a), cy = by + 7.5;
           Lab.svg('path', { d: `M${cx} ${cy - 7} L${cx + 7} ${cy} L${cx} ${cy + 7} L${cx - 7} ${cy} Z`, fill: col, stroke: pal.paper3, 'stroke-width': 1.5 }, svg);
         } else {
-          Lab.svg('rect', { x: x(a), y: y + 4, width: Math.max(3, x(b) - x(a) - 2), height: 15, rx: 3, fill: /Extended/.test(name) ? pal.rule : col }, svg);
+          Lab.svg('rect', { x: x(a), y: by, width: Math.max(3, x(b) - x(a) - 2), height: 15, rx: 3, fill: /Extended/.test(name) ? pal.rule : col }, svg);
         }
-        const hit = Lab.svg('rect', { x: 0, y, width: W, height: rh, fill: 'transparent' }, svg);
-        hit.addEventListener('pointermove', () => { const r = svg.getBoundingClientRect(); tip.show((x((a + b) / 2) / W) * r.width, (y / H) * r.height, `<b>${name}</b><br><span style="white-space:normal;display:block;max-width:260px">${desc}</span>`); });
+        const hit = Lab.svg('rect', { x: 0, y, width: W, height: h, fill: 'transparent' }, svg);
+        hit.addEventListener('pointermove', () => {
+          const s = svg.getBoundingClientRect().width / W;
+          tip.show(x((a + b) / 2) * s, by * s - 2, `<b>${name}</b><br><span style="white-space:normal;display:block;max-width:min(260px,70vw)">${desc}</span>`, (by + 17) * s);
+        });
         hit.addEventListener('pointerleave', () => tip.hide());
       });
       if (V.marks.length) {
-        const y = top + V.rows.length * rh + 2;
-        const t = Lab.svg('text', { x: lw - 10, y: y + 4, 'text-anchor': 'end', 'font-size': 11, fill: pal.ink3 }, svg); t.textContent = 'Equity installments (example)';
+        const t = narrow
+          ? Lab.svg('text', { x: pad, y: marksY - 14, 'font-size': 11, fill: pal.ink3 }, svg)
+          : Lab.svg('text', { x: lw - 12, y: marksY + 4, 'text-anchor': 'end', 'font-size': 11, fill: pal.ink3 }, svg);
+        t.textContent = 'Equity installments (example)';
         V.marks.forEach(([m, lab]) => {
-          Lab.svg('circle', { cx: x(m), cy: y, r: 4, fill: pal.s1 }, svg);
-          const l = Lab.svg('text', { x: x(m) + 7, y: y + 4, 'font-size': 10.5, fill: pal.ink2 }, svg); l.textContent = lab;
+          Lab.svg('circle', { cx: x(m), cy: marksY, r: 4, fill: pal.s1 }, svg);
+          const l = narrow
+            ? Lab.svg('text', { x: x(m), y: marksY + 18, 'text-anchor': 'middle', 'font-size': 10.5, fill: pal.ink2 }, svg)
+            : Lab.svg('text', { x: x(m) + 7, y: marksY + 4, 'font-size': 10.5, fill: pal.ink2 }, svg);
+          l.textContent = lab;
         });
       }
     }
@@ -257,6 +295,6 @@
       Lab.$$('[data-view]', tl).forEach((o) => o.setAttribute('aria-pressed', o === b ? 'true' : 'false'));
       draw();
     }));
-    draw(); Lab.onTheme(draw);
+    draw(); Lab.onTheme(draw); Lab.onResize(wrap, draw);
   }
 })();

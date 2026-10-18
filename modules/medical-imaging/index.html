@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Echo, Slice, Spin</title>
+<meta name="description" content="Medical imaging from Röntgen's shadows to today's scanners: the physics, mathematics, and history of ultrasound, computed tomography, and magnetic resonance imaging, with interactive figures.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..900;1,62..125,400..900&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<style>
+/* Volume III identity: the reading room. A voxel-dot ground, Archivo set narrow like
+   the labels on scanner consoles, Newsreader for reading, images always on black film
+   with viewer-style corner annotations, and the radiation trefoil's magenta as accent. */
+:root {
+  --paper: #F2F4F5; --paper-2: #E7EBED; --paper-3: #FBFCFC;
+  --grid: #D3DADE; --rule: #C1CACF;
+  --ink: #10161A; --ink-2: #37434A; --ink-3: #5F6B72;
+  --accent: #8E1F6E; --signal: #8A5A00; --tertiary: #8E1F6E;
+  --s1: #1F5FA8; --s2: #C2410C; --s3: #8E1F6E;
+  --accent-wash: rgba(142, 31, 110, .08); --signal-wash: rgba(138, 90, 0, .12);
+  --film: #050708; --film-ink: #D5DEE2; --film-ink-2: #8A979D;
+  --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Newsreader", Georgia, "Times New Roman", serif;
+  --rail: 200px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #0D1216; --paper-2: #141B20; --paper-3: #192228;
+    --grid: #1D272E; --rule: #2C3A42;
+    --ink: #E2E8EB; --ink-2: #AEBAC0; --ink-3: #7F8C93;
+    --accent: #E07BC4; --signal: #E0A94A; --tertiary: #C860A8;
+    --s1: #5B8FE0; --s2: #E06A35; --s3: #C860A8;
+    --accent-wash: rgba(224, 123, 196, .1); --signal-wash: rgba(224, 169, 74, .14);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #0D1216; --paper-2: #141B20; --paper-3: #192228;
+  --grid: #1D272E; --rule: #2C3A42;
+  --ink: #E2E8EB; --ink-2: #AEBAC0; --ink-3: #7F8C93;
+  --accent: #E07BC4; --signal: #E0A94A; --tertiary: #C860A8;
+  --s1: #5B8FE0; --s2: #E06A35; --s3: #C860A8;
+  --accent-wash: rgba(224, 123, 196, .1); --signal-wash: rgba(224, 169, 74, .14);
+}
+body {
+  background-image: radial-gradient(circle, var(--grid) 1.1px, transparent 1.4px);
+  background-size: 14px 14px;
+  font-size: 1.1rem;
+}
+.hero { grid-template-columns: 1fr; gap: 28px; }
+.hero h1 { font: 800 clamp(3rem, 8.6vw, 6.4rem)/.9 var(--f-display); font-stretch: 72%; letter-spacing: -.02em; text-transform: uppercase; }
+.hero h1 i { font-style: normal; color: var(--accent); }
+.hero .dek { font-family: var(--f-body); max-width: 50ch; }
+.chapter-head .year { font: 800 clamp(2.6rem, 7vw, 4.4rem)/.9 var(--f-display); font-stretch: 72%; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.chapter-head h2 { font: 700 clamp(2rem, 4.6vw, 3.1rem)/1.04 var(--f-display); font-stretch: 85%; letter-spacing: -.02em; }
+.prose h3 { font-family: var(--f-display); font-weight: 700; font-stretch: 90%; }
+.prose blockquote { font-family: var(--f-body); }
+.bench-head h4, .volume h2 { font-family: var(--f-display); }
+.rail a { grid-template-columns: 52px 1fr; }
+.rail a .yr { font-size: 11px; }
+
+/* Light box: the hero's four studies */
+.lightbox { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; padding: 3px; background: var(--film); border-radius: var(--radius); }
+.lightbox canvas { width: 100%; aspect-ratio: 1; display: block; }
+@media (max-width: 640px) { .lightbox { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.hero-figure .readout { flex-wrap: wrap; }
+
+.bench canvas.film { background: var(--film); border-color: var(--film); }
+.bench canvas.plain { background: transparent; border: 0; }
+.chart-wrap svg { width: 100%; display: block; }
+.hu-read { font: 400 var(--t-sm)/1.4 var(--f-mono); color: var(--ink-2); min-height: 1.4em; }
+.hu-read b { color: var(--ink); font-weight: 500; }
+b.warn, .warn { color: var(--s2); }
+table.data tr.lost td { color: var(--ink-3); }
+.unit { text-transform: none; letter-spacing: 0; }
+input:disabled, select:disabled { opacity: .35; }
+.ctl:has(input:disabled) label { opacity: .5; }
+table.data .sub { color: var(--ink-3); font-size: var(--t-xs); }
+.table-wrap { overflow-x: auto; max-width: var(--bench); }
+table.compare { border-collapse: collapse; font-size: var(--t-sm); min-width: 640px; width: 100%; }
+table.compare th { font: 500 var(--t-xs)/1.3 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px; border-bottom: 1px solid var(--ink-3); vertical-align: bottom; }
+table.compare td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+table.compare td:first-child { font: 600 var(--t-sm)/1.4 var(--f-display); color: var(--ink); white-space: nowrap; }
+
+.tissue-bars { display: grid; gap: 5px; font-size: var(--t-sm); }
+.tbar { display: grid; grid-template-columns: 14px minmax(0, 8.5em) minmax(0, 1fr) 2.2em; gap: 8px; align-items: center; }
+.tbar i { width: 14px; height: 14px; border-radius: 2px; outline: 1px solid var(--rule); }
+.tbar .track { height: 8px; background: var(--paper-3); border: 1px solid var(--rule); border-radius: 2px; overflow: hidden; }
+.tbar .track span { display: block; height: 100%; background: var(--ink-2); }
+.tbar b { font: 500 var(--t-xs)/1 var(--f-mono); text-align: right; color: var(--ink); }
+
+.callout { max-width: var(--measure); border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; display: grid; gap: 6px; }
+.callout .label { color: var(--accent); }
+.stat-row { display: flex; flex-wrap: wrap; gap: 12px 40px; max-width: var(--measure); padding-block: 8px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.stat-row div { display: grid; gap: 2px; }
+.stat-row b { font: 800 var(--t-xl)/1 var(--f-display); font-stretch: 75%; letter-spacing: -.01em; }
+.stat-row span { font: 400 var(--t-xs)/1.3 var(--f-mono); color: var(--ink-3); }
+.part-head { max-width: var(--measure); padding-top: 64px; display: grid; gap: 4px; }
+.part-head .label { color: var(--accent); }
+.part-head h2 { font: 800 var(--t-xl)/1 var(--f-display); font-stretch: 72%; text-transform: uppercase; letter-spacing: .01em; }
+</style>
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg', 'canvas'] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="brand" href="../../index.html">Learn<b>Anything</b></a>
+  <span class="where">Vol. 3 · Medical imaging</span>
+  <span class="progress" aria-hidden="true"></span>
+</header>
+
+<div class="module">
+  <nav class="rail" aria-label="Chapters"><ol></ol></nav>
+
+  <main class="content">
+
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="label">Volume 3 · Medical imaging</p>
+        <h1 id="title">Echo, <i>Slice</i>, Spin</h1>
+        <p class="dek">How ultrasound, computed tomography, and magnetic resonance imaging turn sound, X-rays, and the spin of hydrogen nuclei into pictures of the inside of a living body, and the mathematics that makes each picture possible.</p>
+        <div class="meta">
+          <span class="label">17 chapters</span>
+          <span class="label">11 interactive figures</span>
+          <span class="label">1895 → today</span>
+        </div>
+      </div>
+      <figure class="hero-figure" style="margin:0">
+        <div class="lightbox" id="hero-box">
+          <canvas data-study="us" role="img" aria-label="Simulated ultrasound image of a liver with a vessel, a cyst, and a calcification"></canvas>
+          <canvas data-study="ct" role="img" aria-label="Simulated CT image of a head phantom in a brain window"></canvas>
+          <canvas data-study="t1" role="img" aria-label="Simulated T1-weighted MR image of the same head phantom"></canvas>
+          <canvas data-study="t2" role="img" aria-label="Simulated T2-weighted MR image of the same head phantom"></canvas>
+        </div>
+        <div class="readout"><span>Simulated studies. The three head images show one phantom; only the physics changes.</span><span>US · CT · MR T1 · MR T2</span></div>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PROLOGUE -->
+    <section class="chapter" id="prologue" data-year="Pro" data-short="Three contrasts">
+      <div class="chapter-head">
+        <span class="label kicker">Prologue</span>
+        <h2>Three ways to see through skin</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Every imaging method sends some form of energy into the body and measures what comes back or what gets through. What the image shows depends on which property of tissue changes that energy.</p>
+        <p>The four panels at the top show this. The three head images were computed from one simulated head, built from ellipses of scalp, skull, gray matter, white matter, fluid, a lesion with swelling around it, and a fresh blood clot pressing on the brain. Only the physics changes between them.</p>
+        <ul>
+          <li><strong>Ultrasound</strong> sends pulses of sound and listens for echoes. It sees changes in <em>acoustic impedance</em>, the product of a tissue's density and its speed of sound, and the fine texture of scatterers inside organs. Sound cannot cross bone or gas well, which is why the ultrasound panel shows a liver instead of the head.</li>
+          <li><strong>Computed tomography</strong> sends X-rays through the body from hundreds of directions and measures how much gets through. It maps the <em>linear attenuation coefficient</em>, which depends mostly on electron density and atomic number. Bone is bright and the fresh clot is slightly brighter than brain.</li>
+          <li><strong>Magnetic resonance imaging</strong> tips the magnetism of hydrogen nuclei and listens to the radio signal they give off as they relax. It measures proton density and two relaxation times, \(T_1\) and \(T_2\), and the operator chooses how much each one counts. The same water-filled ventricles are dark in one MR image and bright in the other.</li>
+        </ul>
+        <p>None of these methods photographs anatomy directly. Each one measures a physical quantity and reconstructs a map of it. The three parts of this volume follow each method from its discovery to the mathematics a scanner runs today.</p>
+      </div>
+      <div class="stat-row">
+        <div><b>1540 m/s</b><span>the speed of sound every ultrasound scanner assumes</span></div>
+        <div><b>−1000 HU</b><span>air on the CT scale; water is 0</span></div>
+        <div><b>42.58 MHz/T</b><span>the resonant frequency of hydrogen per tesla</span></div>
+      </div>
+      <dl class="defn">
+        <dt>Contrast</dt><dd>A difference in the measured quantity between two tissues. An image is useful when the tissues a doctor needs to tell apart differ in it.</dd>
+        <dt>Resolution</dt><dd>The smallest separation at which two small objects still appear as two. It is set by wavelength in ultrasound, by detector size and focal spot in CT, and by gradient strength and sampling in MRI.</dd>
+        <dt>Tomography</dt><dd>Imaging a single slice through the body without the overlying tissue, from the Greek <em>tomos</em>, a cut.</dd>
+      </dl>
+    </section>
+
+    <!-- ===================================================== 1895 -->
+    <section class="chapter" id="xrays" data-year="1895" data-short="Röntgen's shadows">
+      <div class="chapter-head">
+        <span class="year">1895</span>
+        <span class="label kicker">Chapter 1 · Before tomography</span>
+        <h2>A shadow of everything at once</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">On 8 November 1895, Wilhelm Conrad Röntgen was studying cathode rays in his laboratory in Würzburg. He had covered his discharge tube in black cardboard, yet a screen coated with barium platinocyanide across the room began to glow. Some new radiation was passing through the cardboard.</p>
+        <p>Over the next seven weeks he found that the rays passed through paper, wood, and flesh, and were stopped by metal and bone. On 22 December he made an exposure of his wife Anna Bertha's hand, showing her bones and her ring. His paper, "On a New Kind of Rays," went to the Würzburg Physical-Medical Society on 28 December. Within weeks, physicians across Europe and North America were using X-rays to find bullets and set fractures. Röntgen received the first Nobel Prize in Physics in 1901.</p>
+        <h3>Exponential attenuation</h3>
+        <p>An X-ray beam passing through matter loses photons at a rate proportional to how many remain. For a narrow beam of single-energy photons crossing tissue with a <em>linear attenuation coefficient</em> \(\mu(x)\) that varies along the path, this gives the Beer–Lambert law:</p>
+        <div class="math-block">\[ I = I_0 \exp\!\left(-\int_0^L \mu(x)\,dx\right) \]</div>
+        <p>At diagnostic energies, two interactions dominate. In the <em>photoelectric effect</em>, an inner-shell electron absorbs the whole photon. Its probability rises steeply with atomic number and falls steeply with energy, roughly as \(Z^3/E^3\). In <em>Compton scattering</em>, the photon bounces off a loosely bound electron and loses part of its energy. Its probability depends mainly on electron density and changes slowly with energy. Bone contains calcium (\(Z = 20\)) and phosphorus, while soft tissue is mostly hydrogen, carbon, nitrogen, and oxygen. At low energies the photoelectric effect makes bone far more opaque than soft tissue. At high energies Compton scattering takes over and the difference shrinks.</p>
+      </div>
+
+      <figure class="bench" id="fig-atten">
+        <div class="bench-head"><span class="fig">Fig. 1.1</span><span class="label">Interactive</span><h4>Why bone is white on an X-ray</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="at-e">Photon energy <output>60 keV</output></label><input type="range" id="at-e" min="20" max="150" step="1" value="60"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Linear attenuation coefficient of cortical bone and water versus photon energy, log scale"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Linear attenuation coefficients for cortical bone and water, from the NIST tables of Hubbell and Seltzer (interpolated between tabulated energies). Slide the energy down to 30 keV and a centimeter of bone attenuates about seven times as strongly as a centimeter of water; at 150 keV, less than twice as strongly. Real X-ray tubes emit a spread of energies, with an average around a third to a half of the tube voltage.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>The problem with shadows</h3>
+        <p>A radiograph records the total attenuation along each line from the tube to the film. Everything along that line is superimposed. A rib lies on top of a lung nodule; the heart hides part of both lungs. Worse, soft tissues differ in attenuation by only a few percent. Gray matter and white matter differ by about 1%, far too little to see behind a skull that stops most of the beam.</p>
+        <p>In the 1930s, several inventors, among them Alessandro Vallebona in Italy and Bernard Ziedses des Plantes in the Netherlands, built "body-section" machines that moved the tube and film in opposite directions during an exposure. One plane stayed sharp while the others blurred. It helped, but the blurred planes still added haze. Seeing a true slice required measuring many projections and computing the slice from them. That idea had to wait for computers, and it is the subject of Part II.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== PART I: ULTRASOUND -->
+    <div class="part-head"><span class="label">Part I</span><h2>Ultrasound: images from echoes</h2></div>
+
+    <section class="chapter" id="us-history" data-year="1958" data-short="Sonar to scanner">
+      <div class="chapter-head">
+        <span class="year">1958</span>
+        <span class="label kicker">Chapter 2 · History</span>
+        <h2>From submarine hunting to the obstetric scan</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1880, Pierre and Jacques Curie found that certain crystals, quartz among them, produce a voltage when squeezed. The reverse is also true: a voltage makes the crystal change shape. This <em>piezoelectric</em> effect lets one device both send and receive sound, and it is still how every ultrasound probe works.</p>
+        <p>The sinking of the <em>Titanic</em> in 1912 and the submarine war that followed drove the first practical use. During the First World War, the French physicist Paul Langevin built quartz transducers that sent high-frequency sound into the sea and listened for echoes from submarines. Between the wars, the same echo-ranging principle became the industrial flaw detector, used to find cracks inside steel.</p>
+      </div>
+      <ol class="events">
+        <li><time>1942</time><span>Karl Dussik, a neurologist in Austria, passed ultrasound through the head to look for brain tumors. His "hyperphonograms" turned out to show mostly the skull, but his was the first attempt at diagnostic ultrasound.</span></li>
+        <li><time>1949</time><span>George Ludwig at the US Naval Medical Research Institute measured the speed of sound in many soft tissues and found an average of about 1540 m/s. Scanners still use that number.</span></li>
+        <li><time>1951</time><span>John Wild and John Reid in Minneapolis built echo-ranging instruments to examine bowel and breast tissue, and showed that tumors returned different echoes from normal tissue.</span></li>
+        <li><time>1952</time><span>Douglass Howry and colleagues in Denver produced cross-sectional images by moving a transducer around a patient immersed in water. A later version mounted the tank on a B-29 bomber's gun turret ring.</span></li>
+        <li><time>1953</time><span>Inge Edler and Hellmuth Hertz in Lund, Sweden, recorded the moving walls of the heart with an industrial flaw detector. This began echocardiography.</span></li>
+        <li><time>1957</time><span>Shigeo Satomura in Osaka used the Doppler effect in ultrasound to detect heart and blood vessel motion.</span></li>
+        <li><time>1958</time><span>Ian Donald, John MacVicar, and the engineer Tom Brown in Glasgow published "Investigation of abdominal masses by pulsed ultrasound" in <em>The Lancet</em>. They used a contact scanner on the skin rather than a water tank. Their images separated fluid-filled cysts from solid masses, and within a few years the method was measuring fetal heads.</span></li>
+        <li><time>1970s</time><span>Real-time scanners that sweep the beam many times per second replaced slow hand-swept "static" scanners, and gray-scale display replaced bright-or-dark images.</span></li>
+        <li><time>1985</time><span>Chihiro Kasai and colleagues described a fast autocorrelation method for estimating blood velocity at every pixel, the basis of color Doppler imaging.</span></li>
+        <li><time>2010s</time><span>Probes small enough to plug into a phone, some built on a single silicon chip, brought ultrasound to the bedside and to clinics without imaging departments.</span></li>
+      </ol>
+      <div class="prose">
+        <p>Ultrasound became the most widely used cross-sectional imaging method in the world because of three properties. It uses no ionizing radiation, it shows motion in real time, and the equipment is small and comparatively cheap. Its limits come from physics: sound does not cross gas or bone well, and its resolution trades off against how deep it can see. The next four chapters explain why.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="echoes" data-year="Z" data-short="Echoes & impedance">
+      <div class="chapter-head">
+        <span class="year">Z = ρc</span>
+        <span class="label kicker">Chapter 3 · Physics</span>
+        <h2>Echoes, impedance, and attenuation</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Diagnostic ultrasound uses sound between about 2 and 15 megahertz, far above human hearing. A probe sends a pulse lasting a microsecond or less, then listens. Each echo's arrival time gives the depth of the boundary that reflected it.</p>
+        <p>Sound in soft tissue travels at roughly \(c = 1540\ \text{m/s}\), or 1.54 millimeters per microsecond. The wavelength is \(\lambda = c/f\): 0.44 mm at 3.5 MHz and 0.15 mm at 10 MHz. An echo from depth \(d\) makes a round trip, so it returns after</p>
+        <div class="math-block">\[ t = \frac{2d}{c}, \qquad d = \frac{c\,t}{2}. \]</div>
+        <p>An echo from 10 cm returns after 130 microseconds. The scanner must wait that long before firing the next pulse along the same line, or it cannot tell which pulse an echo belongs to. This sets the speed limit of ultrasound imaging.</p>
+        <h3>What reflects sound</h3>
+        <p>Each tissue has an <em>acoustic impedance</em> \(Z = \rho c\), its density times its speed of sound, measured in rayls (kg·m⁻²·s⁻¹). Where a pulse meets a flat boundary between impedances \(Z_1\) and \(Z_2\) head-on, the fraction of intensity reflected is</p>
+        <div class="math-block">\[ R = \left(\frac{Z_2 - Z_1}{Z_2 + Z_1}\right)^{2}, \qquad T = 1 - R. \]</div>
+        <p>Soft tissues all have impedances near 1.6 million rayls, so boundaries between them reflect well under 1% of the sound and the rest continues deeper. That is what makes imaging possible: most of the pulse survives to reach the next boundary. Bone, at about 7.8 million rayls, reflects around 40%. Air, at 0.0004 million rayls, reflects 99.9%. A thin layer of air between probe and skin would stop the sound almost completely, which is why every scan starts with coupling gel.</p>
+        <p>Most of the gray texture inside organs does not come from these mirror-like boundaries. It comes from <em>scattering</em> by structures smaller than a wavelength, such as cells, connective tissue, and small vessels. Their echoes interfere with each other to produce a granular pattern called <em>speckle</em>. Speckle carries information about the tissue, but its grains are an interference pattern, not individual structures.</p>
+        <h3>Attenuation</h3>
+        <p>Tissue also absorbs and scatters energy along the way. In soft tissue, attenuation in decibels grows roughly in proportion to both distance and frequency:</p>
+        <div class="math-block">\[ A_{\text{dB}} \approx \alpha\, f\, z, \qquad \alpha \approx 0.5\ \text{dB}\,\text{cm}^{-1}\,\text{MHz}^{-1}\ \text{(soft tissue average)} \]</div>
+        <p>An echo travels both ways, so a 5 MHz echo from 8 cm deep has lost about \(2 \times 0.5 \times 5 \times 8 = 40\) dB, a factor of 10,000 in intensity. Higher frequencies give shorter wavelengths and sharper images, but they die out sooner. This trade-off decides which probe a sonographer picks: about 2 to 5 MHz for the abdomen and heart, 7 to 15 MHz for shallow structures such as the thyroid, tendons, and blood vessels in the neck.</p>
+      </div>
+
+      <figure class="bench" id="fig-amode">
+        <div class="bench-head"><span class="fig">Fig. 3.1</span><span class="label">Interactive</span><h4>One line of echoes</h4></div>
+        <div class="controls">
+          <div class="btns" role="group" aria-label="Tissue path">
+            <button type="button" data-preset="abdomen" aria-pressed="true">Abdomen</button>
+            <button type="button" data-preset="airgap" aria-pressed="false">No gel (air gap)</button>
+            <button type="button" data-preset="bone" aria-pressed="false">Through bone</button>
+          </div>
+          <div class="ctl"><label for="am-f">Frequency <output>3.5 MHz</output></label><input type="range" id="am-f" min="1" max="15" step="0.5" value="3.5"></div>
+          <label class="check"><input type="checkbox" id="am-tgc"> Time-gain compensation</label>
+        </div>
+        <canvas class="plot" role="img" aria-label="Echo level in decibels versus depth for a path through layered tissue"></canvas>
+        <div class="scroll-x">
+          <table class="data">
+            <thead><tr><th>Boundary</th><th>Reflected</th><th>Echo at <span class="unit">µs</span></th><th>Shown at <span class="unit">cm</span></th><th>Level <span class="unit">dB</span></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">A pulse travels down through layers (the bar on top) and the scanner plots what returns. Orange spikes are echoes from boundaries; the blue band is diffuse scattering from inside each tissue; the dashed line is the receiver's noise floor. Raise the frequency and watch the deep echoes sink below the noise. Turn on time-gain compensation and the scanner amplifies late echoes to undo the average attenuation, lifting the noise along with them. Remove the gel, or send the beam into bone, and nothing useful returns from behind. Tissue values are approximate textbook figures; the scanner places each echo using 1540 m/s, so depths are slightly off wherever the true speed differs.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="arrays" data-year="Array" data-short="Steering with delays">
+      <div class="chapter-head">
+        <span class="year">τₙ</span>
+        <span class="label kicker">Chapter 4 · Transducer arrays</span>
+        <h2>Steering and focusing sound with delays</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Early scanners used a single crystal and swept it by hand or with a motor. A modern probe holds a row of 64 to 256 or more tiny piezoelectric elements, each wired to its own transmit and receive channel. Nothing moves. The beam is steered and focused electronically by firing the elements at slightly different times.</p>
+        <p>To focus at a point \((x_f, z_f)\), the scanner fires the outer elements first and the center elements last, so that every wavelet arrives at the focus at the same instant. For element \(n\) at position \(x_n\), the distance to the focus is \(r_n\) and the firing delay is</p>
+        <div class="math-block">\[ r_n = \sqrt{(x_n - x_f)^2 + z_f^{\,2}}, \qquad \tau_n = \frac{\max_m r_m - r_n}{c}. \]</div>
+        <p>Moving the focus sideways steers the beam. On receive, the scanner applies the same delays in software to the signals from each element before adding them. This is called <em>delay-and-sum beamforming</em>. Echoes from the focus add in phase and echoes from elsewhere partly cancel. Modern scanners update the receive delays continuously as echoes arrive from deeper, so the receive focus follows the pulse down. This is <em>dynamic focusing</em>.</p>
+        <p>The width of the focused beam sets the lateral resolution. It is roughly the wavelength times the <em>f-number</em>, the focal depth divided by the width of the active aperture:</p>
+        <div class="math-block">\[ \Delta x \approx \lambda\,\frac{z_f}{D}. \]</div>
+        <p>Element spacing matters too. If elements are more than half a wavelength apart, the array produces <em>grating lobes</em>: extra beams pointing in other directions, which pick up echoes from the wrong place. Phased-array probes for the heart, which steer the beam through wide angles from a small window between the ribs, use spacing near half a wavelength for this reason.</p>
+      </div>
+
+      <figure class="bench" id="fig-beam">
+        <div class="bench-head"><span class="fig">Fig. 4.1</span><span class="label">Interactive</span><h4>Delays make a beam</h4></div>
+        <div class="controls">
+          <div class="btns" role="group" aria-label="View">
+            <button type="button" data-bmode="pulse" aria-pressed="true">Pulse</button>
+            <button type="button" data-bmode="beam" aria-pressed="false">Beam pattern</button>
+          </div>
+          <div class="ctl"><label for="bf-depth">Focal depth <output>4.0 cm</output></label><input type="range" id="bf-depth" min="1" max="6.5" step="0.1" value="4"></div>
+          <div class="ctl"><label for="bf-steer">Steering angle <output>0°</output></label><input type="range" id="bf-steer" min="-40" max="40" step="1" value="0"></div>
+          <label class="check"><input type="checkbox" id="bf-focus" checked> Focus</label>
+          <label class="check"><input type="checkbox" id="bf-wide"> Wide spacing (2λ)</label>
+        </div>
+        <canvas class="plot" role="img" aria-label="Pressure field of an ultrasound pulse emitted by a linear array with focusing delays"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">A 1.5 MHz array seen from the side, with the element delays drawn as bars above it. In <b>Pulse</b> view, orange is compression and blue is rarefaction; the wavelets from each element merge into one wavefront that converges on the cross. <b>Beam pattern</b> shows the time-averaged intensity on a 30 dB scale. Steer to 30° with wide spacing and a second beam, a grating lobe, appears on the other side. Turn off focusing to see an unfocused, steered plane wave. The field is a simplified two-dimensional model.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="doppler" data-year="fD" data-short="Doppler">
+      <div class="chapter-head">
+        <span class="year">f<sub>D</sub></span>
+        <span class="label kicker">Chapter 5 · Doppler</span>
+        <h2>Measuring blood flow</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Sound reflected from moving blood cells comes back at a slightly different frequency. Christian Doppler described the effect for light in 1842. In ultrasound, the shift is small enough to fall in the audible range, and early Doppler instruments simply played it through a loudspeaker.</p>
+        <p>Red blood cells moving at speed \(v\), at angle \(\theta\) to the beam, shift a transmitted frequency \(f_0\) by</p>
+        <div class="math-block">\[ f_D = \frac{2 f_0\, v \cos\theta}{c}. \]</div>
+        <p>The factor of 2 appears because the cells first receive a shifted frequency and then re-emit it while moving. Blood at 1 m/s, imaged at 5 MHz along the flow, shifts the frequency by about 6.5 kHz. Only the component of velocity along the beam counts. At \(\theta = 90°\), \(\cos\theta = 0\) and flow is invisible. The operator marks the vessel direction so the machine can divide by \(\cos\theta\), and errors in that angle grow quickly above 60°.</p>
+        <h3>Pulsed Doppler and aliasing</h3>
+        <p>Pulsed Doppler measures velocity at a chosen depth by timing which echoes it listens to. It samples the shift once per pulse, at the pulse repetition frequency (PRF). By the Nyquist sampling theorem, a sampled signal can only represent frequencies up to half the sampling rate. Faster flow <em>aliases</em>: its spectrum wraps around and appears to flow the other way.</p>
+        <div class="math-block">\[ |f_D| \le \frac{\text{PRF}}{2}, \qquad v_{\max} = \frac{c \cdot \text{PRF}}{4 f_0 \cos\theta}. \]</div>
+        <p>The PRF itself is limited by depth, because each echo must return before the next pulse: \(\text{PRF} \le c/2d\). Deep, fast flow, such as a jet through a narrowed heart valve, is therefore hard to measure with pulsed Doppler. Lowering \(f_0\) helps, as does continuous-wave Doppler, which transmits and receives all the time on separate elements and gives up depth information entirely.</p>
+        <p>Color Doppler estimates the mean shift at thousands of points per frame and paints it over the gray image, by convention red for flow toward the probe and blue for flow away.</p>
+      </div>
+
+      <figure class="bench" id="fig-doppler">
+        <div class="bench-head"><span class="fig">Fig. 5.1</span><span class="label">Interactive</span><h4>A spectral Doppler trace, and how it aliases</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="dp-f">Transmit frequency <output>5.0 MHz</output></label><input type="range" id="dp-f" min="2" max="10" step="0.5" value="5"></div>
+          <div class="ctl"><label for="dp-v">Peak velocity <output>100 cm/s</output></label><input type="range" id="dp-v" min="10" max="250" step="5" value="100"></div>
+          <div class="ctl"><label for="dp-a">Beam angle <output>60°</output></label><input type="range" id="dp-a" min="0" max="85" step="1" value="60"></div>
+          <div class="ctl"><label for="dp-prf">PRF <output>8.0 kHz</output></label><input type="range" id="dp-prf" min="1" max="20" step="0.5" value="8"></div>
+        </div>
+        <canvas class="plot" role="img" aria-label="Beam geometry and a spectral Doppler display of arterial flow over time"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: the probe, the beam, and the sample gate in an artery. Right: the spectral display a sonographer reads, with Doppler shift on the vertical axis and time across. Each heartbeat makes a sharp systolic peak, a brief reversal, and low forward flow in diastole. Raise the velocity or lower the PRF until the peaks wrap past the top and reappear at the bottom: that is aliasing. Then steepen the angle toward 90° and watch the shift vanish, and the "error if θ is off by 5°" readout climb. The waveform is illustrative.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="bmode" data-year="B" data-short="Building the image">
+      <div class="chapter-head">
+        <span class="year">B-mode</span>
+        <span class="label kicker">Chapter 6 · Image formation</span>
+        <h2>From echo lines to a picture</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A B-mode ("brightness mode") image is a fan or rectangle of echo lines, each like the one in Figure 3.1, with echo strength drawn as brightness. A typical scanner forms 100 to 250 lines per frame and 20 to 60 frames per second.</p>
+        <p>Turning raw echoes into a picture takes several steps. The received signal is amplified, with gain that rises with depth to cancel average attenuation; this is <em>time-gain compensation</em> (TGC), and sonographers adjust it with a column of sliders. The scanner then extracts the envelope of each echo and compresses its enormous range logarithmically. Echoes span 100 dB or more, a factor of ten billion in power, while a display shows perhaps 256 gray levels. The <em>dynamic range</em> setting chooses how many decibels map from black to white. Finally, the lines are interpolated from the probe's polar geometry onto screen pixels, called <em>scan conversion</em>.</p>
+        <h3>Artifacts that carry information</h3>
+        <p>Ultrasound images contain predictable artifacts, and some of them help diagnosis. TGC assumes average soft-tissue attenuation, so anything that attenuates more or less than that changes the brightness of everything behind it.</p>
+        <ul>
+          <li><strong>Acoustic shadowing.</strong> A gallstone or calcification reflects and absorbs most of the beam, leaving a dark stripe behind it.</li>
+          <li><strong>Posterior enhancement.</strong> Fluid attenuates very little, so tissue behind a cyst looks brighter than tissue beside it. Enhancement is one of the signs that a mass is a simple cyst.</li>
+          <li><strong>Reverberation and mirror images.</strong> Strong reflectors such as the diaphragm, with air-filled lung behind it, can bounce sound back and forth and place false copies of structures at the wrong depth.</li>
+          <li><strong>Speckle.</strong> The granular texture changes with frequency and probe position because it is an interference pattern.</li>
+        </ul>
+      </div>
+
+      <figure class="bench" id="fig-bmode">
+        <div class="bench-head"><span class="fig">Fig. 6.1</span><span class="label">Interactive</span><h4>A simulated liver scan</h4></div>
+        <div class="stage">
+          <canvas class="plot film" role="img" aria-label="Simulated B-mode ultrasound image of a liver"></canvas>
+          <div class="stack">
+            <div class="ctl"><label for="bm-f">Frequency <output>3.5 MHz</output></label><input type="range" id="bm-f" min="2" max="12" step="0.5" value="3.5"></div>
+            <div class="ctl"><label for="bm-gain">Overall gain <output>0 dB</output></label><input type="range" id="bm-gain" min="-20" max="20" step="1" value="0"></div>
+            <div class="ctl"><label for="bm-tgc">Time-gain compensation <output>100%</output></label><input type="range" id="bm-tgc" min="0" max="1.5" step="0.05" value="1"></div>
+            <div class="ctl"><label for="bm-dr">Dynamic range <output>60 dB</output></label><input type="range" id="bm-dr" min="30" max="90" step="5" value="60"></div>
+            <div class="readouts"></div>
+          </div>
+        </div>
+        <figcaption class="caption">A simplified simulation: random scatterers in skin, fat, muscle, and liver, blurred by a pulse whose length and beam width scale with wavelength, attenuated on the way down and back, with receiver noise added before amplification. The liver contains a vessel (upper left), a bright lesion (upper right), a cyst with enhancement below it, and a calcification casting a shadow. The bright curve near the bottom is the diaphragm. At 10 MHz the speckle is finer but the deep liver fades into amplified noise; at 2 MHz everything is visible but coarse. Set TGC to 0% to see raw attenuation.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PART II: CT -->
+    <div class="part-head"><span class="label">Part II</span><h2>Computed tomography: slices from shadows</h2></div>
+
+    <section class="chapter" id="radon" data-year="1917" data-short="Mathematics first">
+      <div class="chapter-head">
+        <span class="year">1917</span>
+        <span class="label kicker">Chapter 7 · The mathematics came first</span>
+        <h2>Recovering a function from its line integrals</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1917 the Austrian mathematician Johann Radon published a paper answering a pure question: if you know the integral of a function along every straight line in the plane, can you recover the function? He showed that you can, and gave an inversion formula.</p>
+        <p>Take the logarithm of the Beer–Lambert law and each X-ray measurement becomes exactly such a line integral:</p>
+        <div class="math-block">\[ p = -\ln\frac{I}{I_0} = \int_{\text{line}} \mu(x, y)\,ds. \]</div>
+        <p>Describe each line by its angle \(\theta\) and its signed distance \(s\) from the center. The collection of all line integrals is the <em>Radon transform</em> of \(\mu\):</p>
+        <div class="math-block">\[ p(\theta, s) = \iint \mu(x, y)\,\delta(x\cos\theta + y\sin\theta - s)\,dx\,dy. \]</div>
+        <p>Arranged as an image, with angle on one axis and detector position on the other, \(p(\theta, s)\) is called a <em>sinogram</em>, because a single point in the body traces a sine curve across it.</p>
+        <p>Radon's paper sat unread by physicians for half a century. Allan Cormack, a South African physicist working part-time as a hospital physicist in Cape Town, became interested in the 1950s in how radiation therapy doses depended on the uneven attenuation of the body. Unaware of Radon, he worked out a method for reconstructing attenuation from line measurements, tested it on a cylinder of aluminum and wood, and published it in the <em>Journal of Applied Physics</em> in 1963 and 1964. He later recalled that the papers received almost no response.</p>
+        <p>Others solved the same problem in other fields. Ronald Bracewell reconstructed maps of solar microwave emission in radio astronomy in 1956. In 1971 G. N. Ramachandran and A. V. Lakshminarayanan published the convolution method that most CT scanners would later use, motivated by electron microscopy and X-ray images.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="hounsfield" data-year="1971" data-short="Hounsfield's machine">
+      <div class="chapter-head">
+        <span class="year">1971</span>
+        <span class="label kicker">Chapter 8 · The first scanner</span>
+        <h2>Hounsfield's machine</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Godfrey Hounsfield was an engineer at EMI, the British company better known for records. He had designed one of Britain's first all-transistor computers. In the late 1960s, looking for a new project, he asked whether a computer could pick out the internal structure of an object from X-ray readings taken from many directions.</p>
+        <p>He built a laboratory rig with a gamma-ray source on a lathe bed; it took days to scan a test object. With support from the British Department of Health and Social Security, EMI built a clinical prototype for the head. The patient's head sat in a rubber cap inside a box of water, which evened out the path lengths through the skull. A source and detector translated across the head, took readings, rotated by one degree, and repeated, through 180°. Acquiring a pair of slices took several minutes, and reconstructing them took longer.</p>
+        <p>On 1 October 1971, at Atkinson Morley's Hospital in Wimbledon, London, the radiologist James Ambrose and Hounsfield scanned a woman with a suspected brain tumor. The image showed a dark cystic mass in the frontal lobe, and the surgeon who removed it reportedly said it looked just like the picture. The results were presented in April 1972, and the 1973 papers by Hounsfield and Ambrose in the <em>British Journal of Radiology</em> launched the field. For the first time, physicians could see the brain itself, its ventricles, and blood within it, without surgery or painful injections of air.</p>
+        <p>Hounsfield's first reconstructions used an iterative method, repeatedly correcting a guess until its projections matched the measurements. Within a few years, scanners adopted the faster filtered back-projection described next. Robert Ledley at Georgetown built the first whole-body scanner, the ACTA, in 1974. Hounsfield and Cormack, who had never met, shared the 1979 Nobel Prize in Physiology or Medicine.</p>
+      </div>
+      <ol class="events">
+        <li><time>1971</time><span>First clinical scan, EMI head scanner. Translate-rotate geometry with a pencil beam; 80 × 80 pixel images.</span></li>
+        <li><time>1970s</time><span>Fan beams and multiple detectors shorten scans to under a minute.</span></li>
+        <li><time>1970s</time><span>"Third-generation" rotate-rotate design: tube and a curved detector arc spin together around the patient. Most scanners today use it.</span></li>
+        <li><time>1989</time><span>Slip rings and helical scanning: continuous rotation while the table moves (Chapter 11).</span></li>
+        <li><time>1998</time><span>Multi-slice scanners record four slices per rotation, then 16, 64, and today up to several hundred.</span></li>
+        <li><time>2021</time><span>The first photon-counting CT scanner is cleared by the US Food and Drug Administration.</span></li>
+      </ol>
+    </section>
+
+    <section class="chapter" id="fbp" data-year="FBP" data-short="Reconstruction">
+      <div class="chapter-head">
+        <span class="year">FBP</span>
+        <span class="label kicker">Chapter 9 · Reconstruction</span>
+        <h2>Smearing back, and why it needs a filter</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The simplest way to rebuild a slice from its projections is to run each projection backward: smear each measured value evenly along the line it came from, and add up the smears from every angle. This is <em>back-projection</em>. A point object produces a star of lines that overlap at the right place. But every point also leaves a halo that falls off as \(1/r\), so plain back-projection gives a blurred image.</p>
+        <h3>The Fourier slice theorem</h3>
+        <p>The exact fix comes from the Fourier transform. Take the one-dimensional Fourier transform of a projection at angle \(\theta\). The result equals the two-dimensional Fourier transform of the slice, sampled along a line through the origin at the same angle:</p>
+        <div class="math-block">\[ P_\theta(\omega) = \int p(\theta, s)\,e^{-i 2\pi \omega s}\,ds = F(\omega\cos\theta,\ \omega\sin\theta). \]</div>
+        <p>So each projection fills in one spoke of the slice's 2-D spectrum. Spokes crowd together near the center and spread apart at the edge: low spatial frequencies are oversampled and high ones undersampled, by a factor proportional to \(|\omega|\). That imbalance is exactly the \(1/r\) blur. Multiplying each projection's spectrum by \(|\omega|\), a <em>ramp filter</em>, before back-projecting removes it:</p>
+        <div class="math-block">\[ \mu(x, y) = \int_0^{\pi} \big(p_\theta * h\big)(x\cos\theta + y\sin\theta)\,d\theta, \qquad \hat h(\omega) = |\omega|. \]</div>
+        <p>In practice, the ramp is applied by convolving each projection with a short kernel in the detector direction. Ramachandran and Lakshminarayanan gave the discrete kernel in 1971; in 1974 Larry Shepp and Benjamin Logan published a gentler version along with the "head phantom" of overlapping ellipses that has been the standard test object ever since. The phantom in these figures is loosely modeled on it.</p>
+        <p>The ramp amplifies high frequencies, and that is where noise lives. Real scanners roll the ramp off at high frequencies with a choice of <em>reconstruction kernels</em>: smooth kernels for soft tissue, sharp ones for bone and lung, trading noise against detail.</p>
+      </div>
+
+      <figure class="bench" id="fig-recon">
+        <div class="bench-head"><span class="fig">Fig. 9.1</span><span class="label">Interactive</span><h4>Scan, sinogram, reconstruction</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="rc-k">Views over 180° <output>180</output></label><input type="range" id="rc-k" min="4" max="180" step="1" value="180"></div>
+          <div class="ctl"><label for="rc-i">Photons per ray <output>3.16M</output></label><input type="range" id="rc-i" min="3" max="7.5" step="0.1" value="6.5"></div>
+          <div class="ctl"><label for="rc-filter">Filter</label>
+            <select id="rc-filter"><option value="ramlak">Ramp (Ram-Lak)</option><option value="shepp">Smoothed ramp (Shepp-Logan)</option><option value="none">None (plain back-projection)</option></select></div>
+          <button type="button" class="primary" id="rc-scan">Scan</button>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="Head phantom, its sinogram, and the reconstructed slice"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">A parallel-beam scan of the 128 × 128 head phantom, displayed with a 200 HU window. Press <b>Scan</b> to watch the projections accumulate one angle at a time. Drop to 20 views and streaks radiate from the skull. With the filter off, the image is a blur. Lower the photon count, the equivalent of lowering the dose, and noise rises as one over the square root of the photons. The smoothed ramp trades a little sharpness for less noise. Gray matter and white matter differ by only 10 HU, so they disappear first.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="hu" data-year="HU" data-short="Hounsfield units">
+      <div class="chapter-head">
+        <span class="year">HU</span>
+        <span class="label kicker">Chapter 10 · Reading the numbers</span>
+        <h2>Hounsfield units and the window</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A CT scanner reports each pixel not as a raw attenuation coefficient but as a CT number, on a scale anchored to water and air. In Hounsfield's honor, the unit is the Hounsfield unit (HU):</p>
+        <div class="math-block">\[ \text{HU} = 1000 \times \frac{\mu - \mu_{\text{water}}}{\mu_{\text{water}} - \mu_{\text{air}}}. \]</div>
+        <p>Water is 0 and air is −1000 by definition. Fat sits near −100, most soft tissue between 20 and 60, fresh blood 50 to 80 (higher than brain, which is why a new hemorrhage looks bright), and dense bone above 1000. Because the scale is calibrated, the numbers themselves carry diagnostic meaning: a kidney mass measuring near 0 HU is very likely a simple cyst, and an adrenal nodule under 10 HU is very likely benign lipid-rich adenoma.</p>
+        <h3>Windowing</h3>
+        <p>CT numbers span more than 4000 HU, but the eye can distinguish perhaps 50 to 100 shades of gray at once. A display can't show a 10 HU difference between gray and white matter and a 2000 HU range of bone at the same time. So the viewer picks a <em>window</em>: a width \(W\) and a center, or <em>level</em>, \(L\). Values below \(L - W/2\) are black, values above \(L + W/2\) are white, and the window is stretched linearly between them. Radiologists page through standard windows for each study: a narrow brain window, a wider one for blood next to bone, a very wide bone window, a lung window centered far below zero.</p>
+      </div>
+
+      <figure class="bench" id="fig-window">
+        <div class="bench-head"><span class="fig">Fig. 10.1</span><span class="label">Interactive</span><h4>One set of numbers, many pictures</h4></div>
+        <div class="stage">
+          <canvas class="plot film" role="img" aria-label="CT image of the head phantom with adjustable window and level"></canvas>
+          <div class="stack">
+            <div class="btns" role="group" aria-label="Window presets">
+              <button type="button" data-wl="brain" aria-pressed="true">Brain</button>
+              <button type="button" data-wl="subdural" aria-pressed="false">Subdural</button>
+              <button type="button" data-wl="soft" aria-pressed="false">Soft tissue</button>
+              <button type="button" data-wl="bone" aria-pressed="false">Bone</button>
+              <button type="button" data-wl="lung" aria-pressed="false">Lung</button>
+            </div>
+            <div class="ctl"><label for="wl-w">Window width <output>80 HU</output></label><input type="range" id="wl-w" min="0" max="1" step="0.001" value="0.528"></div>
+            <div class="ctl"><label for="wl-l">Level <output>40 HU</output></label><input type="range" id="wl-l" min="-1000" max="1500" step="5" value="40"></div>
+            <div class="chart-wrap"><svg role="img" aria-label="Histogram of CT numbers with the display ramp"></svg></div>
+            <p class="hu-read">Point at the image to read a pixel value.</p>
+          </div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The same 256 × 256 image in Hounsfield units, with about 4 HU of noise. The histogram shows the pixel values around the current window, and the line shows how they map to gray. In the brain window the clot along the left edge and the lesion in the upper right stand out. In the bone window both vanish, and the skull's interior becomes visible. The subdural window separates the clot from the bone next to it. Preset values are typical; departments vary.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="helical" data-year="1989" data-short="Spirals & dose">
+      <div class="chapter-head">
+        <span class="year">1989</span>
+        <span class="label kicker">Chapter 11 · Modern CT</span>
+        <h2>Spirals, rows of detectors, and dose</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Early scanners stopped after every slice: rotate, stop, unwind the cables, move the table, repeat. Slip rings, which carry power and data across a rotating joint, allowed the gantry to spin continuously. In 1989 Willi Kalender and colleagues at Siemens presented <em>spiral</em> (helical) CT, in which the table moves steadily while the tube rotates, tracing a helix around the patient. A whole chest could be scanned in one breath-hold, and interpolation recovered slices at any position.</p>
+        <p>Multi-slice scanners followed in 1998, with several rows of detectors side by side. Today's scanners have 64 to 320 or more rows, rotate in about a quarter of a second, and can cover the heart in a single beat. Dual-energy scanners take two images at different tube voltages and use the energy dependence from Chapter 1 to separate materials such as iodine, calcium, and uric acid. Photon-counting detectors, cleared for clinical use in 2021, measure the energy of each photon individually.</p>
+        <h3>Dose</h3>
+        <p>CT gives more information than a radiograph and a far larger radiation dose. Radiation risk is described with the <em>effective dose</em>, in sieverts. It weights the absorbed dose in each organ by that organ's sensitivity, so that doses to different parts of the body can be compared on one scale:</p>
+        <div class="math-block">\[ E = \sum_T w_T\, H_T. \]</div>
+        <p>Image noise and dose are linked by photon statistics. The noise in a measurement of \(N\) photons is \(\sqrt N\), so halving the noise requires four times the dose. Every CT protocol is a negotiation between image quality and dose, guided by the principle of keeping dose "as low as reasonably achievable" (ALARA). Tube current modulation, iterative and deep-learning reconstruction, and protocols sized for children have all reduced typical doses.</p>
+        <p>How much risk such doses carry is uncertain. Estimates at these levels are extrapolated from higher-dose data, mainly from survivors of the atomic bombings, under the linear no-threshold model. In 2007 David Brenner and Eric Hall estimated that more than 62 million CT scans a year were performed in the US and warned that a small fraction of future cancers might be attributable to them. That projection is debated, but the response, including the Image Gently campaign for children, made dose a routine part of CT practice.</p>
+      </div>
+
+      <figure class="bench" id="fig-dose">
+        <div class="bench-head"><span class="fig">Fig. 11.1</span><span class="label">Chart</span><h4>Typical effective doses</h4></div>
+        <div class="chart-wrap"><svg role="img" aria-label="Bar chart of typical effective doses for X-ray and CT examinations, with natural background for comparison"></svg></div>
+        <div class="legend"><span><i style="background:var(--ink-3);border-radius:1px"></i>radiograph</span><span><i style="background:var(--s1);border-radius:1px"></i>CT</span><span><i style="background:var(--s2);border-radius:1px"></i>natural background, one year</span></div>
+        <figcaption class="caption">Average adult effective doses from the catalog of Mettler and colleagues (2008); US average natural background from NCRP Report 160 (2009). Doses for a given exam vary several-fold with the scanner, protocol, and patient size, and many have fallen since 2008. Ultrasound and MRI use no ionizing radiation. Hover a bar for comparisons.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PART III: MRI -->
+    <div class="part-head"><span class="label">Part III</span><h2>Magnetic resonance: listening to protons</h2></div>
+
+    <section class="chapter" id="nmr" data-year="1946" data-short="Nuclear resonance">
+      <div class="chapter-head">
+        <span class="year">1946</span>
+        <span class="label kicker">Chapter 12 · Nuclear magnetic resonance</span>
+        <h2>Spinning nuclei in a magnet</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Many atomic nuclei behave like tiny bar magnets. The hydrogen nucleus, a single proton, has a property called spin and a magnetic moment that goes with it. In 1938 Isidor Rabi measured nuclear magnetic moments in molecular beams by flipping them with radio waves. In 1946 Felix Bloch at Stanford and Edward Purcell at Harvard independently detected the same resonance in ordinary bulk matter: water and paraffin wax. They shared the 1952 Nobel Prize in Physics.</p>
+        <h3>Precession and the Larmor frequency</h3>
+        <p>Put protons in a strong magnetic field \(B_0\). Each magnetic moment precesses around the field like a tilted spinning top, at the Larmor frequency</p>
+        <div class="math-block">\[ \omega_0 = \gamma B_0, \qquad f_0 = \frac{\gamma}{2\pi}B_0 = 42.58\ \text{MHz/T} \times B_0. \]</div>
+        <p>At 1.5 tesla, about 30,000 times the Earth's field, hydrogen resonates at 63.9 MHz, in the FM radio range; at 3 T, at 127.7 MHz. Slightly more protons align with the field than against it. At body temperature and 1.5 T the excess is only about 5 in a million, but a milliliter of water holds about \(7 \times 10^{22}\) protons, so the tiny excess adds up to a measurable net magnetization \(\mathbf M\) pointing along the field.</p>
+        <h3>Excitation and relaxation</h3>
+        <p>A pulse of radio waves at the Larmor frequency tips \(\mathbf M\) away from the field by a <em>flip angle</em>. After a 90° pulse, \(\mathbf M\) lies in the transverse plane and precesses, and its rotating magnetism induces a voltage in a receiver coil. That voltage is the MR signal. It then fades in two separate ways, described by the equations Bloch published in 1946:</p>
+        <div class="math-block">\[ \frac{d\mathbf M}{dt} = \gamma\,\mathbf M \times \mathbf B \;-\; \frac{M_x\hat{\mathbf x} + M_y\hat{\mathbf y}}{T_2} \;-\; \frac{(M_z - M_0)\,\hat{\mathbf z}}{T_1}. \]</div>
+        <ul>
+          <li><strong>\(T_2\), transverse relaxation.</strong> Neighboring protons feel slightly different fields from each other, precess at slightly different rates, and fall out of step. The transverse magnetization decays as \(e^{-t/T_2}\), over tens to hundreds of milliseconds in tissue. Free water stays in step for seconds; protons in solids or large molecules lose phase quickly.</li>
+          <li><strong>\(T_1\), longitudinal relaxation.</strong> The protons hand energy to their surroundings and realign with the field. \(M_z\) recovers as \(M_0(1 - e^{-t/T_1})\), over hundreds of milliseconds to seconds.</li>
+        </ul>
+        <p>Imperfections in the magnet add extra dephasing, so the signal actually decays faster, with a time constant \(T_2^*\). In 1950 Erwin Hahn discovered that a second pulse can reverse this extra dephasing and bring the protons back into step, producing a <em>spin echo</em>. The spin echo recovers true \(T_2\) decay and is the basis of the classic MRI pulse sequence.</p>
+      </div>
+
+      <figure class="bench" id="fig-bloch">
+        <div class="bench-head"><span class="fig">Fig. 12.1</span><span class="label">Interactive</span><h4>Tip, precess, relax</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="bl-tissue">Tissue</label>
+            <select id="bl-tissue"><option value="wm">White matter</option><option value="gm">Gray matter</option><option value="csf">CSF</option><option value="fat">Fat</option></select></div>
+          <div class="ctl"><label for="bl-flip">Flip angle <output>90°</output></label><input type="range" id="bl-flip" min="10" max="180" step="5" value="90"></div>
+          <div class="ctl"><label for="bl-t">Time after pulse <output></output></label><input type="range" id="bl-t" min="0" max="1" step="0.001" value="0.42"></div>
+          <div class="ctl"><label for="bl-b0">Field</label><select id="bl-b0"><option value="1.5">1.5 T</option><option value="3">3 T</option><option value="0.064">0.064 T (portable)</option><option value="7">7 T</option></select></div>
+          <label class="check"><input type="checkbox" id="bl-lab"> Lab frame</label>
+          <button type="button" id="bl-play">Play</button>
+        </div>
+        <canvas class="plot" role="img" aria-label="Magnetization vector after a radiofrequency pulse, and its longitudinal and transverse components over time"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">The magnetization vector \(\mathbf M\) after a pulse, in the frame that rotates at the Larmor frequency. Press <b>Play</b> and watch the transverse part (blue) vanish within about \(T_2\) while the longitudinal part (orange) takes several \(T_1\) to grow back. Pick CSF to see why fluid behaves so differently. Tick <b>Lab frame</b> to add the precession, slowed by a factor of millions. A 180° pulse inverts \(\mathbf M\) without making any signal; Chapter 14 uses that. Relaxation times are approximate values at 1.5 T; the field setting changes only the frequency here, although real \(T_1\) values lengthen at higher fields.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="lauterbur" data-year="1973" data-short="Gradients">
+      <div class="chapter-head">
+        <span class="year">1973</span>
+        <span class="label kicker">Chapter 13 · From spectra to images</span>
+        <h2>Gradients turn position into frequency</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">For a quarter century, NMR was a tool of chemistry, used to identify molecules from tiny shifts in their resonant frequencies. It produced spectra, not pictures. The question was how to tell where in a sample a signal came from.</p>
+        <p>In 1971 Raymond Damadian, a physician at the State University of New York Downstate, reported in <em>Science</em> that relaxation times of tumors in rats were longer than those of normal tissue. He proposed using NMR to detect cancer, and filed a patent on a scanning apparatus in 1972. His group's first full-body human scan, made with a machine they called <em>Indomitable</em>, took almost five hours in 1977.</p>
+        <p>The method every scanner uses came from Paul Lauterbur, a chemist at Stony Brook. His insight, in 1971, was to add a magnetic field <em>gradient</em>, a field that changes linearly across the sample. Then the resonant frequency depends on position:</p>
+        <div class="math-block">\[ \omega(x) = \gamma\,(B_0 + G_x x). \]</div>
+        <p>The frequency spectrum of the signal becomes a projection of the object along the gradient direction. Rotating the gradient gives projections from many angles, and the reconstruction methods of Part II rebuild an image. <em>Nature</em> at first rejected his paper; it appeared in 1973 with images of two tubes of water and the coined name "zeugmatography." Working independently in Nottingham, Peter Mansfield used gradients to describe NMR signals in terms of spatial frequency, the idea behind k-space, and later developed echo-planar imaging, which can record a whole image after a single excitation.</p>
+        <p>In 1975 Richard Ernst's group in Zürich replaced Lauterbur's rotating projections with Fourier encoding along two axes, and in 1980 William Edelstein and colleagues in Aberdeen refined it into the "spin-warp" method that clinical scanners still use. Commercial scanners reached hospitals in the early 1980s. Lauterbur and Mansfield shared the 2003 Nobel Prize in Physiology or Medicine. Damadian was not included, and he protested with full-page newspaper advertisements; the decision remains disputed.</p>
+        <h3>Three gradients, three jobs</h3>
+        <ul>
+          <li><strong>Slice selection.</strong> A gradient along the body during a narrow-band radio pulse means only one slab resonates.</li>
+          <li><strong>Frequency encoding.</strong> A gradient during readout makes each column of the slice sing at its own frequency.</li>
+          <li><strong>Phase encoding.</strong> A brief gradient before readout gives each row a different phase twist. Repeating the sequence with different gradient strengths separates the rows.</li>
+        </ul>
+        <p>The gradient coils switch thousands of times a second inside a strong magnet, and the Lorentz forces on them produce the loud knocking that patients hear.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="contrast" data-year="TR/TE" data-short="Contrast by timing">
+      <div class="chapter-head">
+        <span class="year">TR/TE</span>
+        <span class="label kicker">Chapter 14 · Pulse sequences</span>
+        <h2>Choosing contrast with timing</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A CT number is a fixed physical property. MR brightness is not: the operator decides it. The same tissue can be bright or dark depending on when pulses are applied and when the signal is read.</p>
+        <p>A spin echo sequence repeats an excitation every <em>repetition time</em> TR and reads the echo at <em>echo time</em> TE. Between excitations, \(M_z\) recovers according to \(T_1\); after each excitation, the signal decays according to \(T_2\). Ignoring smaller terms, the signal from a tissue with proton density \(\rho\) is</p>
+        <div class="math-block">\[ S \propto \rho\,\big(1 - e^{-\text{TR}/T_1}\big)\,e^{-\text{TE}/T_2}. \]</div>
+        <ul>
+          <li><strong>T1-weighted</strong> (short TR, short TE): tissues that recover quickly, like fat and white matter, are bright; fluid, with its long \(T_1\), is dark. Good for anatomy.</li>
+          <li><strong>T2-weighted</strong> (long TR, long TE): tissues that hold their signal, like fluid and edema, are bright. Most disease increases water content, so T2-weighted images are sensitive to it.</li>
+          <li><strong>Proton density</strong> (long TR, short TE): both relaxation terms near 1, so brightness follows the number of protons.</li>
+        </ul>
+        <h3>Inversion recovery</h3>
+        <p>An extra 180° pulse at the start flips \(M_z\) to \(-M_0\). It then recovers through zero. A tissue whose magnetization is crossing zero when the excitation pulse arrives, after an <em>inversion time</em> TI, gives no signal:</p>
+        <div class="math-block">\[ S \propto \rho\,\big|1 - 2e^{-\text{TI}/T_1} + e^{-\text{TR}/T_1}\big|\,e^{-\text{TE}/T_2}, \qquad \text{TI}_{\text{null}} \approx T_1 \ln 2 \ \ (\text{TR} \gg T_1). \]</div>
+        <p>Choosing TI to null cerebrospinal fluid gives FLAIR (fluid-attenuated inversion recovery), a T2-weighted image with dark fluid, so lesions next to the ventricles stand out. Nulling fat instead gives STIR, used to see swelling in bone and soft tissue.</p>
+        <h3>Contrast agents</h3>
+        <p>Gadolinium-based agents, first approved in 1988, shorten \(T_1\) wherever they reach, brightening vessels and tissues with a leaky blood–brain barrier, such as many tumors. In 2006 they were linked to a rare scarring disease, nephrogenic systemic fibrosis, in patients with severe kidney failure, and in 2014 small amounts of gadolinium were found to remain in the brain after repeated doses. Agents with more stable molecular structures and screening for kidney function have made NSF rare; the significance of retained gadolinium is still being studied.</p>
+      </div>
+
+      <figure class="bench" id="fig-contrast">
+        <div class="bench-head"><span class="fig">Fig. 14.1</span><span class="label">Interactive</span><h4>Same head, different weighting</h4></div>
+        <div class="stage">
+          <canvas class="plot film" role="img" aria-label="MR image of the head phantom with adjustable TR, TE, and TI"></canvas>
+          <div class="stack">
+            <div class="btns" role="group" aria-label="Sequence presets">
+              <button type="button" data-preset="t1" aria-pressed="true">T1</button>
+              <button type="button" data-preset="t2" aria-pressed="false">T2</button>
+              <button type="button" data-preset="pd" aria-pressed="false">PD</button>
+              <button type="button" data-preset="flair" aria-pressed="false">FLAIR</button>
+            </div>
+            <div class="ctl"><label for="ct-tr">TR <output>500 ms</output></label><input type="range" id="ct-tr" min="0" max="1" step="0.001" value="0.35"></div>
+            <div class="ctl"><label for="ct-te">TE <output>15 ms</output></label><input type="range" id="ct-te" min="5" max="250" step="1" value="15"></div>
+            <label class="check"><input type="checkbox" id="ct-ir"> Inversion pulse</label>
+            <div class="ctl"><label for="ct-ti">TI <output>800 ms</output></label><input type="range" id="ct-ti" min="50" max="4000" step="10" value="800" disabled></div>
+            <div class="tissue-bars" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Longitudinal recovery and transverse decay curves for CSF, white matter, and fat"></svg></div>
+        <figcaption class="caption">Left: the head phantom computed from the signal equation, with a little noise. Right: how bright each tissue appears, relative to the brightest. Below: the two halves of the story for three tissues. TR (or TI) picks a point on the recovery curves, and TE picks a point on the decay curves that start from there. Choose FLAIR and drag TI until CSF's recovery curve crosses zero at the TI line; the ventricles go black while the lesion stays bright. The clot is dark on T2 because fresh blood in this model has a short \(T_2\). Tissue values are approximate.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="kspace" data-year="k" data-short="k-space">
+      <div class="chapter-head">
+        <span class="year">k-space</span>
+        <span class="label kicker">Chapter 15 · Encoding</span>
+        <h2>The scanner measures a Fourier transform</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">With gradients switched on, the signal from each point in the slice picks up a phase that depends on its position and on the gradient history. Defining the <em>spatial frequency</em> reached at time \(t\),</p>
+        <div class="math-block">\[ \mathbf k(t) = \frac{\gamma}{2\pi}\int_0^t \mathbf G(\tau)\,d\tau, \]</div>
+        <p>the received signal is</p>
+        <div class="math-block">\[ s(t) = \iint \rho(x, y)\, e^{-i 2\pi\,(k_x(t)\,x + k_y(t)\,y)}\,dx\,dy. \]</div>
+        <p>This is the two-dimensional Fourier transform of the image, evaluated at \(\mathbf k(t)\). The scanner does not measure pixels at all. It measures Fourier coefficients, one point of <em>k-space</em> at a time, and the gradients steer the path. Donald Twieg and Stig Ljunggren formalized this view in 1983. A standard sequence reads one horizontal line of k-space per repetition, stepping the phase-encoding gradient to choose which line.</p>
+        <p>Two sampling rules follow from Fourier theory. The spacing between samples sets the field of view, and the farthest sample sets the pixel size:</p>
+        <div class="math-block">\[ \text{FOV} = \frac{1}{\Delta k}, \qquad \Delta x = \frac{1}{2\,k_{\max}} = \frac{\text{FOV}}{N}. \]</div>
+        <p>The center of k-space holds the low spatial frequencies, which set overall brightness and contrast. The edges hold fine detail and sharp edges. Every point in k-space contributes to every pixel in the image.</p>
+        <h3>Scan time</h3>
+        <p>For a conventional sequence, scan time is the number of phase-encoding lines times TR, times the number of averages. A 256-line T2-weighted spin echo with a 4-second TR would take 17 minutes. That is why so much MRI research is about acquiring fewer lines, or more lines per repetition:</p>
+        <ul>
+          <li><strong>Fast spin echo</strong> (Jürgen Hennig's RARE, 1986) records many echoes, each on a different k-space line, after one excitation.</li>
+          <li><strong>Parallel imaging</strong>, introduced as SMASH (1997), SENSE (1999), and GRAPPA (2002), uses the different sensitivity patterns of many receiver coils to fill in skipped lines.</li>
+          <li><strong>Compressed sensing</strong> (Lustig, Donoho, and Pauly, 2007) skips lines at random and reconstructs by exploiting the fact that medical images are sparse in some representation. Random skipping turns aliasing into noise-like artifacts that an iterative algorithm can remove.</li>
+          <li><strong>Deep-learning reconstruction</strong>, trained on large sets of fully sampled scans, now runs on clinical scanners and allows further undersampling.</li>
+        </ul>
+      </div>
+
+      <figure class="bench" id="fig-kspace">
+        <div class="bench-head"><span class="fig">Fig. 15.1</span><span class="label">Interactive</span><h4>Sampling k-space</h4></div>
+        <div class="controls">
+          <div class="btns" role="group" aria-label="Sampling pattern">
+            <button type="button" data-ks="full" aria-pressed="true">Full</button>
+            <button type="button" data-ks="center" aria-pressed="false">Center only</button>
+            <button type="button" data-ks="edges" aria-pressed="false">Edges only</button>
+            <button type="button" data-ks="skip" aria-pressed="false">Every other line</button>
+            <button type="button" data-ks="random" aria-pressed="false">Random lines</button>
+            <button type="button" data-ks="motion" aria-pressed="false">Patient moved</button>
+          </div>
+          <div class="ctl"><label for="ks-r">Radius <output>15%</output></label><input type="range" id="ks-r" min="0.02" max="0.8" step="0.01" value="0.15"></div>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="An MR image, its k-space, and the image reconstructed from a subset of k-space"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">The phantom image, its Fourier transform on a log scale, and the image rebuilt from whatever samples are kept. <b>Center only</b> keeps contrast but blurs; <b>Edges only</b> keeps outlines and loses the bulk. <b>Every other line</b> halves the field of view in the phase direction, so the image folds over on itself: the classic wrap-around artifact. <b>Random lines</b> spreads the error into noise-like streaks instead, which is what compressed sensing exploits. <b>Patient moved</b> shifts the object during a third of the lines, and ghosts appear along the phase-encoding direction.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="beyond" data-year="1990" data-short="Function & safety">
+      <div class="chapter-head">
+        <span class="year">1990</span>
+        <span class="label kicker">Chapter 16 · Beyond anatomy</span>
+        <h2>Function, diffusion, and safety</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Because MR signal depends on so many properties of tissue, sequences can be designed to measure things other than anatomy.</p>
+        <h3>Blood oxygen and the working brain</h3>
+        <p>Deoxygenated hemoglobin is paramagnetic, and it shortens \(T_2^*\) in and around blood vessels. In 1990 Seiji Ogawa and colleagues at Bell Laboratories showed that this made MR images of rat brains depend on blood oxygenation, the <em>BOLD</em> contrast. When a brain region becomes active, local blood flow overshoots its oxygen use, deoxyhemoglobin falls, and the signal rises by a few percent. Within two years several groups had mapped human brain activity this way. Functional MRI became the main tool of human cognitive neuroscience, though the signal is an indirect, delayed measure of neural activity.</p>
+        <h3>Diffusion</h3>
+        <p>Strong gradient pulses applied in pairs make the signal sensitive to the random motion of water molecules over a few tens of microns. The signal falls as \(S = S_0 e^{-bD}\), where \(D\) is the diffusion coefficient and \(b\) measures the gradient strength and timing. In acute stroke, swelling cells restrict water motion within minutes, and the affected brain appears bright on diffusion-weighted images long before it changes on CT. Measuring diffusion in many directions traces the orientation of white matter fibers, the basis of tractography.</p>
+        <h3>Safety</h3>
+        <p>MRI uses no ionizing radiation, but it has hazards of its own.</p>
+        <ul>
+          <li><strong>The static field</strong> is always on. Iron-containing objects become projectiles; in 2001 a six-year-old boy in New York was killed by an oxygen cylinder pulled into a scanner. Screening of everyone entering the magnet room, and of implants, is mandatory.</li>
+          <li><strong>Radio-frequency heating.</strong> Pulses deposit energy in tissue. Regulators limit the specific absorption rate, typically to 2 W/kg averaged over the whole body in normal operation, and wires or leads can concentrate heating.</li>
+          <li><strong>Gradient switching</strong> can stimulate peripheral nerves and produces sound levels that can exceed 100 dB, so patients wear hearing protection.</li>
+        </ul>
+        <p>Ultrasound is limited in a parallel way. Its energy can heat tissue and, at high pressures, cause cavitation, so scanners display a thermal index and a mechanical index and stay below regulatory limits. Its safety record at diagnostic levels is excellent, but professional bodies still advise using the lowest output that answers the clinical question, especially in early pregnancy.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="now" data-year="Now" data-short="Choosing & frontier">
+      <div class="chapter-head">
+        <span class="year">Now</span>
+        <span class="label kicker">Chapter 17 · Practice and frontier</span>
+        <h2>Choosing a scan, and what comes next</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The three methods compete less than their histories suggest. Each answers different questions, and a single patient often has all three.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="compare">
+          <thead><tr><th>Method</th><th>Measures</th><th>Typical resolution</th><th>Time</th><th>Ionizing</th><th>Strengths</th><th>Limits</th></tr></thead>
+          <tbody>
+            <tr><td>Ultrasound</td><td>Acoustic impedance, scattering, motion</td><td>0.1–1 mm, best near the probe</td><td>Real time</td><td>No</td><td>Bedside, cheap, shows motion and flow, guides needles</td><td>Blocked by gas and bone; quality depends on the operator and body habitus</td></tr>
+            <tr><td>CT</td><td>X-ray attenuation (HU)</td><td>About 0.5 mm, nearly equal in all directions</td><td>Seconds</td><td>Yes</td><td>Fast, widely available, excellent for bone, lung, bleeding, trauma</td><td>Radiation dose; limited soft-tissue contrast without iodine contrast</td></tr>
+            <tr><td>MRI</td><td>Proton density, \(T_1\), \(T_2\), diffusion, flow, and more</td><td>About 0.5–1 mm in-plane</td><td>15–60 minutes per exam</td><td>No</td><td>Best soft-tissue contrast; brain, spine, joints, liver, prostate, heart</td><td>Slow, costly, loud; implants and claustrophobia can exclude patients</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose">
+        <p>A head injury in the emergency department goes to CT, because it takes seconds and shows fresh blood and fractures. A suspected stroke may go to CT first to rule out bleeding, then to diffusion MRI. A pregnant patient gets ultrasound. A knee with a torn ligament gets MRI. These choices follow directly from the physics in the earlier chapters.</p>
+        <h3>The frontier</h3>
+        <ul>
+          <li><strong>Photon-counting CT</strong> measures each X-ray photon's energy, giving sharper images, lower noise at a given dose, and material separation in every scan.</li>
+          <li><strong>Low-field and portable MRI.</strong> A 0.064 T scanner that rolls to the bedside was cleared by the FDA in 2020. Its images are noisier, but it plugs into a wall socket, which matters in intensive care and in countries with few scanners. At the other end, 7 T scanners entered clinical use in 2017.</li>
+          <li><strong>Handheld and wearable ultrasound</strong> put imaging in a pocket. Ultrafast imaging with unfocused plane waves reaches thousands of frames per second, enough to track shear waves that measure tissue stiffness, used to stage liver fibrosis without a biopsy.</li>
+          <li><strong>Learned reconstruction.</strong> Neural networks trained on large public datasets, such as the fastMRI collection released in 2018, now reconstruct from far fewer measurements in both CT and MRI. The open question is how to be sure that a network that fills in missing data never invents or erases a lesion.</li>
+        </ul>
+        <div class="callout">
+          <span class="label">The common thread</span>
+          <p>Every method in this volume solves an inverse problem: given measurements outside the body, infer a map inside it. Radon's transform for CT, the Fourier transform for MRI, and delay-and-sum for ultrasound are the classical answers. Most of the progress since has come from collecting less data, faster, and recovering the same image from it.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== glossary -->
+    <section class="chapter" id="glossary" data-year="Ref" data-short="Glossary & sources">
+      <div class="chapter-head">
+        <span class="label kicker">Reference</span>
+        <h2>Glossary</h2>
+      </div>
+      <dl class="glossary">
+        <dt>Acoustic impedance (Z)</dt><dd>Density times speed of sound. Differences in Z at a boundary determine how much sound reflects.</dd>
+        <dt>Aliasing</dt><dd>False signal caused by sampling too slowly: wrapped Doppler spectra in ultrasound, and fold-over in MRI when the field of view is smaller than the object.</dd>
+        <dt>Back-projection</dt><dd>Smearing each projection back along the lines it was measured on. With a ramp filter it becomes filtered back-projection (FBP).</dd>
+        <dt>B-mode</dt><dd>Brightness mode: the standard gray-scale ultrasound image.</dd>
+        <dt>BOLD</dt><dd>Blood-oxygen-level-dependent contrast, the signal measured in functional MRI.</dd>
+        <dt>Effective dose</dt><dd>A weighted sum of organ doses, in sieverts, used to compare radiation risk between exams.</dd>
+        <dt>Flip angle</dt><dd>How far a radio-frequency pulse tips the magnetization away from the main field.</dd>
+        <dt>FLAIR</dt><dd>Fluid-attenuated inversion recovery: an MR sequence that nulls the signal from cerebrospinal fluid.</dd>
+        <dt>Gradient</dt><dd>A magnetic field that varies linearly with position, used in MRI to encode location as frequency or phase.</dd>
+        <dt>Hounsfield unit (HU)</dt><dd>The CT number scale: water 0, air −1000.</dd>
+        <dt>k-space</dt><dd>The spatial-frequency domain in which MRI data are acquired; the image is its inverse Fourier transform.</dd>
+        <dt>Larmor frequency</dt><dd>The precession frequency of a nucleus in a magnetic field, \(\gamma B_0\); 42.58 MHz per tesla for hydrogen.</dd>
+        <dt>Piezoelectric</dt><dd>Producing a voltage when deformed, and deforming under a voltage. Ultrasound transducers rely on it.</dd>
+        <dt>PRF</dt><dd>Pulse repetition frequency: how many ultrasound pulses per second are sent along a line.</dd>
+        <dt>Sinogram</dt><dd>CT projection data arranged by angle and detector position.</dd>
+        <dt>Speckle</dt><dd>The granular interference texture of ultrasound images.</dd>
+        <dt>Spin echo</dt><dd>A signal revived by a refocusing pulse that reverses dephasing from static field differences.</dd>
+        <dt>T1, T2, T2*</dt><dd>Longitudinal recovery time, transverse decay time, and transverse decay time including field inhomogeneity.</dd>
+        <dt>TE, TR, TI</dt><dd>Echo time, repetition time, and inversion time: the timing parameters of an MR pulse sequence.</dd>
+        <dt>TGC</dt><dd>Time-gain compensation: depth-dependent amplification of ultrasound echoes.</dd>
+        <dt>Window and level</dt><dd>The range of CT numbers mapped from black to white, and its center.</dd>
+      </dl>
+
+      <div class="chapter-head" style="margin-top:32px"><h2>Sources</h2></div>
+      <ol class="sources">
+        <li>Röntgen, W. C. (1895). Über eine neue Art von Strahlen. <em>Sitzungsberichte der Physikalisch-Medizinischen Gesellschaft zu Würzburg</em>.</li>
+        <li>Hubbell, J. H. &amp; Seltzer, S. M. <em>Tables of X-Ray Mass Attenuation Coefficients and Mass Energy-Absorption Coefficients</em>. NIST Standard Reference Database 126.</li>
+        <li>Bushberg, J. T., Seibert, J. A., Leidholdt, E. M. &amp; Boone, J. M. (2012). <em>The Essential Physics of Medical Imaging</em>, 3rd ed. Lippincott Williams &amp; Wilkins.</li>
+        <li>Kevles, B. H. (1997). <em>Naked to the Bone: Medical Imaging in the Twentieth Century</em>. Rutgers University Press.</li>
+        <li>Dussik, K. T. (1942). Über die Möglichkeit, hochfrequente mechanische Schwingungen als diagnostisches Hilfsmittel zu verwerten. <em>Zeitschrift für die gesamte Neurologie und Psychiatrie</em> 174.</li>
+        <li>Ludwig, G. D. (1950). The velocity of sound through tissues and the acoustic impedance of tissues. <em>Journal of the Acoustical Society of America</em> 22.</li>
+        <li>Wild, J. J. &amp; Reid, J. M. (1952). Application of echo-ranging techniques to the determination of structure of biological tissues. <em>Science</em> 115.</li>
+        <li>Howry, D. H. &amp; Bliss, W. R. (1952). Ultrasonic visualization of soft tissue structures of the body. <em>Journal of Laboratory and Clinical Medicine</em> 40.</li>
+        <li>Edler, I. &amp; Hertz, C. H. (1954). The use of ultrasonic reflectoscope for the continuous recording of the movements of heart walls. <em>Kungliga Fysiografiska Sällskapets i Lund Förhandlingar</em> 24.</li>
+        <li>Satomura, S. (1957). Ultrasonic Doppler method for the inspection of cardiac functions. <em>Journal of the Acoustical Society of America</em> 29.</li>
+        <li>Donald, I., MacVicar, J. &amp; Brown, T. G. (1958). Investigation of abdominal masses by pulsed ultrasound. <em>The Lancet</em> 271(7032).</li>
+        <li>Kasai, C., Namekawa, K., Koyano, A. &amp; Omoto, R. (1985). Real-time two-dimensional blood flow imaging using an autocorrelation technique. <em>IEEE Transactions on Sonics and Ultrasonics</em> 32.</li>
+        <li>Radon, J. (1917). Über die Bestimmung von Funktionen durch ihre Integralwerte längs gewisser Mannigfaltigkeiten. <em>Berichte über die Verhandlungen der Sächsischen Akademie der Wissenschaften zu Leipzig, Math.-Phys. Klasse</em> 69.</li>
+        <li>Cormack, A. M. (1963, 1964). Representation of a function by its line integrals, with some radiological applications, I and II. <em>Journal of Applied Physics</em> 34 and 35.</li>
+        <li>Bracewell, R. N. (1956). Strip integration in radio astronomy. <em>Australian Journal of Physics</em> 9.</li>
+        <li>Ramachandran, G. N. &amp; Lakshminarayanan, A. V. (1971). Three-dimensional reconstruction from radiographs and electron micrographs. <em>Proceedings of the National Academy of Sciences</em> 68.</li>
+        <li>Hounsfield, G. N. (1973). Computerized transverse axial scanning (tomography). Part 1: Description of system. Ambrose, J. (1973). Part 2: Clinical application. <em>British Journal of Radiology</em> 46.</li>
+        <li>Shepp, L. A. &amp; Logan, B. F. (1974). The Fourier reconstruction of a head section. <em>IEEE Transactions on Nuclear Science</em> 21.</li>
+        <li>Kalender, W. A., Seissler, W., Klotz, E. &amp; Vock, P. (1990). Spiral volumetric CT with single-breath-hold technique, continuous transport, and continuous scanner rotation. <em>Radiology</em> 176.</li>
+        <li>Mettler, F. A., Huda, W., Yoshizumi, T. T. &amp; Mahesh, M. (2008). Effective doses in radiology and diagnostic nuclear medicine: a catalog. <em>Radiology</em> 248.</li>
+        <li>National Council on Radiation Protection and Measurements (2009). <em>Ionizing Radiation Exposure of the Population of the United States</em>. NCRP Report No. 160.</li>
+        <li>Brenner, D. J. &amp; Hall, E. J. (2007). Computed tomography: an increasing source of radiation exposure. <em>New England Journal of Medicine</em> 357.</li>
+        <li>Bloch, F., Hansen, W. W. &amp; Packard, M. (1946). Nuclear induction. <em>Physical Review</em> 69; Bloch, F. (1946). Nuclear induction. <em>Physical Review</em> 70.</li>
+        <li>Purcell, E. M., Torrey, H. C. &amp; Pound, R. V. (1946). Resonance absorption by nuclear magnetic moments in a solid. <em>Physical Review</em> 69.</li>
+        <li>Hahn, E. L. (1950). Spin echoes. <em>Physical Review</em> 80.</li>
+        <li>Damadian, R. (1971). Tumor detection by nuclear magnetic resonance. <em>Science</em> 171.</li>
+        <li>Lauterbur, P. C. (1973). Image formation by induced local interactions: examples employing nuclear magnetic resonance. <em>Nature</em> 242.</li>
+        <li>Mansfield, P. &amp; Grannell, P. K. (1973). NMR "diffraction" in solids? <em>Journal of Physics C</em> 6.</li>
+        <li>Kumar, A., Welti, D. &amp; Ernst, R. R. (1975). NMR Fourier zeugmatography. <em>Journal of Magnetic Resonance</em> 18.</li>
+        <li>Edelstein, W. A., Hutchison, J. M. S., Johnson, G. &amp; Redpath, T. (1980). Spin warp NMR imaging and applications to human whole-body imaging. <em>Physics in Medicine and Biology</em> 25.</li>
+        <li>Twieg, D. B. (1983). The k-trajectory formulation of the NMR imaging process with applications in analysis and synthesis of imaging methods. <em>Medical Physics</em> 10; Ljunggren, S. (1983). A simple graphical representation of Fourier-based imaging methods. <em>Journal of Magnetic Resonance</em> 54.</li>
+        <li>Ogawa, S., Lee, T. M., Kay, A. R. &amp; Tank, D. W. (1990). Brain magnetic resonance imaging with contrast dependent on blood oxygenation. <em>Proceedings of the National Academy of Sciences</em> 87.</li>
+        <li>Sodickson, D. K. &amp; Manning, W. J. (1997). SMASH. <em>Magnetic Resonance in Medicine</em> 38; Pruessmann, K. P. et al. (1999). SENSE. <em>MRM</em> 42; Griswold, M. A. et al. (2002). GRAPPA. <em>MRM</em> 47.</li>
+        <li>Lustig, M., Donoho, D. &amp; Pauly, J. M. (2007). Sparse MRI: the application of compressed sensing for rapid MR imaging. <em>Magnetic Resonance in Medicine</em> 58.</li>
+        <li>Grobner, T. (2006). Gadolinium: a specific trigger for the development of nephrogenic fibrosing dermopathy and nephrogenic systemic fibrosis? <em>Nephrology Dialysis Transplantation</em> 21; Kanda, T. et al. (2014). High signal intensity in the dentate nucleus and globus pallidus on unenhanced T1-weighted MR images. <em>Radiology</em> 270.</li>
+        <li>Zbontar, J. et al. (2018). fastMRI: an open dataset and benchmarks for accelerated MRI. arXiv:1811.08839.</li>
+        <li>The Nobel Prize: Physics 1901 (Röntgen) and 1952 (Bloch, Purcell); Physiology or Medicine 1979 (Cormack, Hounsfield) and 2003 (Lauterbur, Mansfield). nobelprize.org.</li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">LearnAnything · Volume 3 · All images are simulations from simplified models. Nothing here is medical advice.</footer>
+
+<script src="../../assets/js/lab.js"></script>
+<script src="js/core.js"></script>
+<script src="js/ultrasound.js"></script>
+<script src="js/ct.js"></script>
+<script src="js/mri.js"></script>
+<script src="js/hero.js"></script>
+<script>Lab.rail();</script>
+</body>
+</html>

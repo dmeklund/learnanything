@@ -111,7 +111,16 @@
     let t = wrap.querySelector('.tip');
     if (!t) { t = Lab.el('div', { class: 'tip', role: 'status' }); t.hidden = true; wrap.appendChild(t); }
     return {
-      show(x, y, html) { t.innerHTML = html; t.hidden = false; t.style.left = x + 'px'; t.style.top = y + 'px'; },
+      // Sits above (x, y); flips below (to yBelow, default y) when there is no room above,
+      // and slides horizontally to stay inside the wrap.
+      show(x, y, html, yBelow) {
+        t.innerHTML = html; t.hidden = false;
+        const w = t.offsetWidth, h = t.offsetHeight, W = wrap.clientWidth;
+        const below = y - h - 10 < 0;
+        t.style.transform = below ? 'translate(-50%, 10px)' : '';
+        t.style.left = Math.max(w / 2 + 2, Math.min(W - w / 2 - 2, x)) + 'px';
+        t.style.top = (below ? (yBelow ?? y) : y) + 'px';
+      },
       hide() { t.hidden = true; },
     };
   };

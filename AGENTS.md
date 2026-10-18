@@ -63,7 +63,7 @@ Rules:
 
 - Series colors in fixed order: `--s1` (cobalt), `--s2` (amber), `--s3` (magenta). These passed a color-vision-deficiency check in both themes; add a new hue only after re-validating.
 - Use one y-axis per chart (no dual axes), gridlines in `--grid`, and text in ink tokens, never in a series color.
-- Every SVG chart gets hover tooltips via `Lab.tip(wrap)` inside a `.chart-wrap`.
+- Every SVG chart gets hover tooltips via `Lab.tip(wrap)` inside a `.chart-wrap`. `tip.show(x, y, html, yBelow)` keeps the tooltip inside the wrap: it slides sideways at the edges and flips below the mark (to `yBelow`) when there is no room above. Don't put a tooltip wrap inside an `overflow` container, which clips it.
 - Label only key points directly (first, last, or notable); put the rest in tooltips.
 
 ## Design system

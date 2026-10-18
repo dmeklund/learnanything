@@ -8,6 +8,7 @@ A library of long-form, interactive learning modules. Each module teaches one su
 |---|---|---|---|
 | I | From Neuron to Transformer | `modules/ai-evolution/` | The evolution of AI from the 1943 threshold neuron to today's reasoning models. 18 chapters, 15 interactive figures, glossary, primary sources. |
 | II | Section 42 | `modules/lihtc/` | The Low-Income Housing Tax Credit: history, credit mechanics and allocation, and how the parties to a deal interact. 16 chapters, 8 interactive figures, glossary, sources. |
+| III | Echo, Slice, Spin | `modules/medical-imaging/` | Medical imaging: the history, physics, and mathematics of ultrasound, CT, and MRI. 17 chapters, 11 interactive figures, glossary, sources. |
 
 ## Viewing locally
 
@@ -43,6 +44,14 @@ modules/
       deal.js               Capital stack, credit worksheet, applicable percentage, investor returns
       rules.js              Income/rent limits, income averaging, competitive QAP round
       logistics.js          Parties map, deal timeline
+  medical-imaging/
+    index.html              Volume III page; its <style> block overrides tokens for its own identity
+    js/
+      core.js               Shared imaging core: head phantom, CT and MR rendering, FFT, B-mode simulator
+      ultrasound.js         A-line echoes, array beamforming, Doppler and aliasing, B-mode
+      ct.js                 X-ray attenuation, reconstruction lab, window/level, dose chart
+      mri.js                Bloch vector, T1/T2/FLAIR contrast, k-space sampling
+      hero.js               Opening light box of four simulated studies
 tools/
   build_artifact.py         Flattens one module into a folder that can be published as a claude.ai Artifact
 ```
@@ -61,13 +70,14 @@ Published Artifacts:
 
 - Volume I: https://claude.ai/artifact/TpLC7hJ5iBTAGpvEiUanpx
 - Volume II: https://claude.ai/artifact/UHsxJDfySDCjcK1VhT76Zo
+- Volume III: https://claude.ai/artifact/AEkoRvyPZF4Q2pMSNZUbcs
 
 ## Design
 
 The visual identity is an engineering notebook: a graph-paper background, a margin rail of chapter years, Bodoni Moda for display type (a Didone face, kin to the Computer Modern used in mathematical papers), IBM Plex Sans for body text, and IBM Plex Mono for labels and data. Light and dark themes both follow the reader's system setting. The chart palette (cobalt, amber, magenta) was checked for color-vision-deficiency separation in both themes.
 
-Each volume can carry its own identity on top of the shared layout by overriding tokens in a `<style>` block on its page. Volume II uses ledger-ruled paper, Public Sans (the US government's typeface) for display, Source Serif 4 for body text, Internal Revenue Code section numbers in the margin rail, and a teal, ochre, and violet chart palette, also validated in both themes.
+Each volume can carry its own identity on top of the shared layout by overriding tokens in a `<style>` block on its page. Volume II uses ledger-ruled paper, Public Sans (the US government's typeface) for display, Source Serif 4 for body text, Internal Revenue Code section numbers in the margin rail, and a teal, ochre, and violet chart palette, also validated in both themes. Volume III is a radiology reading room: a voxel-dot ground, Archivo set narrow like scanner console labels, Newsreader for body text, medical images always on black film with viewer-style corner annotations, and a blue, vermilion, and trefoil-magenta palette validated in both themes.
 
 ## Accuracy notes
 
-Historical facts, dates, and figures in the text come from the primary sources listed at the end of each module. Some figures use hand-built toy values to make a mechanism visible: in Volume I, the word-vector map, the attention weights, and the next-token logits; in Volume II, the QAP applications and the deal and investor models, which use simplified assumptions. Each such figure's caption says so.
+Historical facts, dates, and figures in the text come from the primary sources listed at the end of each module. Some figures use hand-built toy values to make a mechanism visible: in Volume I, the word-vector map, the attention weights, and the next-token logits; in Volume II, the QAP applications and the deal and investor models, which use simplified assumptions; in Volume III, every image, which is simulated from a phantom with approximate tissue values. Each such figure's caption says so.
