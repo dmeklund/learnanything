@@ -125,6 +125,16 @@ table.compare td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-
 table.compare td:first-child { font-weight: 700; color: var(--ink); }
 .nocase { text-transform: none; letter-spacing: 0; }
 .notice { font: 400 var(--t-xs)/1.5 var(--f-mono); color: var(--ink-3); max-width: var(--measure); }
+table.cls-table { min-width: 0; }
+table.cls-table td.mk { text-align: center; font-family: var(--f-mono); color: var(--ink-3); width: 48px; }
+table.cls-table td.mk.sel { background: var(--accent-wash); color: var(--accent); font-weight: 700; }
+table.cls-table tr.noreq td { color: var(--ink-3); }
+table.cls-table tr.noreq { opacity: .55; }
+table.cls-table td:first-child { font-family: var(--f-mono); }
+table.cls-table .note { display: block; font: 400 var(--t-xs)/1.4 var(--f-mono); color: var(--ink-3); margin-top: 2px; }
+table.std-table td:first-child, table.std-table td:nth-child(2) { white-space: nowrap; }
+table.std-table td:nth-child(2) { font-family: var(--f-mono); }
+table.std-table tr.grp td { font: 700 var(--t-xs)/1.3 var(--f-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--accent); background: var(--paper-2); padding-top: 10px; }
 </style>
 <script>
   window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg', 'canvas'] } };
@@ -150,8 +160,8 @@ table.compare td:first-child { font-weight: 700; color: var(--ink); }
         <h1 id="title">Cleared <i>for Market</i></h1>
         <p class="dek">How the United States and the European Union decide which medical devices and diagnostic tests may be sold: what counts as a device, how risk sets the class, the routes to market, the quality and risk systems behind every product, the statistics of diagnostic accuracy, the special problems of software, and the surveillance that continues after launch.</p>
         <div class="meta">
-          <span class="label">9 chapters</span>
-          <span class="label">8 interactive figures</span>
+          <span class="label">11 chapters</span>
+          <span class="label">9 interactive figures</span>
           <span class="label">1938 → 2026</span>
         </div>
       </div>
@@ -329,7 +339,7 @@ table.compare td:first-child { font-weight: 700; color: var(--ink); }
       </div>
       <div class="prose">
         <p class="lede">Software has controlled devices for decades, and its failures have shaped the rules: the Therac-25 overdoses of the 1980s (Volume 6) are a standard lesson in software safety. Increasingly, though, software is the whole device: an app that analyses heart rhythm, a program that reads retinal photographs, an algorithm that flags strokes on CT scans.</p>
-        <p>In 2014 the International Medical Device Regulators Forum (IMDRF) published a framework for <em>software as a medical device</em> (SaMD) that rates risk on two axes: how serious the patient's situation is (critical, serious, non-serious) and how much the software's output matters to the decision (it treats or diagnoses, drives clinical management, or informs it). The EU's MDR wrote a dedicated classification rule, Rule 11, which puts most decision-support software in Class IIa or above; guidance document MDCG 2019-11 maps it onto the IMDRF grid. Software development follows IEC 62304 (2006), which scales the required process to software safety classes A, B, and C.</p>
+        <p>In 2014 the International Medical Device Regulators Forum (IMDRF) published a framework for <em>software as a medical device</em> (SaMD) that rates risk on two axes: how serious the patient's situation is (critical, serious, non-serious) and how much the software's output matters to the decision (it treats or diagnoses, drives clinical management, or informs it). The EU's MDR wrote a dedicated classification rule, Rule 11, which puts most decision-support software in Class IIa or above; guidance document MDCG 2019-11 maps it onto the IMDRF grid. Software development follows IEC 62304, the subject of the next chapter.</p>
         <p>In the US, the 21st Century Cures Act of 2016 removed some software from the device definition, including administrative tools, general wellness apps, electronic health records, and certain clinical decision support that lets a professional independently review the basis for its recommendations. In February 2018 the FDA granted a De Novo to Viz.ai's ContaCT, which flags suspected large-vessel strokes on CT and alerts a specialist, creating a new device type for radiological computer-aided triage. The FDA now lists more than a thousand AI-enabled devices it has authorized, most of them in radiology. Because machine-learning models may be retrained, the FDA finalized guidance in December 2024 on <em>predetermined change control plans</em>, which let a manufacturer describe in its submission which model updates it will make and how it will validate them, so those changes need no new review.</p>
       </div>
 
@@ -341,13 +351,54 @@ table.compare td:first-child { font-weight: 700; color: var(--ink); }
       </figure>
     </section>
 
+    <section class="chapter" id="iec62304" data-year="2006" data-short="IEC 62304">
+      <div class="chapter-head">
+        <span class="year">2006</span>
+        <span class="label kicker">Chapter 6 · IEC 62304</span>
+        <h2>A life cycle for medical device software</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Regulators cannot test software into safety. A program with a few hundred thousand lines has more paths than any test campaign can cover, and the failures that hurt patients, such as race conditions, unhandled inputs, and an untested update, often hide in paths nobody exercised. The accepted answer, from aviation and nuclear software before medicine, is to regulate the <em>process</em>: require a disciplined life cycle whose rigor scales with what a failure could do.</p>
+        <p>For medical devices that process is IEC 62304, <em>Medical device software: Software life cycle processes</em>, published in 2006 by the International Electrotechnical Commission's subcommittee on medical electrical equipment together with ISO's committee on quality management for devices. Amendment 1 (2015) rewrote the safety classification, made system testing mandatory for every class, and added a route for <em>legacy software</em> already on the market. The FDA recognizes IEC 62304 as a consensus standard, and its European version, EN 62304, is the accepted state of the art for showing that software meets the MDR's and IVDR's requirements for software life cycles. It sits on two foundations it requires but does not repeat: a quality management system (ISO 13485) and risk management (ISO 14971).</p>
+        <h3>Three safety classes</h3>
+        <p>The manufacturer classifies the software system by the worst harm a failure could contribute to, assuming the software <em>will</em> fail: the standard takes the probability of a software failure as 1, because it cannot be estimated the way a component failure rate can. The only way down is a risk control measure <em>outside</em> the software, such as an independent hardware limit, that keeps the resulting risk acceptable.</p>
+        <ul>
+          <li><strong>Class A:</strong> no injury or damage to health is possible.</li>
+          <li><strong>Class B:</strong> non-serious injury is possible.</li>
+          <li><strong>Class C:</strong> death or serious injury is possible.</li>
+        </ul>
+        <p>A system can be divided into <em>software items</em> with different classes, but only if the architecture shows they are effectively segregated, so a failure in one cannot corrupt another.</p>
+        <h3>Five processes</h3>
+        <p>The standard's requirements fall into five processes. <strong>Development</strong> (clause 5) runs from planning and requirements through architecture, detailed design, unit implementation and verification, integration, system testing, and release. <strong>Maintenance</strong> (6) applies the same discipline to every change after release. <strong>Risk management</strong> (7) traces how software can contribute to hazards and verifies each software risk control. <strong>Configuration management</strong> (8) identifies every version of every item, and <strong>problem resolution</strong> (9) records, investigates, and closes every defect report.</p>
+        <p>Most modern devices contain code the manufacturer did not write: an operating system, a database, an open-source library. IEC 62304 calls this <em>software of unknown provenance</em> (SOUP). The manufacturer need not have its source code, but must identify each SOUP item and version, specify what it relies on it to do, and evaluate its published list of known defects for effects on safety.</p>
+        <h3>Around 62304</h3>
+        <p>Several neighbors fill in what 62304 leaves out. IEC 82304-1 (2016) covers whole health software products that run on general-purpose computers, including validation and labeling. IEC 62366-1 covers usability engineering, and IEC 81001-5-1 (2021) adds security activities to the same life cycle. In the US, the FDA's 2023 guidance on premarket submissions for device software functions sets two documentation levels, Basic and Enhanced, based on risk; the Enhanced level asks for fuller design and testing documentation, in line with the higher 62304 classes.</p>
+        <p>A second edition has been in preparation for years. A 2021 draft that would have replaced the three classes with two levels of process rigor was voted down. A new draft, which keeps the classes, widens the scope from medical device software to all health software, and adds security requirements, was still in committee in mid-2026, with publication not expected before 2028.</p>
+      </div>
+
+      <figure class="bench" id="fig-62304">
+        <div class="bench-head"><span class="fig">Fig. 6.1</span><span class="label">Interactive</span><h4>Software safety class and the work it requires</h4></div>
+        <div class="controls"><div class="ctl"><span class="label">Examples</span><div class="chips sp-presets"></div></div></div>
+        <div class="qflow"></div>
+        <div class="qresult"></div>
+        <div class="table-wrap">
+          <table class="compare cls-table">
+            <thead><tr><th>Clause</th><th>Activity</th><th>A</th><th>B</th><th>C</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Answer the three questions of IEC 62304's classification (as amended in 2015), or pick an example, and the table highlights the activities required for the resulting class. Compare the infusion pump's dose calculation with the same software behind an independent hardware dose limit: the external control drops it from class C to class A, which is why designers place safety-critical checks outside the software where they can. The table is a clause-level summary; within several clauses, individual tasks apply only to higher classes, as the notes indicate. Examples are illustrative; real classification follows the manufacturer's ISO 14971 risk analysis.</figcaption>
+      </figure>
+    </section>
+
     <!-- ===================================================== PART II -->
     <div class="part-head"><span class="label">Part II</span><h2>Europe, and after the sale</h2></div>
 
     <section class="chapter" id="eu" data-year="2017" data-short="EU MDR and IVDR">
       <div class="chapter-head">
         <span class="year">2017</span>
-        <span class="label kicker">Chapter 6 · The European Union</span>
+        <span class="label kicker">Chapter 7 · The European Union</span>
         <h2>From directives to regulations</h2>
       </div>
       <div class="prose">
@@ -364,7 +415,7 @@ table.compare td:first-child { font-weight: 700; color: var(--ink); }
       </div>
 
       <figure class="bench" id="fig-eu">
-        <div class="bench-head"><span class="fig">Fig. 6.1</span><span class="label">Interactive</span><h4>The EU transition deadlines</h4></div>
+        <div class="bench-head"><span class="fig">Fig. 7.1</span><span class="label">Interactive</span><h4>The EU transition deadlines</h4></div>
         <div class="chart-wrap"><svg role="img" aria-label="Timeline of how long legacy devices may remain on the EU market under each regulation and class, with milestones"></svg></div>
         <div class="readouts"></div>
         <figcaption class="caption">Each bar runs from the date a regulation began to apply to the last day devices certified under the old directives may still be placed on the market, if the manufacturer meets the conditions of the extending regulation, such as applying to a notified body in time. Hover the bars and the milestone dots for details. The readouts count down from today's date in your browser.</figcaption>
@@ -374,7 +425,7 @@ table.compare td:first-child { font-weight: 700; color: var(--ink); }
     <section class="chapter" id="postmarket" data-year="1990" data-short="After the sale">
       <div class="chapter-head">
         <span class="year">1990</span>
-        <span class="label kicker">Chapter 7 · Postmarket surveillance</span>
+        <span class="label kicker">Chapter 8 · Postmarket surveillance</span>
         <h2>Watching devices in use</h2>
       </div>
       <div class="prose">
@@ -387,7 +438,7 @@ table.compare td:first-child { font-weight: 700; color: var(--ink); }
       </div>
 
       <figure class="bench" id="fig-cusum">
-        <div class="bench-head"><span class="fig">Fig. 7.1</span><span class="label">Interactive</span><h4>Spotting a rise in complaints</h4></div>
+        <div class="bench-head"><span class="fig">Fig. 8.1</span><span class="label">Interactive</span><h4>Spotting a rise in complaints</h4></div>
         <div class="controls">
           <div class="ctl"><label for="cu-m">True increase from month 25 <output>×1.75</output></label><input type="range" id="cu-m" min="1" max="3" step="0.05" value="1.75"></div>
           <div class="ctl"><label for="cu-h">Alarm threshold <span class="nocase">h</span> <output>5.0</output></label><input type="range" id="cu-h" min="1" max="12" step="0.5" value="5"></div>
@@ -399,10 +450,61 @@ table.compare td:first-child { font-weight: 700; color: var(--ink); }
       </figure>
     </section>
 
+    <section class="chapter" id="standards" data-year="ISO" data-short="Key standards">
+      <div class="chapter-head">
+        <span class="year">ISO</span>
+        <span class="label kicker">Chapter 9 · Consensus standards</span>
+        <h2>The standards everyone cites</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Laws and regulations say what a device must achieve: safety, performance, adequate labeling. Standards, written by committees of manufacturers, regulators, clinicians, and test laboratories, say how to show it. They are voluntary in principle and close to mandatory in practice, because both jurisdictions give conformity with them special weight.</p>
+        <p>In the US, the FDA Modernization Act of 1997 let the FDA <em>recognize</em> consensus standards. A manufacturer can submit a declaration of conformity with a recognized standard instead of full test reports, and the FDA keeps a public database of recognized standards and the editions it accepts. In the EU, standards adopted by the European standards bodies at the Commission's request become <em>harmonised standards</em> once their references are published in the Official Journal; under Article 8 of the MDR and IVDR, conformity with them gives a presumption of conformity with the requirements they cover. A manufacturer may take another route, but must then show it is at least as good.</p>
+        <p>The table lists the ISO and IEC standards most often cited in device submissions and technical files. Editions change, and recognition lags publication, so the edition a regulator accepts may not be the newest.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="compare std-table">
+          <thead><tr><th>Standard</th><th>Current edition</th><th>Subject</th><th>What it asks for</th></tr></thead>
+          <tbody>
+            <tr class="grp"><td colspan="4">Quality and risk</td></tr>
+            <tr><td>ISO 13485</td><td>2016</td><td>Quality management systems for regulatory purposes</td><td>A documented quality system covering design, purchasing, production, and feedback; incorporated into US law by the QMSR since 2026</td></tr>
+            <tr><td>ISO 14971</td><td>2019</td><td>Application of risk management to medical devices</td><td>Hazard identification, risk estimation and control, benefit-risk judgment, and production and post-production monitoring</td></tr>
+            <tr><td>ISO/TR 24971</td><td>2020</td><td>Guidance on applying ISO 14971</td><td>Worked methods and examples; a technical report, not requirements</td></tr>
+            <tr class="grp"><td colspan="4">Software, usability, and security</td></tr>
+            <tr><td>IEC 62304</td><td>2006 + A1:2015</td><td>Medical device software life cycle processes</td><td>Development, maintenance, risk, configuration, and problem-resolution processes scaled by safety class A, B, or C</td></tr>
+            <tr><td>IEC 82304-1</td><td>2016</td><td>Health software: general requirements for product safety</td><td>Product-level requirements, validation, and accompanying documents for standalone health software</td></tr>
+            <tr><td>IEC 62366-1</td><td>2015 + A1:2020</td><td>Application of usability engineering to medical devices</td><td>Use specification, user-interface risk analysis, formative evaluation, and summative validation with representative users</td></tr>
+            <tr><td>IEC 81001-5-1</td><td>2021</td><td>Security activities in the health software product life cycle</td><td>Threat modeling, secure design and coding, security testing, and vulnerability handling after release</td></tr>
+            <tr class="grp"><td colspan="4">Electrical equipment</td></tr>
+            <tr><td>IEC 60601-1</td><td>2005 + A1:2012 + A2:2020</td><td>Medical electrical equipment: basic safety and essential performance</td><td>Protection against shock, energy, heat, fire, and mechanical hazards; defines essential performance; parent of the 60601 family</td></tr>
+            <tr><td>IEC 60601-1-2</td><td>2014 + A1:2020</td><td>Electromagnetic disturbances</td><td>Emission limits and immunity tests, with test levels set by the intended use environment</td></tr>
+            <tr><td>IEC 60601-1-8</td><td>2006 + A1:2012 + A2:2020</td><td>Alarm systems</td><td>Alarm priorities, signals, and timing for medical electrical equipment</td></tr>
+            <tr class="grp"><td colspan="4">Biological safety and clinical evidence</td></tr>
+            <tr><td>ISO 10993-1</td><td>2025</td><td>Biological evaluation within a risk management process</td><td>A risk-based plan, by type and duration of body contact, for chemical characterization and tests such as cytotoxicity, sensitization, and irritation (other parts of ISO 10993)</td></tr>
+            <tr><td>ISO 14155</td><td>2020</td><td>Clinical investigation of medical devices in human subjects</td><td>Good clinical practice: protocol, ethics approval, informed consent, monitoring, and reporting of adverse events</td></tr>
+            <tr><td>ISO 20916</td><td>2019</td><td>Clinical performance studies of IVDs</td><td>Good study practice for studies using human specimens to establish clinical performance</td></tr>
+            <tr class="grp"><td colspan="4">Sterilization and packaging</td></tr>
+            <tr><td>ISO 11135</td><td>2014</td><td>Sterilization with ethylene oxide</td><td>Development, validation, and routine control of the process</td></tr>
+            <tr><td>ISO 11137-1</td><td>2006 + A1:2013 + A2:2018</td><td>Sterilization with radiation</td><td>Process requirements; dose setting is covered in ISO 11137-2</td></tr>
+            <tr><td>ISO 17665</td><td>2024</td><td>Sterilization with moist heat (steam)</td><td>Process requirements; replaced the earlier three-part 17665 series</td></tr>
+            <tr><td>ISO 11607-1</td><td>2019</td><td>Packaging for terminally sterilized devices</td><td>Materials and sterile barrier systems that keep a device sterile until use; part 2 covers validation of packaging processes</td></tr>
+            <tr class="grp"><td colspan="4">Labeling</td></tr>
+            <tr><td>ISO 15223-1</td><td>2021</td><td>Symbols for information supplied by the manufacturer</td><td>Standard symbols such as "use by," "sterile," and "consult instructions for use," avoiding translated text</td></tr>
+            <tr><td>ISO 20417</td><td>2021</td><td>Information supplied by the manufacturer</td><td>General requirements for labels and instructions for use</td></tr>
+            <tr><td>ISO 18113-1</td><td>2022</td><td>IVD information supplied by the manufacturer</td><td>Labeling for IVD reagents and instruments; further parts for professional and self-testing use</td></tr>
+            <tr class="grp"><td colspan="4">Laboratories</td></tr>
+            <tr><td>ISO 15189</td><td>2022</td><td>Medical laboratories: requirements for quality and competence</td><td>Accreditation standard for clinical laboratories, relevant to in-house tests under the IVDR</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose">
+        <p class="notice">Editions as of October 2026. Check the FDA Recognized Consensus Standards database and the harmonised standards lists in the Official Journal of the EU for the editions each regulator currently accepts; EN versions may carry European annexes (such as A11 amendments) not present in the ISO or IEC text.</p>
+      </div>
+    </section>
+
     <!-- ===================================================== NOW -->
     <section class="chapter" id="now" data-year="Now" data-short="Where things stand">
       <div class="chapter-head">
-        <span class="label kicker">Chapter 8 · Today</span>
+        <span class="label kicker">Chapter 10 · Today</span>
         <h2>Converging, slowly</h2>
       </div>
       <div class="prose">
@@ -448,6 +550,7 @@ table.compare td:first-child { font-weight: 700; color: var(--ink); }
         <dt>CLIA</dt><dd>The Clinical Laboratory Improvement Amendments of 1988, which regulate US clinical laboratories.</dd>
         <dt>De Novo</dt><dd>A US pathway to classify a novel low- or moderate-risk device with no predicate into Class I or II.</dd>
         <dt>Design controls</dt><dd>Documented procedures governing a device's design inputs, outputs, reviews, verification, validation, and changes.</dd>
+        <dt>Harmonised standard</dt><dd>A European standard whose reference is published in the Official Journal; conforming to it gives a presumption of conformity with the requirements it covers.</dd>
         <dt>EUDAMED</dt><dd>The EU database for devices, economic operators, certificates, vigilance, and clinical investigations.</dd>
         <dt>IVD</dt><dd>In vitro diagnostic: a device that examines specimens taken from the body.</dd>
         <dt>LDT</dt><dd>Laboratory-developed test: a test designed, manufactured, and used within a single laboratory.</dd>
@@ -455,6 +558,8 @@ table.compare td:first-child { font-weight: 700; color: var(--ink); }
         <dt>PMA</dt><dd>Premarket approval, the US pathway for Class III devices, based on evidence of safety and effectiveness.</dd>
         <dt>Predictive value</dt><dd>The probability that a positive (or negative) result is correct; it depends on prevalence.</dd>
         <dt>SaMD</dt><dd>Software as a medical device: software that is a medical device without being part of hardware.</dd>
+        <dt>Software safety class</dt><dd>IEC 62304’s A, B, or C rating of software by the worst harm its failure could contribute to.</dd>
+        <dt>SOUP</dt><dd>Software of unknown provenance: software not developed for the device under IEC 62304, such as an operating system or open-source library.</dd>
         <dt>Special controls</dt><dd>Device-type-specific requirements, such as performance testing and labeling, for US Class II devices.</dd>
         <dt>UDI</dt><dd>Unique device identifier, a code on the label that identifies a device and its production lot.</dd>
       </dl>
@@ -473,6 +578,8 @@ table.compare td:first-child { font-weight: 700; color: var(--ink); }
         <li>FDA (2024). Medical Devices; Laboratory Developed Tests, final rule, 89 FR 37286; <em>American Clinical Laboratory Association v. FDA</em>, E.D. Tex. (March 31, 2025); FDA (2025), rescission of the LDT rule, September 19, 2025.</li>
         <li>Wilson, E. B. (1927). Probable inference, the law of succession, and statistical inference. <em>Journal of the American Statistical Association</em> 22; FDA (2007). Statistical Guidance on Reporting Results from Studies Evaluating Diagnostic Tests.</li>
         <li>IMDRF SaMD Working Group (2014). Software as a Medical Device: Possible Framework for Risk Categorization and Corresponding Considerations (N12); MDCG 2019-11, Guidance on Qualification and Classification of Software (rev. 2025); IEC 62304:2006+A1:2015.</li>
+        <li>IEC 62304:2006+A1:2015, Medical device software: software life cycle processes; IEC 82304-1:2016; IEC 81001-5-1:2021; IEC 62366-1:2015+A1:2020; FDA (2023). Content of Premarket Submissions for Device Software Functions, final guidance; Johner Institute (2026), "IEC 62304 2nd edition: all areas of application and changes" (status of the revision).</li>
+        <li>FDA Recognized Consensus Standards database; FDA (2018). Appropriate Use of Voluntary Consensus Standards in Premarket Submissions for Medical Devices; MDR and IVDR Article 8 (harmonised standards); the ISO and IEC catalogues for the editions in the standards table.</li>
         <li>FDA (2018). De Novo classification request DEN170073, ContaCT (Viz.ai); FDA, Artificial Intelligence-Enabled Medical Devices list; FDA (2024). Marketing Submission Recommendations for a Predetermined Change Control Plan for Artificial Intelligence-Enabled Device Software Functions, final guidance.</li>
         <li>Council Directives 90/385/EEC, 93/42/EEC, and 98/79/EC; Regulation (EU) 2017/745 (MDR), Annex VIII; Regulation (EU) 2017/746 (IVDR), Annex VIII.</li>
         <li>Regulation (EU) 2020/561 (MDR postponement); Regulation (EU) 2023/607 (MDR transition); Regulation (EU) 2024/1860 (IVDR transition and EUDAMED); Commission Decision (EU) 2025/2371 (EUDAMED functionality).</li>
@@ -494,6 +601,7 @@ table.compare td:first-child { font-weight: 700; color: var(--ink); }
 <script src="js/us.js"></script>
 <script src="js/ivd.js"></script>
 <script src="js/eu.js"></script>
+<script src="js/s62304.js"></script>
 <script>Lab.rail();</script>
 </body>
 </html>

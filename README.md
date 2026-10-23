@@ -15,7 +15,7 @@ A library of long-form, interactive learning modules. Each module teaches one su
 | VII | Ab Initio | `modules/comp-chem/` | Computational chemistry: the Schrödinger equation, the chemical bond, Hartree–Fock and basis sets, electron correlation, density functional theory, reaction surfaces, Monte Carlo, molecular dynamics, force fields, and machine learning. 11 chapters, 9 interactive figures, glossary, sources. |
 | VIII | Downhill | `modules/convex-opt/` | Convex optimization: Lagrange multipliers, gradient descent and momentum, linear programming and the simplex method, KKT conditions and convexity, duality, Markowitz portfolios, interior-point methods, the lasso and compressed sensing. 10 chapters, 9 interactive figures, glossary, sources. |
 | IX | Field Lines | `modules/electrodynamics/` | Classical electrodynamics: Coulomb and Gauss, magnetostatics and Helmholtz coils, induction, Maxwell's equations and FDTD, Hertz and antenna arrays, the Lorentz force, moving charges and radiation. 8 chapters, 7 interactive figures, glossary, sources. |
-| X | Cleared for Market | `modules/device-regulation/` | Medical device and IVD regulation: US classes and pathways, review timelines, quality systems and ISO 14971, IVD performance statistics and CLIA, software and AI, EU MDR and IVDR transition, postmarket surveillance. 9 chapters, 8 interactive figures, glossary, sources. |
+| X | Cleared for Market | `modules/device-regulation/` | Medical device and IVD regulation: US classes and pathways, review timelines, quality systems and ISO 14971, IVD performance statistics and CLIA, software and AI, EU MDR and IVDR transition, postmarket surveillance, IEC 62304, and a table of key ISO and IEC standards. 11 chapters, 9 interactive figures, glossary, sources. |
 
 ## Viewing locally
 
@@ -113,6 +113,7 @@ modules/
       us.js                 US pathway finder, FDA review clock, ISO 14971 risk matrix
       ivd.js                Sensitivity sample size, predictive value versus prevalence, IMDRF/MDR Rule 11 software grid
       eu.js                 EU MDR/IVDR transition timeline, CUSUM signal detection
+      s62304.js             IEC 62304 safety classification and required activities by class
 tools/
   build_artifact.py         Flattens one module into a folder that can be published as a claude.ai Artifact
 ```
