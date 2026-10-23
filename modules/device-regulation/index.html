@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cleared for Market</title>
+<meta name="description" content="How medical devices and in vitro diagnostics are regulated in the United States and the European Union: classification, the 510(k), De Novo, and PMA pathways, quality and risk management, diagnostic performance, software and AI, the EU MDR and IVDR, and postmarket surveillance.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:ital,wght@0,500;0,600;0,700;1,500&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=Courier+Prime:wght@400;700&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<style>
+/* Volume X identity: a regulatory docket. Clean filing paper with a two-hole punch margin, Zilla Slab
+   headings like a government form, PT Serif for the long reading, Courier Prime for typed data and
+   section numbers. Classifications are shown as rubber stamps in navy; the risk zones are the only
+   place traffic-light colors appear. */
+:root {
+  --paper: #F7F7F4; --paper-2: #EDEEE9; --paper-3: #FCFCFA;
+  --grid: #DEE0D9; --rule: #C6C9C0;
+  --ink: #17191C; --ink-2: #3E4248; --ink-3: #62676E;
+  --accent: #26406E; --signal: #26406E; --tertiary: #2E9C82;
+  --s1: #1D4A9E; --s2: #C64A1C; --s3: #2E9C82;
+  --accent-wash: rgba(38, 64, 110, .08); --signal-wash: rgba(38, 64, 110, .1);
+  --hold: #EDEEE9;
+  --zone-ok: #D9EBDD; --zone-alarp: #F3E6BE; --zone-no: #F1CFC4;
+  --f-display: "Zilla Slab", "Rockwell", Georgia, serif;
+  --f-body: "PT Serif", Georgia, "Times New Roman", serif;
+  --f-mono: "Courier Prime", "Courier New", ui-monospace, monospace;
+  --rail: 186px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #131518; --paper-2: #1A1D21; --paper-3: #202328;
+    --grid: #262A2F; --rule: #363B42;
+    --ink: #E6E7E4; --ink-2: #B0B4B0; --ink-3: #82877F;
+    --accent: #A9BCE6; --signal: #A9BCE6; --tertiary: #35A386;
+    --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+    --accent-wash: rgba(169, 188, 230, .1); --signal-wash: rgba(169, 188, 230, .1);
+    --hold: #20242A;
+    --zone-ok: #1F3A2A; --zone-alarp: #3D3519; --zone-no: #47231B;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #131518; --paper-2: #1A1D21; --paper-3: #202328;
+  --grid: #262A2F; --rule: #363B42;
+  --ink: #E6E7E4; --ink-2: #B0B4B0; --ink-3: #82877F;
+  --accent: #A9BCE6; --signal: #A9BCE6; --tertiary: #35A386;
+  --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+  --accent-wash: rgba(169, 188, 230, .1); --signal-wash: rgba(169, 188, 230, .1);
+  --hold: #20242A;
+  --zone-ok: #1F3A2A; --zone-alarp: #3D3519; --zone-no: #47231B;
+}
+body {
+  background-color: var(--paper);
+  /* two-hole punch in the left margin of each 'page' of the docket */
+  background-image: radial-gradient(circle at 18px 40%, var(--paper-2) 0 7px, transparent 7.5px), radial-gradient(circle at 18px 60%, var(--paper-2) 0 7px, transparent 7.5px);
+  background-size: 100% 900px; font-size: 1.06rem;
+}
+@media (max-width: 760px) { body { background-image: none; } }
+.hero { grid-template-columns: 1fr; gap: 22px; }
+.hero h1 { font: 700 clamp(3rem, 9.5vw, 6.6rem)/.92 var(--f-display); letter-spacing: -.02em; margin-top: 10px; }
+.hero h1 i { font-style: italic; font-weight: 500; color: var(--accent); }
+.hero .dek { max-width: 56ch; }
+.chapter-head .year { font: 700 clamp(2.8rem, 7.4vw, 4.6rem)/.9 var(--f-display); letter-spacing: -.01em; }
+.chapter-head h2 { font: 600 clamp(1.9rem, 4.4vw, 2.9rem)/1.06 var(--f-display); letter-spacing: -.01em; }
+.prose h3 { font: 600 var(--t-lg)/1.25 var(--f-display); }
+.bench-head h4, .volume h2 { font-family: var(--f-display); font-weight: 600; }
+.bench-head h4 { font-size: 1.3rem; }
+.rail a { grid-template-columns: 46px 1fr; }
+.rail a .yr { font-size: 11px; }
+.part-head { max-width: var(--measure); padding-top: 64px; display: grid; gap: 4px; }
+.part-head .label { color: var(--accent); }
+.part-head h2 { font: 700 var(--t-xl)/1 var(--f-display); }
+/* hero case file */
+.case-file { border: 1px solid var(--rule); background: var(--paper-3); border-radius: var(--radius); padding: 16px; display: grid; gap: 14px; }
+.case-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.case-what { margin: 0; font-style: italic; color: var(--ink-2); max-width: 70ch; }
+.juris { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 14px; }
+.juris > div { display: grid; gap: 6px; align-content: start; padding: 12px; border-top: 2px solid var(--accent); background: var(--paper); }
+.stamp { justify-self: start; font: 700 1.5rem/1 var(--f-mono); color: var(--accent); border: 3px double var(--accent); padding: 6px 10px 4px; transform: rotate(-2deg); letter-spacing: .02em; }
+.route { font: 700 1.05rem/1.3 var(--f-display); color: var(--ink); }
+.basis { font: 400 var(--t-xs)/1.45 var(--f-mono); color: var(--ink-3); }
+.case-note { font: 400 var(--t-xs)/1.5 var(--f-mono); color: var(--ink-3); margin: 0; }
+/* pathway finder */
+.qflow { display: grid; gap: 8px; max-width: 760px; }
+.qrow { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px dotted var(--rule); }
+.qrow p { margin: 0; font-size: var(--t-sm); line-height: 1.45; }
+.qn { font: 700 var(--t-sm)/1 var(--f-mono); color: var(--accent); }
+@media (max-width: 560px) { .qrow { grid-template-columns: 22px 1fr; } .qrow .chips { grid-column: 2; } }
+.qresult { max-width: 760px; border-left: 4px solid var(--accent); padding: 8px 0 8px 16px; display: grid; gap: 4px; }
+.qresult h5 { margin: 0; font: 700 1.3rem/1.2 var(--f-display); }
+.qresult p { margin: 0; font-size: var(--t-sm); color: var(--ink-2); max-width: 66ch; }
+.qresult .muted { color: var(--ink-3); }
+/* risk controls */
+.ctrl-list { display: grid; gap: 6px; }
+.ctrl-list .kind { font: 400 var(--t-xs)/1 var(--f-mono); color: var(--ink-3); margin-left: 6px; }
+.zone-key { display: flex; flex-wrap: wrap; gap: 6px 16px; font: 400 var(--t-xs)/1.4 var(--f-mono); color: var(--ink-2); }
+.zone-key i { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -2px; border: 1px solid var(--rule); }
+/* software grid */
+.swgrid { display: grid; grid-template-columns: minmax(120px, 1.2fr) repeat(3, minmax(0, 1fr)); gap: 4px; max-width: 760px; }
+.swh { font: 700 var(--t-xs)/1.3 var(--f-mono); color: var(--ink-2); text-align: center; padding: 4px; align-self: end; }
+.swr { display: grid; gap: 2px; padding: 6px 4px; align-content: center; }
+.swr b { font: 600 var(--t-sm)/1.2 var(--f-display); }
+.swr span { font: 400 var(--t-xs)/1.3 var(--f-body); color: var(--ink-3); }
+.swc { display: grid; gap: 2px; place-content: center; text-align: center; padding: 10px 4px; border: 1px solid var(--rule); background: var(--paper-3); color: var(--ink); border-radius: var(--radius); cursor: pointer; font: 400 var(--t-xs)/1.3 var(--f-mono); }
+.swc[data-l="IV"] { background: var(--zone-no); } .swc[data-l="III"] { background: var(--zone-alarp); } .swc[data-l="II"] { background: var(--paper-2); }
+.swc .md { font-weight: 700; font-size: var(--t-sm); }
+.swc[aria-pressed="true"] { outline: 3px solid var(--accent); outline-offset: 1px; color: var(--ink); }
+.swc:focus-visible { outline: 3px solid var(--accent); }
+@media (max-width: 560px) { .swgrid { grid-template-columns: 1fr 1fr 1fr; } .swgrid > div:first-child { display: none; } .swr { grid-column: 1 / -1; } }
+.chart-wrap svg { width: 100%; display: block; }
+b.warn, .warn { color: var(--s2); }
+.callout { max-width: var(--measure); border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; display: grid; gap: 6px; }
+.callout .label { color: var(--accent); }
+.stat-row { display: flex; flex-wrap: wrap; gap: 12px 40px; max-width: var(--measure); padding-block: 8px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.stat-row div { display: grid; gap: 2px; }
+.stat-row b { font: 700 var(--t-xl)/1.05 var(--f-display); }
+.stat-row span { font: 400 var(--t-xs)/1.3 var(--f-mono); color: var(--ink-3); }
+.table-wrap { overflow-x: auto; max-width: var(--bench); }
+table.compare { border-collapse: collapse; font-size: var(--t-sm); min-width: 640px; width: 100%; }
+table.compare th { font: 700 var(--t-xs)/1.3 var(--f-mono); letter-spacing: .03em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px; border-bottom: 1px solid var(--ink-3); vertical-align: bottom; }
+table.compare td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+table.compare td:first-child { font-weight: 700; color: var(--ink); }
+.nocase { text-transform: none; letter-spacing: 0; }
+.notice { font: 400 var(--t-xs)/1.5 var(--f-mono); color: var(--ink-3); max-width: var(--measure); }
+</style>
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg', 'canvas'] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="brand" href="../../index.html">Learn<b>Anything</b></a>
+  <span class="where">Vol. 10 · Medical device and IVD regulation</span>
+  <span class="progress" aria-hidden="true"></span>
+</header>
+
+<div class="module">
+  <nav class="rail" aria-label="Chapters"><ol></ol></nav>
+
+  <main class="content">
+
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="label">Volume 10 · From prototype to patient</p>
+        <h1 id="title">Cleared <i>for Market</i></h1>
+        <p class="dek">How the United States and the European Union decide which medical devices and diagnostic tests may be sold: what counts as a device, how risk sets the class, the routes to market, the quality and risk systems behind every product, the statistics of diagnostic accuracy, the special problems of software, and the surveillance that continues after launch.</p>
+        <div class="meta">
+          <span class="label">9 chapters</span>
+          <span class="label">8 interactive figures</span>
+          <span class="label">1938 → 2026</span>
+        </div>
+      </div>
+      <figure class="case-file" id="hero-cases" style="margin:0">
+        <div class="case-tabs" role="group" aria-label="Choose a product"></div>
+        <div class="case-card"></div>
+        <figcaption class="case-note">One product, two systems. US classes run I–III; EU device classes run I–III with IIa and IIb, and diagnostics run A–D. Classifications are for the typical product described.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PROLOGUE -->
+    <section class="chapter" id="prologue" data-year="Pro" data-short="What is a device">
+      <div class="chapter-head">
+        <span class="label kicker">Prologue</span>
+        <h2>From tongue depressors to pacemakers</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A medical device is anything used to diagnose, treat, or prevent disease, or to affect the body's structure or function, that does its main job physically rather than by chemistry or metabolism. That last clause is what separates devices from drugs. The definition covers bandages and MRI scanners, contact lenses and artificial hearts, smartphone apps and the reagents in a COVID-19 test. Diagnostics that test specimens taken from the body, such as blood, urine, or tissue, are <em>in vitro diagnostic</em> devices (IVDs), and both jurisdictions in this volume treat them with rules of their own.</p>
+        <p>Because devices range from trivial to life-sustaining, every modern system regulates them by risk. A tongue depressor needs little more than honest labeling and a clean factory. A pacemaker needs clinical evidence, an inspection of the plant that makes it, and lifelong tracking of every unit implanted. The figure above shows the same five products under the US and EU systems, which reach similar answers by different routes. This volume explains how those answers are reached.</p>
+        <p class="notice">This volume explains the structure of the rules as of 2026. It is not legal or regulatory advice; actual classification depends on a product's specific intended use and on current guidance.</p>
+      </div>
+      <div class="stat-row">
+        <div><b>Class I · II · III</b><span>US device classes, by increasing risk</span></div>
+        <div><b>I · IIa · IIb · III</b><span>EU device classes under the MDR</span></div>
+        <div><b>A · B · C · D</b><span>EU diagnostic classes under the IVDR</span></div>
+      </div>
+      <dl class="defn">
+        <dt>Intended use</dt><dd>What the manufacturer says the product is for. It decides whether a product is a device at all and which class it falls in.</dd>
+        <dt>Predicate</dt><dd>A legally marketed US device to which a new device is compared in a 510(k).</dd>
+        <dt>Notified body</dt><dd>An independent organization designated by an EU country to assess whether devices conform to EU rules.</dd>
+      </dl>
+    </section>
+
+    <!-- ===================================================== PART I -->
+    <div class="part-head"><span class="label">Part I</span><h2>The United States</h2></div>
+
+    <section class="chapter" id="classes" data-year="1976" data-short="Three classes">
+      <div class="chapter-head">
+        <span class="year">1976</span>
+        <span class="label kicker">Chapter 1 · The Medical Device Amendments</span>
+        <h2>The Dalkon Shield and the three classes</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The Federal Food, Drug, and Cosmetic Act of 1938, passed after the Elixir Sulfanilamide poisonings, brought devices under federal law for the first time, but only against adulteration and misbranding. The FDA could act against a dangerous device once it was on the market; it could not review one beforehand.</p>
+        <p>By the late 1960s, implants, pacemakers, and dialysis machines had made that gap serious. In 1970 a committee chaired by Theodore Cooper, director of the National Heart and Lung Institute, recommended that devices be regulated according to their risk. The case that forced action was the Dalkon Shield, an intrauterine contraceptive device sold from 1971 and implanted in some two million American women, which was linked to pelvic infections, infertility, and deaths. On 28 May 1976 President Gerald Ford signed the Medical Device Amendments.</p>
+        <h3>Risk sets the class</h3>
+        <p>The amendments sort devices into three classes, by the controls needed to assure safety and effectiveness:</p>
+        <ul>
+          <li><strong>Class I</strong>, general controls: registration, listing, labeling, good manufacturing practice, and adverse event reporting. Most Class I devices, such as bandages and tongue depressors, need no premarket review.</li>
+          <li><strong>Class II</strong>, general plus <em>special controls</em>: performance standards, specific testing, labeling, or postmarket studies written for that device type. Most need a 510(k).</li>
+          <li><strong>Class III</strong>, devices that sustain life, are implanted with significant risk, or present unreasonable risk, for which general and special controls cannot provide assurance. These need premarket approval.</li>
+        </ul>
+        <p>FDA panels then wrote some 1,700 classification regulations, in 21 CFR Parts 862 to 892, each naming a generic device type and its class. A new product finds its place by matching one of them. Devices already on the market in 1976 were "grandfathered," and new devices "substantially equivalent" to them could reach the market by a notice under section 510(k) of the Act. That provision, intended as a transition, became the main road to market.</p>
+      </div>
+
+      <figure class="bench" id="fig-path">
+        <div class="bench-head"><span class="fig">Fig. 1.1</span><span class="label">Interactive</span><h4>Which route to the US market?</h4></div>
+        <div class="controls"><button class="chip" type="button" id="pa-reset">Start over</button></div>
+        <div class="qflow"></div>
+        <div class="qresult"></div>
+        <figcaption class="caption">A simplified version of the reasoning the FDA's own decision charts follow. It opens answered for a new kind of AI triage software with no predicate, which leads to De Novo; start over and answer for another product. Real decisions turn on details this sketch leaves out, such as combination products, accessories, and devices that a classification regulation exempts only under limitations.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="pathways" data-year="1997" data-short="Routes to market">
+      <div class="chapter-head">
+        <span class="year">1997</span>
+        <span class="label kicker">Chapter 2 · Premarket review</span>
+        <h2>510(k), De Novo, and PMA</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The FDA receives about three thousand 510(k) notifications a year, against a few dozen original premarket approval applications. The routes differ in the question asked:</p>
+        <ul>
+          <li><strong>510(k) premarket notification.</strong> Is the device <em>substantially equivalent</em> to a legally marketed predicate: the same intended use, and either the same technological characteristics or different ones that raise no new questions of safety and effectiveness? Evidence is usually bench testing, sometimes clinical data. The FDA "clears" the device.</li>
+          <li><strong>De Novo.</strong> Introduced by the FDA Modernization Act of 1997 and streamlined in 2012, it lets a novel low- or moderate-risk device with no predicate be classified directly into Class I or II, with new special controls. The granted device then becomes a predicate for followers.</li>
+          <li><strong>Premarket approval (PMA).</strong> Is there valid scientific evidence, usually clinical trials, of reasonable assurance of safety and effectiveness? The FDA inspects manufacturing, often convenes an advisory panel, and "approves" the device. Later changes need PMA supplements.</li>
+          <li><strong>Humanitarian Device Exemption.</strong> For conditions affecting no more than 8,000 people a year in the US (raised from 4,000 by the 21st Century Cures Act of 2016), it requires probable benefit instead of proof of effectiveness.</li>
+        </ul>
+        <p>The 510(k) route has drawn persistent criticism, because equivalence to a predicate is not proof of safety. A 2011 Institute of Medicine report concluded that it could not be transformed into a premarket evaluation of safety and effectiveness. The DePuy ASR metal-on-metal hip, cleared by 510(k) and recalled in 2010 after high failure rates, became the standard example. Defenders point out that most 510(k) devices are low-risk and well understood.</p>
+        <h3>User fees and the review clock</h3>
+        <p>Since the Medical Device User Fee and Modernization Act of 2002, manufacturers pay fees that fund review staff, and every five years the FDA and industry negotiate performance goals. Under the current agreement, MDUFA V (fiscal years 2023 to 2027), the FDA aims to decide 95% of 510(k)s within 90 "FDA days," 70% of De Novo requests within 150, and 90% of PMAs without an advisory panel within 180. FDA days exclude the time a submission sits on hold while the sponsor answers an additional-information request, so calendar time is always longer. A sponsor who does not respond within 180 days is considered to have withdrawn the submission.</p>
+        <p>Since 2018 the Breakthrough Devices Program has offered more interaction and priority review to devices that could provide more effective treatment or diagnosis of life-threatening or irreversibly debilitating conditions.</p>
+      </div>
+
+      <figure class="bench" id="fig-clock">
+        <div class="bench-head"><span class="fig">Fig. 2.1</span><span class="label">Interactive</span><h4>FDA days and calendar days</h4></div>
+        <div class="controls">
+          <div class="ctl"><span class="label">Submission</span><div class="chips"><button class="chip" type="button" data-ck="k510" aria-pressed="true">510(k)</button><button class="chip" type="button" data-ck="denovo" aria-pressed="false">De Novo</button><button class="chip" type="button" data-ck="pma" aria-pressed="false">PMA</button></div></div>
+          <div class="ctl"><label for="ck-r">Requests for more information <output>1</output></label><input type="range" id="ck-r" min="0" max="3" step="1" value="1"></div>
+          <div class="ctl"><label for="ck-d">Days the sponsor takes to respond, each time <output>60 days</output></label><input type="range" id="ck-d" min="10" max="180" step="5" value="60"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Timeline of a premarket review showing FDA review time and time on hold"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The FDA review clock runs only while the submission is with the FDA (blue). Each request for additional information stops it (dashed) until the sponsor replies. The model assumes the first FDA cycle runs to the usual first substantive response and that the FDA uses exactly its goal time; real reviews vary, and the goal applies to a stated share of submissions, not to each one. Add a second request with slow responses and the calendar time doubles while FDA days stay the same.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="quality" data-year="1996" data-short="Quality and risk">
+      <div class="chapter-head">
+        <span class="year">1996</span>
+        <span class="label kicker">Chapter 3 · Quality systems and risk management</span>
+        <h2>Design controls and the risk file</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Premarket review looks at a design. A quality system makes sure every unit built matches it. The FDA's first device good manufacturing practice regulation took effect in 1978. In 1996 it was replaced by the Quality System Regulation, 21 CFR Part 820, which added <em>design controls</em>: documented design inputs, outputs, reviews, verification that the design meets its specifications, and validation that the finished device meets the user's needs. Investigations of device failures had found that many traced to design, not manufacturing.</p>
+        <p>Internationally, the equivalent standard is ISO 13485, first published in 1996 and revised in 2003 and 2016. On 2 February 2026 the FDA's Quality Management System Regulation took effect, incorporating ISO 13485:2016 into Part 820 by reference, so a single quality system can now satisfy both the US and most other markets. Since 2017 the Medical Device Single Audit Program lets one audit serve the regulators of the US, Canada, Brazil, Japan, and Australia.</p>
+        <h3>ISO 14971: risk management</h3>
+        <p>ISO 14971 (first edition 2000, current edition 2019) sets out the process every device manufacturer follows. Identify hazards and the sequences of events by which they could cause harm. Estimate each risk from the <em>severity</em> of the harm and its <em>probability</em>. Compare with acceptability criteria the manufacturer must define in advance. Reduce unacceptable risks with controls, chosen in a fixed order of priority: first <em>inherent safety by design</em>, then <em>protective measures</em> in the device or its manufacture, and only then <em>information for safety</em>, such as warnings and training. Finally, judge whether the overall residual risk is outweighed by the medical benefit, and keep the risk file alive with data from the field.</p>
+        <p>The order matters because warnings are the weakest control: people do not read labels, and use error causes a large share of device incidents. A dose limit enforced by hardware works whether or not anyone reads anything.</p>
+      </div>
+
+      <figure class="bench" id="fig-risk">
+        <div class="bench-head"><span class="fig">Fig. 3.1</span><span class="label">Interactive</span><h4>A risk matrix for an insulin pump</h4></div>
+        <div class="controls"><div class="ctrl-list" role="group" aria-label="Risk controls"></div></div>
+        <div class="zone-key"><span><i style="background:var(--zone-ok)"></i>acceptable</span><span><i style="background:var(--zone-alarp)"></i>reduce as far as possible</span><span><i style="background:var(--zone-no)"></i>unacceptable</span></div>
+        <div class="chart-wrap"><svg role="img" aria-label="Five-by-five risk matrix of severity against probability with five hazards, moved by risk controls"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Each lettered circle is a hazard, placed by the severity of the harm and its estimated probability; a small open circle and dashed line show where it started. Turn controls on and off to move hazards down the matrix. Controls reduce probability, not severity, here, because the harm itself is unchanged. Notice that the training and warnings control, the lowest in ISO 14971's priority order, moves hazards least. Hazards, ratings, and the acceptability policy are illustrative; each manufacturer must define its own.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="ivd" data-year="1988" data-short="Diagnostics">
+      <div class="chapter-head">
+        <span class="year">1988</span>
+        <span class="label kicker">Chapter 4 · In vitro diagnostics</span>
+        <h2>Tests, labs, and the numbers behind a claim</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A diagnostic test kit is a device; the laboratory that runs it is regulated separately. In 1988, after reports of errors in Pap smear screening, Congress passed the Clinical Laboratory Improvement Amendments (CLIA), administered by the Centers for Medicare &amp; Medicaid Services. CLIA certifies laboratories and sorts tests by complexity: <em>waived</em> tests simple enough for home or a doctor's office, and moderate- and high-complexity tests that need qualified staff, proficiency testing, and inspection.</p>
+        <p>That split left a gap. A test designed, made, and used within a single laboratory, a <em>laboratory-developed test</em> (LDT), was for decades left by the FDA to CLIA alone under a policy of enforcement discretion. The scandal at Theranos, whose blood tests failed in its own laboratories before CMS sanctioned it in 2016, sharpened the debate. In May 2024 the FDA issued a rule declaring LDTs to be devices and phasing in its oversight. On 31 March 2025 a federal court in the Eastern District of Texas vacated the rule, holding that Congress had assigned laboratory oversight to CLIA; the FDA did not appeal and formally rescinded the rule in September 2025.</p>
+        <h3>Analytical and clinical performance</h3>
+        <p>A diagnostic must show <em>analytical</em> performance, measuring what it claims accurately and reproducibly, and <em>clinical</em> performance, agreeing with the true condition of patients. For a yes/no test, clinical performance is summarized by</p>
+        <div class="math-block">\[ \text{sensitivity} = \frac{TP}{TP + FN}, \qquad \text{specificity} = \frac{TN}{TN + FP}, \]</div>
+        <p>where TP, FN, TN, and FP count true positives, false negatives, true negatives, and false positives against a reference method. A regulator cares less about the point estimate than about how precisely it is known. A common acceptance criterion requires the lower bound of a 95% confidence interval to exceed a target. With \(x\) correct results out of \(n\), the Wilson score interval is</p>
+        <div class="math-block">\[ \frac{\hat p + \frac{z^2}{2n} \pm z\sqrt{\frac{\hat p(1-\hat p)}{n} + \frac{z^2}{4n^2}}}{1 + \frac{z^2}{n}}, \qquad \hat p = \frac{x}{n},\ z = 1.96. \]</div>
+        <p>Its width shrinks only as \(1/\sqrt n\), so tightening a claim gets expensive fast, and for rare conditions the number of positive samples, not the total enrolled, is what limits a study.</p>
+      </div>
+
+      <figure class="bench" id="fig-n">
+        <div class="bench-head"><span class="fig">Fig. 4.1</span><span class="label">Interactive</span><h4>How many positive samples does a sensitivity claim need?</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="nn-p">Sensitivity the test actually achieves <output>95.0%</output></label><input type="range" id="nn-p" min="0.8" max="0.995" step="0.005" value="0.95"></div>
+          <div class="ctl"><label for="nn-t">Required lower bound <output>90%</output></label><input type="range" id="nn-t" min="0.7" max="0.98" step="0.01" value="0.9"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="95% confidence interval for sensitivity narrowing as the number of positive samples grows"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The shaded band is the 95% Wilson interval if the test detects the stated share of positives; the dashed line is the acceptance criterion. The study passes once the band's lower edge clears it. A test that is truly 95% sensitive needs about 130 positive samples to prove it beats 90%; ask it to prove 93% and it needs nearly 600. The required number is computed with whole samples, so it can step slightly. The readout's enrolment figure shows what that means when only one person in twenty has the condition.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>Why a good test can mostly give wrong positives</h3>
+        <p>Sensitivity and specificity describe the test. What a patient or doctor wants to know is the chance that a particular result is right, the <em>predictive value</em>, and that depends on how common the condition is among those tested. By Bayes' theorem, with prevalence \(\pi\),</p>
+        <div class="math-block">\[ \text{PPV} = \frac{\text{sens}\cdot\pi}{\text{sens}\cdot\pi + (1-\text{spec})(1-\pi)}. \]</div>
+        <p>This is why regulators look closely at a test's intended population. The same assay may be cleared for diagnosing people with symptoms but not for screening the general public, and why the EU's IVDR puts tests for self-testing and for screening blood donations in higher classes.</p>
+      </div>
+
+      <figure class="bench" id="fig-ppv">
+        <div class="bench-head"><span class="fig">Fig. 4.2</span><span class="label">Interactive</span><h4>Predictive value and prevalence</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="pv-se">Sensitivity <output>99.0%</output></label><input type="range" id="pv-se" min="0.5" max="0.999" step="0.001" value="0.99"></div>
+          <div class="ctl"><label for="pv-sp">Specificity <output>99.0%</output></label><input type="range" id="pv-sp" min="0.5" max="0.999" step="0.001" value="0.99"></div>
+          <div class="ctl"><label for="pv-pr">Prevalence <output>1.0%</output></label><input type="range" id="pv-pr" min="-4" max="-0.3" step="0.02" value="-2"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Positive and negative predictive value versus prevalence"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">A test that is 99% sensitive and 99% specific, used where 1% of people have the condition, gives a positive result that is right only half the time: the 99 true positives per 10,000 are matched by 99 false positives from the much larger healthy group. Drop the prevalence to 0.1%, as in population screening, and nine positives in ten are false. Raise specificity and watch the positive predictive value recover.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="software" data-year="2014" data-short="Software and AI">
+      <div class="chapter-head">
+        <span class="year">2014</span>
+        <span class="label kicker">Chapter 5 · Software as a medical device</span>
+        <h2>When the device is an algorithm</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Software has controlled devices for decades, and its failures have shaped the rules: the Therac-25 overdoses of the 1980s (Volume 6) are a standard lesson in software safety. Increasingly, though, software is the whole device: an app that analyses heart rhythm, a program that reads retinal photographs, an algorithm that flags strokes on CT scans.</p>
+        <p>In 2014 the International Medical Device Regulators Forum (IMDRF) published a framework for <em>software as a medical device</em> (SaMD) that rates risk on two axes: how serious the patient's situation is (critical, serious, non-serious) and how much the software's output matters to the decision (it treats or diagnoses, drives clinical management, or informs it). The EU's MDR wrote a dedicated classification rule, Rule 11, which puts most decision-support software in Class IIa or above; guidance document MDCG 2019-11 maps it onto the IMDRF grid. Software development follows IEC 62304 (2006), which scales the required process to software safety classes A, B, and C.</p>
+        <p>In the US, the 21st Century Cures Act of 2016 removed some software from the device definition, including administrative tools, general wellness apps, electronic health records, and certain clinical decision support that lets a professional independently review the basis for its recommendations. In February 2018 the FDA granted a De Novo to Viz.ai's ContaCT, which flags suspected large-vessel strokes on CT and alerts a specialist, creating a new device type for radiological computer-aided triage. The FDA now lists more than a thousand AI-enabled devices it has authorized, most of them in radiology. Because machine-learning models may be retrained, the FDA finalized guidance in December 2024 on <em>predetermined change control plans</em>, which let a manufacturer describe in its submission which model updates it will make and how it will validate them, so those changes need no new review.</p>
+      </div>
+
+      <figure class="bench" id="fig-sw">
+        <div class="bench-head"><span class="fig">Fig. 5.1</span><span class="label">Interactive</span><h4>Classifying software: IMDRF and EU Rule 11</h4></div>
+        <div class="swgrid" role="group" aria-label="Choose the patient's situation and the significance of the software's output"></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Choose a cell: rows are the state of the patient's condition, columns the significance of the software's information to the healthcare decision. Each cell shows the IMDRF category (IV highest) and the EU MDR class that MDCG 2019-11 assigns under Rule 11. Note how much higher the EU classes run: nothing in this grid is Class I, which Rule 11 reserves for software that neither informs diagnostic or therapeutic decisions nor monitors physiological processes. Examples are illustrative.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PART II -->
+    <div class="part-head"><span class="label">Part II</span><h2>Europe, and after the sale</h2></div>
+
+    <section class="chapter" id="eu" data-year="2017" data-short="EU MDR and IVDR">
+      <div class="chapter-head">
+        <span class="year">2017</span>
+        <span class="label kicker">Chapter 6 · The European Union</span>
+        <h2>From directives to regulations</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Europe took a different path. Under the "New Approach" of the 1990s, three directives, for active implantable devices (1990), medical devices (1993), and in vitro diagnostics (1998), set essential requirements, and manufacturers showed conformity themselves for low-risk products or through a <em>notified body</em>, a private certification organization designated by a member state, for higher-risk ones. A device bearing the CE mark could be sold in every member state. There was no central regulator like the FDA, and notified bodies competed for manufacturers' business.</p>
+        <p>The weakness was exposed in 2010, when French authorities found that Poly Implant Prothèse had for years filled breast implants with cheap industrial silicone instead of medical grade, deceiving its notified body. Hundreds of thousands of women worldwide had received them. The scandal, together with problems with metal-on-metal hips, led to two regulations adopted in 2017: the Medical Device Regulation (MDR, 2017/745) and the In Vitro Diagnostic Regulation (IVDR, 2017/746). As regulations, they apply directly in every member state.</p>
+        <h3>What changed</h3>
+        <ul>
+          <li><strong>Stricter classification.</strong> The MDR's 22 rules move many products up, including most software (Rule 11). The IVDR replaced a short list of high-risk tests with a rule-based scheme of classes A to D; about 80% of IVDs, which under the directive had needed no notified body, now do.</li>
+          <li><strong>Clinical evidence.</strong> Manufacturers need clinical evaluation, and for high-risk implants it is checked by expert panels. Equivalence to another manufacturer's device is much harder to claim.</li>
+          <li><strong>Notified bodies</strong> face tougher designation and unannounced audits.</li>
+          <li><strong>Transparency and traceability.</strong> Unique device identifiers, and the European database EUDAMED. Its first four modules, covering economic operators, device registration, certificates, and market surveillance, became mandatory on 28 May 2026.</li>
+        </ul>
+        <p>The MDR's start was delayed a year by the COVID-19 pandemic, to 26 May 2021; the IVDR applied from 26 May 2022. The shortage of notified bodies and certificates threatened to remove devices from the market, so the EU twice extended the time legacy devices may be sold under their old certificates, if manufacturers are actively transitioning: Regulation 2023/607 for the MDR and Regulation 2024/1860 for the IVDR.</p>
+      </div>
+
+      <figure class="bench" id="fig-eu">
+        <div class="bench-head"><span class="fig">Fig. 6.1</span><span class="label">Interactive</span><h4>The EU transition deadlines</h4></div>
+        <div class="chart-wrap"><svg role="img" aria-label="Timeline of how long legacy devices may remain on the EU market under each regulation and class, with milestones"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Each bar runs from the date a regulation began to apply to the last day devices certified under the old directives may still be placed on the market, if the manufacturer meets the conditions of the extending regulation, such as applying to a notified body in time. Hover the bars and the milestone dots for details. The readouts count down from today's date in your browser.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="postmarket" data-year="1990" data-short="After the sale">
+      <div class="chapter-head">
+        <span class="year">1990</span>
+        <span class="label kicker">Chapter 7 · Postmarket surveillance</span>
+        <h2>Watching devices in use</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Premarket studies are small and short; some problems appear only after thousands of devices have been used for years. The Safe Medical Devices Act of 1990 required hospitals and other user facilities to report device-related deaths and serious injuries, and gave the FDA authority to order recalls and postmarket studies. Today, under 21 CFR Part 803, manufacturers must report deaths, serious injuries, and malfunctions that could cause them, generally within 30 days. The reports feed the public MAUDE database.</p>
+        <p>When a device is defective, the manufacturer usually recalls it, and the FDA classifies the recall by hazard. <strong>Class I</strong> means a reasonable probability that use will cause serious adverse health consequences or death; <strong>Class II</strong>, temporary or medically reversible consequences, or a remote probability of serious ones; <strong>Class III</strong>, unlikely to cause adverse health consequences. In June 2021 Philips recalled millions of sleep apnea machines and ventilators whose sound-dampening foam could break down; the FDA classed it Class I. Since a 2013 rule, most devices carry a <em>unique device identifier</em>, which makes it possible to find which patients received which lots.</p>
+        <h3>Finding a signal</h3>
+        <p>Complaint data are noisy: counts vary month to month even when nothing has changed. Statistical process control offers tools to tell a real increase from chance. The cumulative sum (CUSUM) chart, introduced by E. S. Page in 1954, adds up each period's excess over a reference value and resets at zero, so small persistent shifts accumulate while random fluctuations cancel. For counts with a baseline rate \(\mu_0\), tuned to detect a rise to \(\mu_1\),</p>
+        <div class="math-block">\[ S_t = \max\!\left(0,\ S_{t-1} + x_t - k\right), \qquad k = \frac{\mu_1 - \mu_0}{\ln(\mu_1/\mu_0)}, \]</div>
+        <p>and an alarm sounds when \(S_t\) exceeds a threshold \(h\). A higher threshold means fewer false alarms but slower detection, the same trade-off as a diagnostic test's sensitivity and specificity.</p>
+      </div>
+
+      <figure class="bench" id="fig-cusum">
+        <div class="bench-head"><span class="fig">Fig. 7.1</span><span class="label">Interactive</span><h4>Spotting a rise in complaints</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="cu-m">True increase from month 25 <output>×1.75</output></label><input type="range" id="cu-m" min="1" max="3" step="0.05" value="1.75"></div>
+          <div class="ctl"><label for="cu-h">Alarm threshold <span class="nocase">h</span> <output>5.0</output></label><input type="range" id="cu-h" min="1" max="12" step="0.5" value="5"></div>
+          <button class="chip" type="button" id="cu-s">New random data</button>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Monthly complaint counts with a CUSUM statistic and alarm threshold"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Top: simulated monthly complaints about one failure mode, with a baseline of four a month and an increase starting in month 25 (shaded). The jump is hard to see by eye. Bottom: the Poisson CUSUM, which climbs once the increase begins and sounds an alarm at the threshold. Lower the threshold and alarms come sooner, but the readout shows how often they would also come with no real change; set the increase to ×1.00 and draw new data to see false alarms. Data are simulated.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== NOW -->
+    <section class="chapter" id="now" data-year="Now" data-short="Where things stand">
+      <div class="chapter-head">
+        <span class="label kicker">Chapter 8 · Today</span>
+        <h2>Converging, slowly</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The US and EU systems began from opposite ends, one with a central agency reviewing evidence and one with private bodies certifying conformity, and have been moving toward each other. The QMSR has aligned US quality rules with ISO 13485; the MDR has added clinical evidence requirements and expert panels that resemble FDA review; and both build on IMDRF documents written jointly by regulators from around the world.</p>
+        <ul>
+          <li><strong>Cybersecurity.</strong> Since March 2023, under section 524B of the FD&amp;C Act added by the Food and Drug Omnibus Reform Act of 2022, submissions for "cyber devices" must include a plan to monitor and fix vulnerabilities and a software bill of materials.</li>
+          <li><strong>Artificial intelligence.</strong> The EU AI Act (Regulation 2024/1689) treats AI in medical devices that need a notified body as high-risk; its requirements for them apply from August 2027, alongside the MDR or IVDR.</li>
+          <li><strong>Laboratory tests.</strong> With the LDT rule vacated, oversight of tests developed in laboratories remains with CLIA, and proposals for new legislation continue.</li>
+          <li><strong>Supply.</strong> Europe's extended transition periods end between 2027 and 2029; whether notified-body capacity keeps up will decide how many legacy products remain available.</li>
+        </ul>
+      </div>
+      <div class="table-wrap">
+        <table class="compare">
+          <thead><tr><th>Question</th><th>United States</th><th>European Union</th></tr></thead>
+          <tbody>
+            <tr><td>Who decides market access?</td><td>The FDA (Center for Devices and Radiological Health; CBER for some blood-related products)</td><td>Manufacturer, with a notified body for most classes; national competent authorities supervise</td></tr>
+            <tr><td>Device classes</td><td>I, II, III</td><td>I, IIa, IIb, III (MDR); A, B, C, D (IVDR)</td></tr>
+            <tr><td>How classes are set</td><td>About 1,700 device-type regulations, by product</td><td>Rules applied to intended purpose (22 MDR rules, 7 IVDR rules)</td></tr>
+            <tr><td>Main evidence standard</td><td>Substantial equivalence (510(k)) or reasonable assurance of safety and effectiveness (PMA)</td><td>Conformity with general safety and performance requirements, with clinical evaluation</td></tr>
+            <tr><td>Quality system</td><td>QMSR, 21 CFR 820, incorporating ISO 13485</td><td>ISO 13485 (harmonized standard)</td></tr>
+            <tr><td>Labs' own tests</td><td>CLIA; FDA LDT rule vacated in 2025</td><td>Allowed in health institutions under IVDR Article 5(5), with conditions</td></tr>
+            <tr><td>Device database</td><td>GUDID, MAUDE, registration and listing</td><td>EUDAMED</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose">
+        <div class="callout">
+          <span class="label">The common thread</span>
+          <p>Every rule in this volume answers one question: how much evidence is enough, given what could go wrong? The answer scales with risk, from a label and a clean factory for a tongue depressor to clinical trials and lifelong tracking for a pacemaker. The statistics are the same ones that run through earlier volumes: confidence intervals for a claim, Bayes' theorem for a test result, and sequential monitoring for a problem that has not shown itself yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== glossary -->
+    <section class="chapter" id="glossary" data-year="Ref" data-short="Glossary & sources">
+      <div class="chapter-head">
+        <span class="label kicker">Reference</span>
+        <h2>Glossary</h2>
+      </div>
+      <dl class="glossary">
+        <dt>510(k)</dt><dd>A US premarket notification showing a device is substantially equivalent to a legally marketed predicate.</dd>
+        <dt>CE mark</dt><dd>The marking that shows a product conforms to EU requirements and may be sold throughout the EU.</dd>
+        <dt>CLIA</dt><dd>The Clinical Laboratory Improvement Amendments of 1988, which regulate US clinical laboratories.</dd>
+        <dt>De Novo</dt><dd>A US pathway to classify a novel low- or moderate-risk device with no predicate into Class I or II.</dd>
+        <dt>Design controls</dt><dd>Documented procedures governing a device's design inputs, outputs, reviews, verification, validation, and changes.</dd>
+        <dt>EUDAMED</dt><dd>The EU database for devices, economic operators, certificates, vigilance, and clinical investigations.</dd>
+        <dt>IVD</dt><dd>In vitro diagnostic: a device that examines specimens taken from the body.</dd>
+        <dt>LDT</dt><dd>Laboratory-developed test: a test designed, manufactured, and used within a single laboratory.</dd>
+        <dt>PCCP</dt><dd>Predetermined change control plan: a pre-authorized description of planned device modifications and how they will be validated.</dd>
+        <dt>PMA</dt><dd>Premarket approval, the US pathway for Class III devices, based on evidence of safety and effectiveness.</dd>
+        <dt>Predictive value</dt><dd>The probability that a positive (or negative) result is correct; it depends on prevalence.</dd>
+        <dt>SaMD</dt><dd>Software as a medical device: software that is a medical device without being part of hardware.</dd>
+        <dt>Special controls</dt><dd>Device-type-specific requirements, such as performance testing and labeling, for US Class II devices.</dd>
+        <dt>UDI</dt><dd>Unique device identifier, a code on the label that identifies a device and its production lot.</dd>
+      </dl>
+
+      <div class="chapter-head" style="margin-top:32px"><h2>Sources</h2></div>
+      <ol class="sources">
+        <li>Federal Food, Drug, and Cosmetic Act, section 201(h) (device definition), 513 (classification), 510(k), 515 (PMA), 520(m) (HDE), 524B (cybersecurity).</li>
+        <li>Medical Device Amendments of 1976, Pub. L. 94-295; FDA (2026), "Fifty years of the Medical Device Amendments"; Study Group on Medical Devices (Cooper Committee) (1970). <em>Medical Devices: A Legislative Plan</em>.</li>
+        <li>Hutt, P. B. (1989). A history of government regulation of adulteration and misbranding of medical devices. <em>Food Drug Cosmetic Law Journal</em> 44.</li>
+        <li>FDA Modernization Act of 1997; Medical Device User Fee and Modernization Act of 2002; Food and Drug Administration Safety and Innovation Act of 2012; 21st Century Cures Act of 2016, sections 3051 (breakthrough devices), 3052 (HDE), 3060 (software).</li>
+        <li>FDA. MDUFA Performance Goals and Procedures, Fiscal Years 2023 Through 2027 (MDUFA V commitment letter).</li>
+        <li>Institute of Medicine (2011). <em>Medical Devices and the Public's Health: The FDA 510(k) Clearance Process at 35 Years</em>. National Academies Press.</li>
+        <li>21 CFR Part 820, Quality Management System Regulation (final rule, 89 FR 7496, February 2, 2024; effective February 2, 2026); ISO 13485:2016; ISO 14971:2019; ISO/TR 24971:2020.</li>
+        <li>21 CFR 880.6230 (tongue depressor), 884.5300 (condom), 862.1345 (glucose test system), 870.3610 (implantable pacemaker pulse generator), 892.2080 (radiological computer-aided triage and notification software).</li>
+        <li>Clinical Laboratory Improvement Amendments of 1988, Pub. L. 100-578; 42 CFR Part 493.</li>
+        <li>FDA (2024). Medical Devices; Laboratory Developed Tests, final rule, 89 FR 37286; <em>American Clinical Laboratory Association v. FDA</em>, E.D. Tex. (March 31, 2025); FDA (2025), rescission of the LDT rule, September 19, 2025.</li>
+        <li>Wilson, E. B. (1927). Probable inference, the law of succession, and statistical inference. <em>Journal of the American Statistical Association</em> 22; FDA (2007). Statistical Guidance on Reporting Results from Studies Evaluating Diagnostic Tests.</li>
+        <li>IMDRF SaMD Working Group (2014). Software as a Medical Device: Possible Framework for Risk Categorization and Corresponding Considerations (N12); MDCG 2019-11, Guidance on Qualification and Classification of Software (rev. 2025); IEC 62304:2006+A1:2015.</li>
+        <li>FDA (2018). De Novo classification request DEN170073, ContaCT (Viz.ai); FDA, Artificial Intelligence-Enabled Medical Devices list; FDA (2024). Marketing Submission Recommendations for a Predetermined Change Control Plan for Artificial Intelligence-Enabled Device Software Functions, final guidance.</li>
+        <li>Council Directives 90/385/EEC, 93/42/EEC, and 98/79/EC; Regulation (EU) 2017/745 (MDR), Annex VIII; Regulation (EU) 2017/746 (IVDR), Annex VIII.</li>
+        <li>Regulation (EU) 2020/561 (MDR postponement); Regulation (EU) 2023/607 (MDR transition); Regulation (EU) 2024/1860 (IVDR transition and EUDAMED); Commission Decision (EU) 2025/2371 (EUDAMED functionality).</li>
+        <li>European Commission, Scientific Committee on Emerging and Newly Identified Health Risks (2012). Opinion on the safety of Poly Implant Prothèse (PIP) silicone breast implants.</li>
+        <li>Safe Medical Devices Act of 1990; 21 CFR Part 803 (medical device reporting); 21 CFR Part 7 (recalls, including recall classification); Unique Device Identification System, final rule, 78 FR 58786 (2013).</li>
+        <li>Page, E. S. (1954). Continuous inspection schemes. <em>Biometrika</em> 41; Lucas, J. M. (1985). Counted data CUSUMs. <em>Technometrics</em> 27.</li>
+        <li>FDA (2021–2024). Philips Respironics ventilator, BiPAP, and CPAP recalls; consent decree, 2024.</li>
+        <li>Regulation (EU) 2024/1689 (Artificial Intelligence Act), Article 6 and Article 113.</li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">LearnAnything · Volume 10 · An explanation of how the rules work, current to 2026; not legal or regulatory advice.</footer>
+
+<script src="../../assets/js/lab.js"></script>
+<script src="js/rg.js"></script>
+<script src="js/hero.js"></script>
+<script src="js/us.js"></script>
+<script src="js/ivd.js"></script>
+<script src="js/eu.js"></script>
+<script>Lab.rail();</script>
+</body>
+</html>

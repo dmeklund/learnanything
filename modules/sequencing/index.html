@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Base Calls</title>
+<meta name="description" content="Next-generation DNA sequencing: from Sanger's chain terminators to flow cells reading billions of molecules at once, with the chemistry, statistics, and algorithms that turn light into genomes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Source+Sans+3:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<style>
+/* Volume IV identity: the sequencing core. A hexagonal nanowell ground like a patterned
+   flow cell, Instrument Serif headlines in the manner of a journal, Source Sans for reading,
+   JetBrains Mono for sequence, and four validated base colors that always travel with
+   their letters. Fluorescence images sit on a dark scope background in both themes. */
+:root {
+  --paper: #F4F6F5; --paper-2: #E9EEEC; --paper-3: #FBFCFC;
+  --grid: #D3DCD8; --rule: #C3CDC8;
+  --ink: #121816; --ink-2: #3A4642; --ink-3: #5F6C67;
+  --accent: #9E1F18; --signal: #8A5A00; --tertiary: #3F51B5;
+  --s1: #3F51B5; --s2: #BF8600; --s3: #B3261E;
+  --base-a: #008A7A; --base-c: #3F51B5; --base-g: #BF8600; --base-t: #B3261E;
+  --accent-wash: rgba(158, 31, 24, .07); --signal-wash: rgba(138, 90, 0, .12);
+  --scope: #06080A; --scope-ink: #DCE3E0; --scope-ink-2: #8C9893;
+  --f-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --f-body: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --rail: 200px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #101513; --paper-2: #161D1A; --paper-3: #1B2420;
+    --grid: #202B26; --rule: #2E3B36;
+    --ink: #E1E8E4; --ink-2: #AEBBB5; --ink-3: #7F8C86;
+    --accent: #F08A80; --signal: #E0A94A; --tertiary: #7383EA;
+    --s1: #7383EA; --s2: #BC8510; --s3: #D63D4E;
+    --base-a: #1E9E95; --base-c: #7383EA; --base-g: #BC8510; --base-t: #D63D4E;
+    --accent-wash: rgba(240, 138, 128, .1); --signal-wash: rgba(224, 169, 74, .14);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #101513; --paper-2: #161D1A; --paper-3: #1B2420;
+  --grid: #202B26; --rule: #2E3B36;
+  --ink: #E1E8E4; --ink-2: #AEBBB5; --ink-3: #7F8C86;
+  --accent: #F08A80; --signal: #E0A94A; --tertiary: #7383EA;
+  --s1: #7383EA; --s2: #BC8510; --s3: #D63D4E;
+  --base-a: #1E9E95; --base-c: #7383EA; --base-g: #BC8510; --base-t: #D63D4E;
+  --accent-wash: rgba(240, 138, 128, .1); --signal-wash: rgba(224, 169, 74, .14);
+}
+body {
+  background-image:
+    radial-gradient(circle, var(--grid) 1.3px, transparent 1.6px),
+    radial-gradient(circle, var(--grid) 1.3px, transparent 1.6px);
+  background-size: 16px 27.7px;
+  background-position: 0 0, 8px 13.85px;
+  font-size: 1.08rem;
+}
+.hero { grid-template-columns: 1fr; gap: 26px; }
+.hero h1 { font: 400 clamp(3.6rem, 10vw, 7.4rem)/.88 var(--f-display); letter-spacing: -.02em; }
+.hero h1 i { font-style: italic; color: var(--accent); }
+.hero .dek { max-width: 50ch; }
+.chapter-head .year { font: 400 clamp(3rem, 8vw, 5.2rem)/.88 var(--f-display); }
+.chapter-head h2 { font: 400 clamp(2.3rem, 5.2vw, 3.6rem)/1 var(--f-display); letter-spacing: -.01em; }
+.prose h3 { font: 600 var(--t-lg)/1.25 var(--f-body); }
+.prose blockquote { font-family: var(--f-display); }
+.bench-head h4 { font-family: var(--f-body); }
+.volume h2 { font-family: var(--f-display); }
+.rail a { grid-template-columns: 52px 1fr; }
+.rail a .yr { font-size: 11px; }
+.part-head { max-width: var(--measure); padding-top: 64px; display: grid; gap: 4px; }
+.part-head .label { color: var(--accent); }
+.part-head h2 { font: 400 var(--t-xl)/1 var(--f-display); font-style: italic; }
+
+/* Bases always carry their letter */
+.nt { font: 700 1em/1 var(--f-mono); }
+.nt-a { color: var(--base-a); } .nt-c { color: var(--base-c); } .nt-g { color: var(--base-g); } .nt-t { color: var(--base-t); }
+.seq { font: 500 var(--t-sm)/1.6 var(--f-mono); overflow-wrap: anywhere; }
+
+/* Hero flow cell */
+.flowcell { display: grid; gap: 8px; }
+.flowcell canvas { width: 100%; display: block; border-radius: var(--radius); background: var(--scope); cursor: crosshair; }
+.hero-fq { display: grid; gap: 2px; font: 500 var(--t-sm)/1.45 var(--f-mono); color: var(--ink-2); overflow-x: auto; white-space: nowrap; padding: 10px 12px; background: var(--paper-3); border: 1px solid var(--rule); border-radius: var(--radius); }
+.hero-fq .fq-h { color: var(--ink-3); }
+.hero-fq .fq-q { color: var(--ink-2); letter-spacing: 0; }
+.hero-fq .pend { color: var(--rule); }
+.hero-cycle { font: 500 var(--t-xs)/1.3 var(--f-mono); color: var(--ink-3); letter-spacing: .06em; text-transform: uppercase; }
+
+/* FASTQ decoder */
+#fq-in { font: 400 var(--t-xs)/1.5 var(--f-mono); min-height: 7.2em; white-space: pre; overflow-x: auto; }
+.fq-view { overflow-x: auto; padding-bottom: 4px; }
+.fq-cells { display: flex; gap: 2px; width: max-content; }
+.fq-cell { display: grid; grid-template-rows: 64px auto auto; justify-items: center; gap: 2px; width: 13px; font-size: 11px; }
+.fq-bar { width: 9px; height: 64px; background: var(--paper-3); border: 1px solid var(--rule); border-radius: 2px; display: flex; align-items: flex-end; overflow: hidden; }
+.fq-bar i { display: block; width: 100%; background: var(--ink-2); }
+.fq-cell.low .fq-bar i { background: var(--s3); }
+.fq-ch { font: 400 10px/1 var(--f-mono); color: var(--ink-3); }
+.fq-err { color: var(--s3); font-size: var(--t-sm); }
+
+/* BWT table */
+.bwt-wrap { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 720px) { .bwt-wrap { grid-template-columns: 1fr; } }
+table.bwt td, table.bwt th { padding: 3px 8px; }
+table.bwt td.rot { font-family: var(--f-mono); letter-spacing: .08em; text-align: left; color: var(--ink-3); }
+table.bwt td.rot .hit { color: var(--accent); font-weight: 700; }
+table.bwt td.rot .F { color: var(--ink); font-weight: 600; }
+table.bwt td.Lc { color: var(--ink); font-weight: 700; background: var(--accent-wash); }
+table.bwt tr.in td { background: var(--signal-wash); }
+.bwt-steps { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; font-size: var(--t-sm); color: var(--ink-2); }
+.bwt-steps b { color: var(--ink); font-family: var(--f-mono); font-weight: 600; }
+b.mono { font-family: var(--f-mono); letter-spacing: .06em; }
+
+/* Pileup */
+.pileup { font: 500 12px/1 var(--f-mono); overflow-x: auto; display: grid; gap: 1px; padding: 8px; background: var(--paper-3); border: 1px solid var(--rule); border-radius: 2px; }
+.pu-row { display: flex; gap: 1px; width: max-content; }
+.pu { width: 14px; height: 16px; display: grid; place-items: center; }
+.pu.m { color: var(--ink-3); }
+.pu.x { background: var(--paper-2); }
+.pu.ctr { outline: 1px solid var(--accent); outline-offset: -1px; background: var(--accent-wash); }
+.pu-lab { font: 400 var(--t-xs)/1.4 var(--f-mono); color: var(--ink-3); margin: 4px 0 2px; }
+.gt-bars { display: grid; gap: 6px; font-size: var(--t-sm); }
+.gt { display: grid; grid-template-columns: minmax(0, 10em) minmax(0, 1fr) 4.2em 4.6em; gap: 8px; align-items: center; color: var(--ink-2); font-family: var(--f-mono); font-size: var(--t-xs); }
+.gt .track { height: 10px; background: var(--paper-3); border: 1px solid var(--rule); border-radius: 2px; overflow: hidden; }
+.gt .track span { display: block; height: 100%; background: var(--ink-3); }
+.gt.best .track span { background: var(--accent); }
+.gt.best { color: var(--ink); }
+.gt b { text-align: right; color: var(--ink); font-weight: 600; }
+.gt .pl { color: var(--ink-3); }
+
+.bench canvas.plain { background: transparent; border: 0; }
+.chart-wrap svg { width: 100%; display: block; }
+b.warn, .warn { color: var(--s3); }
+.table-wrap { overflow-x: auto; max-width: var(--bench); }
+table.compare { border-collapse: collapse; font-size: var(--t-sm); min-width: 660px; width: 100%; }
+table.compare th { font: 500 var(--t-xs)/1.3 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px; border-bottom: 1px solid var(--ink-3); vertical-align: bottom; }
+table.compare td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+table.compare td:first-child { font-weight: 600; color: var(--ink); white-space: nowrap; }
+.callout { max-width: var(--measure); border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; display: grid; gap: 6px; }
+.callout .label { color: var(--accent); }
+.stat-row { display: flex; flex-wrap: wrap; gap: 12px 40px; max-width: var(--measure); padding-block: 8px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.stat-row div { display: grid; gap: 2px; }
+.stat-row b { font: 400 2.4rem/1 var(--f-display); }
+.stat-row span { font: 400 var(--t-xs)/1.3 var(--f-mono); color: var(--ink-3); }
+input:disabled, select:disabled { opacity: .35; }
+</style>
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg', 'canvas'] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="brand" href="../../index.html">Learn<b>Anything</b></a>
+  <span class="where">Vol. 4 · DNA sequencing</span>
+  <span class="progress" aria-hidden="true"></span>
+</header>
+
+<div class="module">
+  <nav class="rail" aria-label="Chapters"><ol></ol></nav>
+
+  <main class="content">
+
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="label">Volume 4 · Next-generation sequencing</p>
+        <h1 id="title">Base <i>Calls</i></h1>
+        <p class="dek">How DNA sequencing went from reading a few hundred letters a day to billions of molecules at once, and the chemistry, optics, statistics, and algorithms that turn flashes of colored light into a genome.</p>
+        <div class="meta">
+          <span class="label">14 chapters</span>
+          <span class="label">9 interactive figures</span>
+          <span class="label">1953 → today</span>
+        </div>
+      </div>
+      <figure class="hero-figure flowcell" id="hero-flowcell" style="margin:0">
+        <canvas role="img" aria-label="Simulated fluorescence image of a patterned flow cell, with clusters lighting up in four colors cycle by cycle"></canvas>
+        <div class="readout"><span class="hero-cycle">cycle 1</span><span>Each spot is a cluster of identical DNA copies. Click one to follow its read.</span></div>
+        <div class="hero-fq hero-read" aria-live="off"></div>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PROLOGUE -->
+    <section class="chapter" id="prologue" data-year="Pro" data-short="Reading DNA">
+      <div class="chapter-head">
+        <span class="label kicker">Prologue</span>
+        <h2>Three billion letters, read in pieces</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A human genome is about 3.1 billion base pairs of DNA, inherited twice over, once from each parent. Written out, one copy would fill about a thousand thousand-page books in a four-letter alphabet: A, C, G, and T. No instrument reads it from end to end. Every method in use today breaks DNA into fragments, reads the fragments, and reconstructs the whole by computation.</p>
+        <p>The image at the top shows how most of the world's sequencing is now done. A glass flow cell holds billions of tiny clusters, each a few hundred to a thousand identical copies of one DNA fragment. In each cycle, the instrument adds one fluorescently labeled base to every cluster at once, photographs the flow cell, and records each cluster's color. A run of 150 cycles reads 150 letters from billions of fragments in parallel. The text beside the image is that cluster's read in FASTQ, the file format the instrument writes.</p>
+        <p>This volume follows the field from the double helix to that flow cell, then through what happens to the data: how quality is measured, how much sequencing is enough, how reads are matched to a reference genome or assembled without one, and how a single-letter difference is called with a known confidence. The last chapters cover long-read methods and the medical and scientific uses that made sequencing routine.</p>
+      </div>
+      <div class="stat-row">
+        <div><b>3.1 Gb</b><span>bases in one copy of the human genome</span></div>
+        <div><b>30×</b><span>typical depth for a clinical whole genome</span></div>
+        <div><b>Q30</b><span>one error in a thousand bases</span></div>
+      </div>
+      <dl class="defn">
+        <dt>Read</dt><dd>The sequence of one fragment as reported by the instrument, typically 100 to 300 bases for short-read machines and thousands to millions for long-read ones.</dd>
+        <dt>Base call</dt><dd>The instrument's decision about which base occupies one position of a read, together with a quality score.</dd>
+        <dt>Coverage</dt><dd>How many reads, on average, overlap each position of the genome. Also called depth.</dd>
+      </dl>
+    </section>
+
+    <!-- ===================================================== 1953 -->
+    <div class="part-head"><span class="label">Part I</span><h2>Reading one molecule at a time</h2></div>
+
+    <section class="chapter" id="helix" data-year="1953" data-short="The molecule">
+      <div class="chapter-head">
+        <span class="year">1953</span>
+        <span class="label kicker">Chapter 1 · The molecule</span>
+        <h2>A structure that copies itself</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In April 1953, James Watson and Francis Crick proposed in <em>Nature</em> that DNA is a double helix: two strands running in opposite directions, held together by pairs of bases, A with T and G with C. Their model depended on X-ray diffraction images made by Rosalind Franklin and Raymond Gosling at King's College London, published in the same issue alongside work by Maurice Wilkins and colleagues.</p>
+        <p>The pairing rule was the key. "It has not escaped our notice," Watson and Crick wrote, "that the specific pairing we have postulated immediately suggests a possible copying mechanism for the genetic material." Each strand is a template for its partner. In 1956 Arthur Kornberg isolated DNA polymerase, the enzyme that builds a new strand by adding nucleotides, one at a time, that pair with the template.</p>
+        <p>Every sequencing method in this volume exploits one of two facts. Either a polymerase adds bases in order, and the method detects each addition as it happens, or a strand can be cut or blocked at specific bases, and the method measures where. Two more facts matter later. A polymerase can only extend an existing strand from a short <em>primer</em>, so every method needs a known sequence to start from. And DNA strands have direction: synthesis runs from the 5′ end to the 3′ end.</p>
+        <p>For two decades after the double helix, reading DNA directly was impractical. Proteins and RNA came first: Frederick Sanger sequenced the protein insulin by 1955, and Robert Holley sequenced a 77-nucleotide transfer RNA in 1965. Sequencing a few dozen DNA bases took months.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== 1977 -->
+    <section class="chapter" id="sanger" data-year="1977" data-short="Chain termination">
+      <div class="chapter-head">
+        <span class="year">1977</span>
+        <span class="label kicker">Chapter 2 · Sanger sequencing</span>
+        <h2>Stopping the copy at every letter</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1977 two methods appeared within months of each other. Allan Maxam and Walter Gilbert at Harvard cut end-labeled DNA with chemicals that break it preferentially at particular bases. Frederick Sanger, Steve Nicklen, and Alan Coulson at Cambridge used the polymerase itself, and their method won.</p>
+        <p>Sanger's trick was the <em>dideoxynucleotide</em> (ddNTP), a base that lacks the 3′ hydroxyl group the next base must attach to. Once a polymerase adds one, the chain stops. Run four reactions, each with normal nucleotides plus a little of one terminator, and each reaction produces a set of fragments that all end at a particular base. If the terminator makes up a fraction \(r\) of that base in the mix, the chance that a growing chain survives \(n\) occurrences of the base is</p>
+        <div class="math-block">\[ P(\text{reach length } n) = (1 - r)^{m(n)}, \]</div>
+        <p>where \(m(n)\) is how many of that base lie before position \(n\). A small \(r\) gives fragments of every length. Separating the fragments by size on a polyacrylamide gel, one lane per base, and reading the bands from bottom to top spells out the sequence. In 1977 Sanger's group used it to publish the first DNA genome, the 5,386 bases of the bacteriophage φX174. Sanger shared the 1980 Nobel Prize in Chemistry with Gilbert and Paul Berg; it was his second.</p>
+        <h3>Automation</h3>
+        <p>In 1986 Leroy Hood's group at Caltech, with Lloyd Smith and colleagues, replaced radioactive labels with four fluorescent dyes, one per base, so all four reactions could run in one lane and a laser could read the bands as they passed a detector. Applied Biosystems built the instruments. In the late 1990s, thin capillaries filled with polymer replaced slab gels, and machines such as the ABI PRISM 3700 ran 96 capillaries at once. The output is an <em>electropherogram</em>: four colored traces with one peak per base.</p>
+        <p>Sanger reads reach about 800 to 1,000 bases with very high accuracy, and the method is still the standard for checking a single gene. Its limits are throughput and cost: each read needs its own reaction and its own capillary.</p>
+      </div>
+
+      <figure class="bench" id="fig-sanger">
+        <div class="bench-head"><span class="fig">Fig. 2.1</span><span class="label">Interactive</span><h4>A Sanger read, on a gel and in a capillary</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="sg-seq">Sequence (up to 30 bases)</label><input type="text" id="sg-seq" value="GATTACAGCTTGACCTAGGCATCGATCCAG" spellcheck="false" autocomplete="off"></div>
+          <div class="ctl"><label for="sg-off">First base shown <output>1</output></label><input type="range" id="sg-off" min="0" max="950" step="10" value="0"></div>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="A four-lane sequencing gel and a four-color electropherogram for the sequence entered"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: a gel with one lane per terminator, read from the bottom up. Right: the same fragments as a capillary instrument sees them, one colored peak per position. Slide the window deeper into the read. Migration depends on the logarithm of fragment size, so long fragments crowd together on the gel, and diffusion widens the capillary peaks until neighbors merge and the base caller can only report N. That is what limits a Sanger read to about a thousand bases. Peak heights and widths are illustrative.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== 1990 -->
+    <section class="chapter" id="hgp" data-year="1990" data-short="Genome Project">
+      <div class="chapter-head">
+        <span class="year">1990</span>
+        <span class="label kicker">Chapter 3 · The Human Genome Project</span>
+        <h2>One genome, thirteen years</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The Human Genome Project began officially in October 1990, led by the US National Institutes of Health and Department of Energy with partners in the United Kingdom, France, Germany, Japan, and China. Its goal was a reference sequence of the whole human genome within fifteen years.</p>
+        <p>The public project used a <em>hierarchical</em> strategy. The genome was first cut into large pieces of about 150,000 bases, cloned in bacterial artificial chromosomes (BACs) and mapped to their positions on the chromosomes. Each BAC was then broken into small random fragments, sequenced by the Sanger method, and assembled. Working clone by clone kept each assembly small and its location known.</p>
+        <p>In 1998 Craig Venter's company Celera Genomics announced it would sequence the genome faster with a <em>whole-genome shotgun</em>: break the entire genome into random fragments, sequence them, and assemble everything at once by computer, an approach many considered impossible for a genome full of repeats. The two efforts published draft sequences in February 2001, the public one in <em>Nature</em> and Celera's in <em>Science</em>. The project declared the genome essentially complete in April 2003. The total cost of the project, including mapping, technology development, and other organisms, is usually given as about $2.7 billion.</p>
+        <p>"Complete" left out about 8% of the genome: centromeres, long arrays of repeats, and other regions that short fragments could not place. The first truly gapless human sequence, from the Telomere-to-Telomere consortium, did not appear until 2022 (Chapter 12).</p>
+      </div>
+      <ol class="events">
+        <li><time>1983</time><span>Kary Mullis devises the polymerase chain reaction (PCR), which copies a DNA region a billionfold. Nobel Prize in Chemistry, 1993.</span></li>
+        <li><time>1988</time><span>Eric Lander and Michael Waterman publish the statistics of random fragment coverage (Chapter 8).</span></li>
+        <li><time>1995</time><span>The first genome of a free-living organism, the bacterium <em>Haemophilus influenzae</em>, is sequenced by whole-genome shotgun at The Institute for Genomic Research.</span></li>
+        <li><time>1998</time><span>Phred and Phrap, by Brent Ewing, Phil Green, and colleagues, standardize base quality scores (Chapter 7).</span></li>
+        <li><time>2001</time><span>Draft human genome sequences published.</span></li>
+        <li><time>2003</time><span>The Human Genome Project is declared complete.</span></li>
+      </ol>
+    </section>
+
+    <!-- ===================================================== 2005 -->
+    <section class="chapter" id="ngs" data-year="2005" data-short="Massively parallel">
+      <div class="chapter-head">
+        <span class="year">2005</span>
+        <span class="label kicker">Chapter 4 · The second generation</span>
+        <h2>A million reactions in one picture</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Sanger sequencing performs each reaction in its own tube and separates its products in its own capillary. The methods that came after it, called next-generation or second-generation sequencing, share three ideas: attach millions of DNA fragments to a surface, amplify each in place so it gives a detectable signal, and read all of them at once with a camera, one base per cycle.</p>
+        <ul>
+          <li><strong>454 pyrosequencing (2005).</strong> Pyrosequencing, developed by Mostafa Ronaghi, Mathias Uhlén, and Pål Nyrén in Stockholm in the 1990s, detects the pyrophosphate released when a base is added, converting it to a flash of light with the firefly enzyme luciferase. 454 Life Sciences, founded by Jonathan Rothberg, put it in hundreds of thousands of picoliter wells, each holding a bead coated with copies of one fragment. Marcel Margulies and colleagues described the system in <em>Nature</em> in 2005, sequencing a bacterial genome in one run. Bases are flowed one type at a time, so a run of identical bases (a homopolymer) gives one brighter flash whose length must be judged from its brightness, the method's main source of error. In 2008 454 sequenced James Watson's genome.</li>
+          <li><strong>Polony sequencing (2005).</strong> Jay Shendure, George Church, and colleagues sequenced a bacterial genome by ligation on beads in a gel, with an off-the-shelf microscope.</li>
+          <li><strong>Solexa and Illumina (2006).</strong> Shankar Balasubramanian and David Klenerman, chemists at Cambridge, founded Solexa in 1998 to sequence with reversibly terminated, fluorescent nucleotides. Its Genome Analyzer shipped in 2006; Illumina bought Solexa in 2007. In 2008 David Bentley and colleagues used it to sequence a human genome, published in <em>Nature</em> alongside an Asian genome from Beijing and the first cancer genome. This chemistry, described in Chapter 6, now produces most of the world's sequence data.</li>
+          <li><strong>SOLiD (2007)</strong> from Applied Biosystems read DNA by ligating fluorescent probes, interrogating each base twice for accuracy.</li>
+          <li><strong>Ion Torrent (2010)</strong> measured the hydrogen ion released when a base is added, with a pH sensor on a semiconductor chip and no optics at all. Like 454, it struggles with homopolymers.</li>
+        </ul>
+        <p>Throughput rose so fast that the cost of a genome fell much faster than the cost of computing, which follows Moore's law. The National Human Genome Research Institute tracked the cost of sequencing at its funded centers, and the break in the curve around 2008 marks the switch to second-generation instruments.</p>
+      </div>
+
+      <figure class="bench" id="fig-cost">
+        <div class="bench-head"><span class="fig">Fig. 4.1</span><span class="label">Chart</span><h4>The cost of sequencing a human genome</h4></div>
+        <div class="chart-wrap"><svg role="img" aria-label="Line chart, log scale: cost per human genome from about 95 million dollars in 2001 to about 500 dollars in 2022, against a Moore's law reference line"></svg></div>
+        <figcaption class="caption">Cost per human-sized genome from the National Human Genome Research Institute's table for its funded sequencing centers (May 2022 release, the most recent), from $95.3 million in September 2001 to $525 in 2022. It includes reagents, labor, instrument depreciation, and data processing; it excludes analysis and interpretation. The dashed line halves every two years, the pace of Moore's law. Vendors have since announced lower prices for large-scale runs, under different accounting. The series is noisy after 2015 because it reflects actual center costs quarter by quarter. Hover a point for its value.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PART II -->
+    <div class="part-head"><span class="label">Part II</span><h2>From molecules to reads</h2></div>
+
+    <section class="chapter" id="library" data-year="Lib" data-short="Library & clusters">
+      <div class="chapter-head">
+        <span class="year">Library</span>
+        <span class="label kicker">Chapter 5 · Preparation</span>
+        <h2>Libraries, adapters, and clusters</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Before a sample can be sequenced, its DNA has to be turned into a <em>library</em>: a collection of fragments of a chosen size, each wearing the same synthetic sequences at both ends.</p>
+        <ol>
+          <li><strong>Fragmentation.</strong> DNA is broken into pieces of a few hundred bases by sound waves (sonication), by enzymes, or by a transposase that cuts and attaches adapter sequences in one step ("tagmentation").</li>
+          <li><strong>Adapter ligation.</strong> Short known sequences are attached to both ends. They carry binding sites for the flow cell and for sequencing primers, which is how a polymerase knows where to start on any fragment.</li>
+          <li><strong>Indexing.</strong> Each sample's adapters include a short barcode, the <em>index</em>. Libraries from dozens or hundreds of samples can then be pooled in one run and separated afterward by reading the barcodes. This is called multiplexing.</li>
+          <li><strong>Amplification.</strong> A few cycles of PCR make enough material. PCR copies some fragments more than others, especially those with extreme GC content, and produces <em>duplicates</em>: reads from copies of the same original molecule, which analysis tools flag so they are not counted as independent evidence. PCR-free libraries avoid this when there is enough DNA.</li>
+        </ol>
+        <h3>Clusters</h3>
+        <p>A single DNA molecule gives too little light to photograph reliably. Illumina instruments solve this by copying each fragment in place on the flow cell. The flow cell's surface is coated with two kinds of short oligonucleotides that match the two adapters. A fragment hybridizes to one, is copied, then bends over to reach a neighboring oligonucleotide of the other kind and is copied again. This <em>bridge amplification</em>, repeated about 35 times, builds a cluster of roughly a thousand identical copies within a spot about a micron across. Current flow cells are <em>patterned</em>: the surface is a hexagonal array of nanowells, like the background of this page, so clusters sit at known positions and can be packed densely without overlapping.</p>
+        <h3>Paired ends</h3>
+        <p>After the first read, the instrument can regenerate the complementary strand and read the fragment from its other end. These <em>paired-end</em> reads come from the same molecule a known distance apart, which helps place reads in repetitive regions and detect rearrangements. A typical whole-genome run reads 150 bases from each end of fragments about 300 to 500 bases long.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="sbs" data-year="SBS" data-short="Sequencing by synthesis">
+      <div class="chapter-head">
+        <span class="year">SBS</span>
+        <span class="label kicker">Chapter 6 · Reversible terminators</span>
+        <h2>One base per cycle, and why it drifts</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Sanger's terminators stop a chain for good. Solexa's chemistry uses terminators that can be removed. Each of the four nucleotides carries a fluorescent dye and a chemical cap on its 3′ end, both attached by cleavable links.</p>
+        <p>One sequencing cycle has four steps:</p>
+        <ol>
+          <li>Flow all four labeled, capped nucleotides over the flow cell with a polymerase. Each strand in each cluster adds exactly one base, because the cap blocks a second.</li>
+          <li>Wash away what was not incorporated.</li>
+          <li>Image the flow cell. Every copy in a cluster added the same base, so the cluster glows in that base's color.</li>
+          <li>Cleave the dyes and the caps, leaving a normal strand ready for the next base.</li>
+        </ol>
+        <p>Because all four bases compete in every cycle, homopolymers are read one base at a time, which avoids the main error mode of pyrosequencing. Newer instruments use two dye channels instead of four. In Illumina's original two-channel chemistry (NextSeq 500 and NovaSeq 6000), C appears in the red channel, T in the green, A in both, and G in neither. A cluster that has stopped producing light therefore reads as a run of G, a known artifact. The newer XLEAP chemistry reassigns the dyes.</p>
+        <h3>Phasing</h3>
+        <p>Chemistry is not perfect. In each cycle, a small fraction \(p\) of the strands in a cluster fail to add a base and fall one position behind (<em>phasing</em>). A smaller fraction \(q\) add two, because their cap was missing, and run ahead (<em>prephasing</em>). Let \(w_k(j)\) be the fraction of strands that have added \(j\) bases after cycle \(k\). Then</p>
+        <div class="math-block">\[ w_k(j) = p\,w_{k-1}(j) + (1 - p - q)\,w_{k-1}(j-1) + q\,w_{k-1}(j-2). \]</div>
+        <p>The share of strands still in step falls roughly as \((1 - p - q)^k\). At \(p = 0.3\%\), after 150 cycles about 60% of the strands are in phase, and the rest add light from the neighboring positions' bases to every image. Combined with gradual loss of signal from dye and strand damage, this blurs the color of each cluster as the read gets longer, and it is the main reason short-read lengths stay in the low hundreds. Base-calling software estimates \(p\) and \(q\) from the data and subtracts the predicted contamination, which extends usable read length substantially.</p>
+      </div>
+
+      <figure class="bench" id="fig-sbs">
+        <div class="bench-head"><span class="fig">Fig. 6.1</span><span class="label">Interactive</span><h4>Phasing and the length of a read</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="sb-p">Phasing (lag) per cycle <output>0.30%</output></label><input type="range" id="sb-p" min="0" max="1" step="0.05" value="0.3"></div>
+          <div class="ctl"><label for="sb-q">Prephasing (lead) <output>0.15%</output></label><input type="range" id="sb-q" min="0" max="0.5" step="0.05" value="0.15"></div>
+          <div class="ctl"><label for="sb-n">Camera noise <output>0.050</output></label><input type="range" id="sb-n" min="0.005" max="0.1" step="0.005" value="0.05"></div>
+          <div class="ctl"><label for="sb-l">Read length <output>150 cycles</output></label><input type="range" id="sb-l" min="50" max="300" step="10" value="150"></div>
+          <label class="check"><input type="checkbox" id="sb-fix"> Phasing correction</label>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="Per-cycle channel intensities, predicted quality, and one simulated read"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">One cluster of strands, simulated with the recursion above and 0.4% signal loss per cycle. Top: the light in each base's channel at every cycle; the line traces the share coming from strands that are in step. As the read goes on, light from neighboring positions grows and the true base's lead shrinks. Middle: the probability of a wrong call, converted to a Phred quality score. Bottom: one noisy realization of the read, with errors marked. Turn on phasing correction to see how much of the problem the base caller can undo. Parameters are illustrative.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="quality" data-year="Q" data-short="Quality & FASTQ">
+      <div class="chapter-head">
+        <span class="year">Q30</span>
+        <span class="label kicker">Chapter 7 · Base quality</span>
+        <h2>How sure is each letter?</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A base call is only as useful as the confidence attached to it. In 1998 Brent Ewing and Phil Green introduced <em>phred</em>, a base caller for Sanger traces that assigned each base a quality score calibrated against known sequence. The scale stuck:</p>
+        <div class="math-block">\[ Q = -10\,\log_{10} P_{\text{error}}, \qquad P_{\text{error}} = 10^{-Q/10}. \]</div>
+        <p>Q10 means one error in 10; Q20, one in 100; Q30, one in 1,000; Q40, one in 10,000. "Percent of bases at Q30 or above" is the standard headline metric for a sequencing run. The expected number of errors in a read is simply the sum of its error probabilities.</p>
+        <h3>FASTQ</h3>
+        <p>Sequencers write reads in FASTQ, a text format of four lines per read: a header beginning with <code>@</code>, the bases, a separator line beginning with <code>+</code>, and a quality string with one character per base. Each quality is stored as a single printable character whose ASCII code is \(Q + 33\), so <code>!</code> is Q0, <code>+</code> is Q10, <code>5</code> is Q20, and <code>?</code> is Q30. Illumina's header records the instrument, run, flow cell, lane, tile, and the x and y coordinates of the cluster on the tile. To save space, recent instruments report only a few quality levels (bins) instead of every value from 2 to 41.</p>
+      </div>
+
+      <figure class="bench" id="fig-fastq">
+        <div class="bench-head"><span class="fig">Fig. 7.1</span><span class="label">Interactive</span><h4>Decode a FASTQ record</h4></div>
+        <div class="ctl" style="flex:none"><label for="fq-in">FASTQ record (edit it)</label>
+          <textarea id="fq-in" spellcheck="false" rows="4">@A00123:418:HCLWKDSXY:2:1101:10004:1000 1:N:0:ACGTTGCA
+GGTCTCAGCCTCCCAAGTAGCTGGGATTACAGGCGCCCGCCACCACGCCCGGCTAATTTTTGTATTTTTAGTAGAGACGGG
++
+FFFFFFFFFFFFFFFFFFFF:FFFFFFFFFFFFFFFF:FFFFFFFF:FFFFFF,FFF:FFFFFF::F:FFF:FF,F:,FF:</textarea>
+        </div>
+        <div class="fq-view"></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">An example record in the style of a NovaSeq run, whose qualities are binned to four levels: <code>F</code> (Q37), <code>:</code> (Q25), <code>,</code> (Q11), and <code>#</code> (Q2). Each column shows a base, its quality as a bar, and the character that stores it; low-quality bases are marked. Hover a column for the arithmetic. Paste a record from any FASTQ file to decode it.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PART III -->
+    <div class="part-head"><span class="label">Part III</span><h2>From reads to genomes</h2></div>
+
+    <section class="chapter" id="coverage" data-year="c" data-short="Coverage">
+      <div class="chapter-head">
+        <span class="year">c = NL/G</span>
+        <span class="label kicker">Chapter 8 · How much is enough</span>
+        <h2>Coverage, and the statistics of random reads</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Reads land at random. Sequence \(N\) reads of length \(L\) from a genome of size \(G\) and the average depth, or coverage, is</p>
+        <div class="math-block">\[ c = \frac{N L}{G}. \]</div>
+        <p>Average is not enough: some positions get many reads and some none. In 1988 Eric Lander and Michael Waterman, analyzing random clone mapping, showed that if reads start uniformly at random, the depth at a given position follows a Poisson distribution:</p>
+        <div class="math-block">\[ P(\text{depth} = k) = \frac{e^{-c}\,c^{k}}{k!}, \qquad P(\text{uncovered}) = e^{-c}, \qquad \mathbb E[\text{gaps}] \approx N e^{-c}. \]</div>
+        <p>At 1× coverage, 37% of the genome is unread. At 5×, 0.7%. At 10×, about 0.005%, still about 140,000 positions in a human genome. Calling a heterozygous variant needs several reads of each allele, not just one read, which is why clinical genomes aim for an average of 30× and exomes for 100× or more.</p>
+        <p>Real data is less even than Poisson. PCR and the chemistry favor fragments with moderate GC content, mapping software cannot place reads in some repeats, and library fragments are not cut uniformly. The extra spread, called overdispersion, means more sequencing is needed to reach the same minimum depth everywhere.</p>
+      </div>
+
+      <figure class="bench" id="fig-coverage">
+        <div class="bench-head"><span class="fig">Fig. 8.1</span><span class="label">Interactive</span><h4>Random reads, uneven depth</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="cv-c">Target coverage <output>3×</output></label><input type="range" id="cv-c" min="0.5" max="20" step="0.5" value="3"></div>
+          <div class="ctl"><label for="cv-l">Read length <output>150 bp</output></label><input type="range" id="cv-l" min="50" max="2000" step="50" value="150"></div>
+          <label class="check"><input type="checkbox" id="cv-bias"> Uneven sampling (GC and PCR bias)</label>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="Simulated read depth along a genome, with uncovered positions marked, and a histogram of depth compared with the Poisson distribution"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">Reads placed at random on a 20,000-base circular genome. Top: depth at each position, with the mean dashed and uncovered positions marked in red below. Bottom: how many positions have each depth, against the Poisson prediction. Raise coverage and the gaps vanish exponentially. Lengthen the reads at fixed coverage: the fraction uncovered stays the same, but there are fewer, longer gaps. Turn on uneven sampling and the histogram spreads beyond what Poisson predicts.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="align" data-year="BWT" data-short="Alignment">
+      <div class="chapter-head">
+        <span class="year">BWT</span>
+        <span class="label kicker">Chapter 9 · Alignment</span>
+        <h2>Finding a read in three billion letters</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">For a species with a reference genome, the first step of analysis is <em>alignment</em>: finding where each read came from. A human genome run produces hundreds of millions of reads, each to be placed in a 3.1-billion-letter reference while allowing for sequencing errors and real differences. Scanning the reference for each read would take years.</p>
+        <p>Early short-read aligners built hash tables of short substrings. In 2009 two programs, Bowtie by Ben Langmead and colleagues and BWA by Heng Li and Richard Durbin, adopted an index from data compression that fits the human genome in a few gigabytes of memory and finds exact matches in time proportional to the read length, independent of the genome's size.</p>
+        <h3>The Burrows–Wheeler transform</h3>
+        <p>Michael Burrows and David Wheeler described the transform in 1994 as a step in a compression algorithm. Append an end marker <code>$</code> to the text, list every rotation of it, sort the rotations alphabetically, and keep the last column, \(L\). The first column, \(F\), is just the sorted letters. The transform is reversible, and identical letters cluster together in \(L\), which is why it compresses well.</p>
+        <p>In 2000 Paolo Ferragina and Giovanni Manzini showed how to search it. Two small tables suffice: \(C[c]\), the number of letters in the text smaller than \(c\), and \(\text{Occ}(c, i)\), the number of times \(c\) appears in the first \(i\) letters of \(L\). The sorted rows beginning with any string form a contiguous range \([s, e)\). Starting from the whole table and reading the pattern backward, one letter at a time, each new letter narrows the range:</p>
+        <div class="math-block">\[ s \leftarrow C[c] + \text{Occ}(c, s), \qquad e \leftarrow C[c] + \text{Occ}(c, e). \]</div>
+        <p>After the last letter, \(e - s\) is the number of occurrences, and a sampled <em>suffix array</em> gives their positions. Real aligners combine this with seeds, mismatches, and gaps, and score alignments with a <em>mapping quality</em>: the Phred-scaled probability that the read was placed in the wrong spot, which is high in repeats.</p>
+      </div>
+
+      <figure class="bench" id="fig-bwt">
+        <div class="bench-head"><span class="fig">Fig. 9.1</span><span class="label">Interactive</span><h4>Backward search in a Burrows–Wheeler index</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="bw-text">Text (up to 20 bases)</label><input type="text" id="bw-text" value="GATTACAGATTC" spellcheck="false" autocomplete="off"></div>
+          <div class="ctl"><label for="bw-pat">Pattern</label><input type="text" id="bw-pat" value="GAT" spellcheck="false" autocomplete="off"></div>
+          <div class="ctl"><label for="bw-step">Letters processed <output>3 of 3</output></label><input type="range" id="bw-step" min="0" max="3" step="1" value="3"></div>
+        </div>
+        <div class="bwt-wrap">
+          <div class="bwt-table scroll-x"></div>
+          <ol class="bwt-steps"></ol>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The sorted rotations of the text, with the suffix array (SA, where each rotation starts in the text), the first column F, and the transform L. Step through the pattern from its last letter; the highlighted rows are the current range, and the matched prefix is marked. Only \(C\) and Occ over column L are consulted at each step, never the text itself.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="assembly" data-year="dBG" data-short="Assembly">
+      <div class="chapter-head">
+        <span class="year">de Bruijn</span>
+        <span class="label kicker">Chapter 10 · Assembly</span>
+        <h2>Putting the pieces back without a picture on the box</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">For a new species, or for parts of a genome that differ from the reference, reads must be assembled from scratch. The Sanger-era approach was <em>overlap–layout–consensus</em>: compare every pair of reads, build a graph with an edge wherever two reads overlap, find a path through it, and vote on each base. With hundreds of millions of short reads, comparing every pair is too slow.</p>
+        <p>In 2001 Pavel Pevzner, Haixu Tang, and Michael Waterman, building on work by Ramana Idury and Waterman in 1995, recast assembly with a <em>de Bruijn graph</em>, named for the Dutch mathematician Nicolaas de Bruijn. Break every read into all its substrings of length \(k\) (its <em>k-mers</em>). Make a node for each distinct \((k-1)\)-mer, and an edge for each k-mer, from its first \(k-1\) letters to its last \(k-1\). The genome is then a path that uses every edge, an <em>Eulerian path</em>, which can be found in time proportional to the number of edges. Tools such as Velvet (2008) made this practical for short reads.</p>
+        <h3>Repeats</h3>
+        <p>Repeats are the fundamental limit. If a stretch of sequence appears twice and is longer than \(k-2\), the graph merges both copies into one path, and the path out of the repeat has more than one exit. The assembler cannot tell which way the genome goes, so it stops and reports separate <em>contigs</em>. About half of the human genome is repetitive, including transposable elements of about 300 bases (Alu) and 6,000 bases (L1), and much larger segmental duplications. Paired-end reads help bridge short repeats; only reads longer than the repeat resolve it outright, which is why long reads (Chapter 12) transformed assembly.</p>
+      </div>
+
+      <figure class="bench" id="fig-dbg">
+        <div class="bench-head"><span class="fig">Fig. 10.1</span><span class="label">Interactive</span><h4>A de Bruijn graph and the repeat problem</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="db-text">Genome (up to 60 bases)</label><input type="text" id="db-text" value="CAATGGCGTGACTTGGCGTGAAC" spellcheck="false" autocomplete="off"></div>
+          <div class="ctl"><label for="db-k">k <output>5</output></label><input type="range" id="db-k" min="3" max="12" step="1" value="5"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="De Bruijn graph of the sequence's k-mers"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Nodes are \((k-1)\)-mers, laid out in the order they first appear; each arrow is a k-mer. Gray arrows step forward; colored arrows jump back to a node seen earlier, which is what a repeat does. Nodes with more than one way in or out are highlighted. The example genome contains the 8-base repeat TGGCGTGA twice. At small k the graph loops back on itself and the order is ambiguous. Raise k past the repeat length and the graph becomes a single line. Hover an arrow for its k-mer.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="variants" data-year="VCF" data-short="Variant calling">
+      <div class="chapter-head">
+        <span class="year">VCF</span>
+        <span class="label kicker">Chapter 11 · Variant calling</span>
+        <h2>Is that difference real?</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Two human genomes differ at roughly one position in a thousand, about 4 to 5 million sites per person. Finding them means stacking the aligned reads at each position, a <em>pileup</em>, and deciding which mismatches are real variants and which are sequencing or alignment errors.</p>
+        <p>The standard approach is Bayesian. Humans have two copies of each autosome, so at a site with reference allele \(R\) and candidate allele \(A\), the genotype \(G\) is \(RR\), \(RA\), or \(AA\), with alternate-allele fraction \(f = 0, \tfrac12, 1\). Each read \(i\) shows base \(b_i\), wrong with probability \(\varepsilon_i\) taken from its quality score. Treating reads as independent,</p>
+        <div class="math-block">\[ P(D \mid G) = \prod_i \Big[ f\,P(b_i \mid A) + (1 - f)\,P(b_i \mid R) \Big], \qquad P(b \mid x) = \begin{cases} 1 - \varepsilon & b = x \\ \varepsilon / 3 & b \ne x \end{cases} \]</div>
+        <p>Bayes' rule with a prior for each genotype gives the posterior, and the call is the most probable genotype. Its <em>genotype quality</em> is \(-10 \log_{10}\) of the probability that the call is wrong. Variant callers write calls to VCF (Variant Call Format) files, which also record PL values: each genotype's likelihood, Phred-scaled relative to the best.</p>
+        <p>The Genome Analysis Toolkit (GATK), from the Broad Institute in 2010, added recalibration of quality scores and local reassembly around insertions and deletions. In 2018 Google's DeepVariant recast the problem as image classification, feeding pileups to a convolutional neural network, and achieved top accuracy in public benchmarks. Benchmarks rely on reference samples such as those of the Genome in a Bottle consortium, whose variants have been characterized with many technologies.</p>
+      </div>
+
+      <figure class="bench" id="fig-pileup">
+        <div class="bench-head"><span class="fig">Fig. 11.1</span><span class="label">Interactive</span><h4>Calling a genotype from a pileup</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="pu-d">Depth <output>8×</output></label><input type="range" id="pu-d" min="1" max="60" step="1" value="8"></div>
+          <div class="ctl"><label for="pu-e">Error rate per base <output>1.0%</output></label><input type="range" id="pu-e" min="0.1" max="10" step="0.1" value="1"></div>
+          <div class="ctl"><label for="pu-gt">True genotype</label><select id="pu-gt"><option value="0">Reference (0/0)</option><option value="1" selected>Heterozygous (0/1)</option><option value="2">Alternate (1/1)</option></select></div>
+          <button type="button" id="pu-new">New reads</button>
+        </div>
+        <div class="stage">
+          <div class="pileup"></div>
+          <div class="stack"><span class="label">Posterior probability of each genotype</span><div class="gt-bars"></div></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Simulated reads over a site (outlined) in a 31-base reference window. Dots match the reference; letters are mismatches, some real and some errors. The bars combine the likelihood above with a typical prior for a random human site (0.1% heterozygous, 0.05% homozygous alternate). At 4× a heterozygous site often shows only one allele and is called reference; press <b>New reads</b> a few times to see how often. At 30× calls are confident. Raise the error rate to see scattered mismatches that never add up to a variant.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PART IV -->
+    <div class="part-head"><span class="label">Part IV</span><h2>Beyond short reads</h2></div>
+
+    <section class="chapter" id="longreads" data-year="Long" data-short="Long reads">
+      <div class="chapter-head">
+        <span class="year">Long reads</span>
+        <span class="label kicker">Chapter 12 · The third generation</span>
+        <h2>Reading single molecules, end to end</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Short reads are cheap and accurate but cannot span repeats, resolve which variants lie on the same parental copy, or read large structural changes directly. Two technologies read single molecules thousands to millions of bases long, without amplification.</p>
+        <h3>Single-molecule real-time sequencing</h3>
+        <p>Pacific Biosciences, building on work at Cornell, watches one polymerase at a time. Each polymerase sits at the bottom of a <em>zero-mode waveguide</em>, a hole tens of nanometers across in a metal film, so small that light cannot propagate through it and only the bottom few dozen nanometers are illuminated. When the polymerase holds a dye-labeled nucleotide in place to add it, a flash of that dye's color appears; the dye is attached to the phosphate chain and leaves with it. John Eid and colleagues described the method in <em>Science</em> in 2009. Early raw reads had error rates above 10%. In 2019 the company introduced HiFi reads: a circular template is read many times around, and the passes are combined into a consensus of 15,000 to 25,000 bases with accuracy above 99.9%.</p>
+        <h3>Nanopores</h3>
+        <p>The idea of pulling DNA through a pore and reading it from changes in electric current was developed in the 1990s by David Deamer, Daniel Branton, George Church, and John Kasianowicz, among others. Oxford Nanopore Technologies released its first device, the palm-sized MinION, to early users in 2014. A protein pore sits in a membrane with a voltage across it; a motor protein ratchets a DNA strand through, and the ionic current through the pore changes with the several bases inside it at each moment. A neural network turns the current trace into bases. Reads can exceed a million bases, and the same signal reveals chemical modifications such as methylation. Accuracy has improved with new pores and base callers; modern raw reads are commonly around 99% accurate or better.</p>
+        <h3>The complete human genome</h3>
+        <p>Combining PacBio HiFi and ultra-long nanopore reads, the Telomere-to-Telomere consortium published in 2022 the first gapless sequence of a human genome, CHM13, covering every chromosome except Y and adding nearly 200 million bases missing from the reference, including every centromere. The Y chromosome followed in 2023. In 2023 the Human Pangenome Reference Consortium released a draft pangenome from 47 people, to represent human variation better than any single reference.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="compare">
+          <thead><tr><th>Platform</th><th>Principle</th><th>Typical read length</th><th>Accuracy</th><th>Main error</th><th>Strengths</th></tr></thead>
+          <tbody>
+            <tr><td>Sanger (capillary)</td><td>Chain termination, size separation</td><td>800–1,000 bp</td><td>Very high</td><td>Ends of reads</td><td>Checking single genes and constructs</td></tr>
+            <tr><td>Illumina</td><td>Reversible terminators, imaging</td><td>2 × 150 bp (up to 2 × 300)</td><td>Q30+ for most bases</td><td>Substitutions; quality falls along the read</td><td>Lowest cost per base, huge throughput</td></tr>
+            <tr><td>Ion Torrent</td><td>pH change on a chip</td><td>200–600 bp</td><td>About 99%</td><td>Insertions and deletions in homopolymers</td><td>Fast runs, simple instrument</td></tr>
+            <tr><td>PacBio HiFi</td><td>Single polymerase, circular consensus</td><td>15–25 kb</td><td>Above 99.9%</td><td>Few; some homopolymer errors</td><td>Accurate long reads for assembly and structural variants</td></tr>
+            <tr><td>Oxford Nanopore</td><td>Ionic current through a pore</td><td>10–100 kb, up to megabases</td><td>About 99% and rising</td><td>Homopolymers and some sequence contexts</td><td>Longest reads, portable, direct modification and RNA reading</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose"><p>Read lengths and accuracies change with each chemistry release; the table gives representative values from the mid-2020s.</p></div>
+    </section>
+
+    <section class="chapter" id="counting" data-year="cfDNA" data-short="Counting molecules">
+      <div class="chapter-head">
+        <span class="year">cfDNA</span>
+        <span class="label kicker">Chapter 13 · Applications</span>
+        <h2>Sequencing as a counting machine</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Cheap reads turned sequencing from a way to read a genome into a way to count molecules. If the abundance of a molecule can be tied to a DNA sequence, a sequencer can measure it.</p>
+        <ul>
+          <li><strong>RNA-seq</strong> (2008) converts a cell's messenger RNA to DNA and counts reads per gene to measure expression, replacing microarrays.</li>
+          <li><strong>ChIP-seq</strong> (2007) sequences the DNA bound by a chosen protein, mapping where transcription factors and chemical marks sit on the genome.</li>
+          <li><strong>Single-cell sequencing.</strong> Barcoding each cell's molecules in its own droplet, as in Drop-seq and inDrop (2015) and later commercial systems, profiles hundreds of thousands of individual cells in one experiment.</li>
+          <li><strong>Metagenomics</strong> sequences all the DNA in an environmental or clinical sample to identify the organisms present without culturing them.</li>
+          <li><strong>Pathogen surveillance.</strong> During the COVID-19 pandemic, laboratories worldwide shared millions of SARS-CoV-2 genomes, tracking variants such as Alpha, Delta, and Omicron almost as they arose.</li>
+          <li><strong>Cancer.</strong> Sequencing tumors identifies mutations that guide targeted drugs, and sequencing tumor DNA shed into the blood, a "liquid biopsy," is used to monitor treatment and recurrence.</li>
+        </ul>
+        <h3>Counting chromosomes in a mother's blood</h3>
+        <p>In 1997 Dennis Lo and colleagues found that the blood plasma of pregnant women contains cell-free DNA from the fetus, mostly shed by the placenta. It makes up a few percent to about a fifth of the cell-free DNA, the <em>fetal fraction</em>. In 2008 two groups, Rossa Chiu with Lo in Hong Kong and H. Christina Fan with Stephen Quake at Stanford, showed that simply sequencing millions of these short fragments, mapping them, and counting how many come from chromosome 21 can detect a fetus with Down syndrome.</p>
+        <p>In a trisomic pregnancy, the fetal share carries three copies of chromosome 21 instead of two, so the chromosome's share of all reads rises by about half the fetal fraction. With fetal fraction \(f\), that is an increase of \(f/2\), roughly 5% at a fetal fraction of 10%. The test compares the sample's share with a reference set of normal pregnancies:</p>
+        <div class="math-block">\[ z = \frac{x - \mu_{\text{ref}}}{\sigma_{\text{ref}}}, \qquad \frac{\sigma}{\mu} \approx \sqrt{\frac{1}{N\,\pi_{21}} + \text{CV}_{\text{tech}}^2}, \]</div>
+        <p>where \(N\) is the number of reads, \(\pi_{21}\) is chromosome 21's normal share of reads, and \(\text{CV}_{\text{tech}}\) is the extra variation between samples from the lab process. A z-score above about 3 is reported as high risk. Noninvasive prenatal testing entered clinical use in 2011 and is now among the most common genetic tests in the world. It is a screening test: high-risk results are confirmed by diagnostic testing, and low fetal fraction is the most common reason for a failed test.</p>
+      </div>
+
+      <figure class="bench" id="fig-nipt">
+        <div class="bench-head"><span class="fig">Fig. 13.1</span><span class="label">Interactive</span><h4>Detecting trisomy 21 by counting reads</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="np-n">Reads sequenced <output>10M</output></label><input type="range" id="np-n" min="5.5" max="7.5" step="0.1" value="7"></div>
+          <div class="ctl"><label for="np-ff">Fetal fraction <output>10%</output></label><input type="range" id="np-ff" min="1" max="25" step="1" value="10"></div>
+          <label class="check"><input type="checkbox" id="np-tri" checked> Fetus has trisomy 21</label>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Histogram of chromosome 21 z-scores in reference pregnancies, with the test sample marked"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Bars: z-scores of 300 simulated normal pregnancies, which define the reference. The orange marker is the test sample. Lower the fetal fraction until the trisomic sample slips under the cutoff, then add reads and watch it reappear; counting noise falls as one over the square root of the reads, but the lab's own sample-to-sample variation, here set at 0.2%, does not. The chromosome 21 read share (1.35%) and that variation are illustrative; clinical tests also correct for GC content and use additional statistics.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="now" data-year="Now" data-short="Scale & frontier">
+      <div class="chapter-head">
+        <span class="year">Now</span>
+        <span class="label kicker">Chapter 14 · Scale and consequence</span>
+        <h2>Genomes by the million</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The 1000 Genomes Project catalogued common human variation from 2,504 people by 2015. UK Biobank released whole genomes for about 500,000 participants in 2023. National programs in several countries now sequence newborns or patients with suspected rare diseases as part of routine care, where a genome can end a years-long diagnostic search in weeks.</p>
+        <p>Instrument makers continue to compete on cost. Illumina's NovaSeq X (2022), and newer entrants such as Element Biosciences and Ultima Genomics, have announced reagent costs of a few hundred dollars per genome or less at full scale. Such figures depend on run size and accounting and are not directly comparable with the NHGRI series in Figure 4.1. The cost of sequencing is now often smaller than the cost of storing, analyzing, and interpreting the data.</p>
+        <h3>Privacy and consent</h3>
+        <p>A genome identifies a person and reveals information about their relatives, who did not consent. Studies have shown that participants in anonymous research datasets can be re-identified by combining genetic data with genealogy databases. In 2018 investigators identified the "Golden State Killer" by uploading crime-scene DNA to a public genealogy site and tracing distant relatives, a technique credited with solving 545 cases by the end of 2022 and still debated. In the United States, the Genetic Information Nondiscrimination Act of 2008 bars genetic discrimination in health insurance and employment, but not in life, disability, or long-term care insurance.</p>
+        <div class="callout">
+          <span class="label">The common thread</span>
+          <p>Every method in this volume trades one hard problem for many easy ones. Chain termination turned reading into sizing. Clusters turned one faint molecule into a bright spot. Massive parallelism turned an expensive reaction into a cheap photograph. Then statistics and algorithms turned billions of short, imperfect pieces back into a genome, with a stated confidence for every letter.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== glossary -->
+    <section class="chapter" id="glossary" data-year="Ref" data-short="Glossary & sources">
+      <div class="chapter-head">
+        <span class="label kicker">Reference</span>
+        <h2>Glossary</h2>
+      </div>
+      <dl class="glossary">
+        <dt>Adapter</dt><dd>A synthetic sequence attached to the ends of library fragments, carrying binding sites for the flow cell and primers.</dd>
+        <dt>Alignment</dt><dd>Placing a read at its position in a reference genome, allowing for differences.</dd>
+        <dt>Base call</dt><dd>The base assigned to one position of a read, with a quality score.</dd>
+        <dt>Bridge amplification</dt><dd>Copying a fragment in place on a flow cell to grow a cluster of identical molecules.</dd>
+        <dt>Burrows–Wheeler transform</dt><dd>A reversible permutation of a text, built from its sorted rotations, that supports fast substring search.</dd>
+        <dt>Cell-free DNA</dt><dd>Short DNA fragments circulating in blood plasma, released by dying cells, the placenta, or tumors.</dd>
+        <dt>Contig</dt><dd>A contiguous stretch of sequence produced by assembly.</dd>
+        <dt>Coverage (depth)</dt><dd>The number of reads overlapping a position, or its average over the genome.</dd>
+        <dt>de Bruijn graph</dt><dd>A graph whose nodes are (k−1)-mers and whose edges are k-mers, used for assembly.</dd>
+        <dt>Dideoxynucleotide</dt><dd>A nucleotide lacking the 3′ hydroxyl, which ends a growing chain. The basis of Sanger sequencing.</dd>
+        <dt>FASTQ</dt><dd>A text format storing each read's sequence and per-base quality.</dd>
+        <dt>Fetal fraction</dt><dd>The share of cell-free DNA in maternal plasma that comes from the placenta and fetus.</dd>
+        <dt>Index (barcode)</dt><dd>A short sample-specific sequence in the adapter that lets many libraries share one run.</dd>
+        <dt>k-mer</dt><dd>A substring of length k.</dd>
+        <dt>Library</dt><dd>A sample's DNA prepared for sequencing: fragmented, adapted, and usually amplified.</dd>
+        <dt>Paired-end</dt><dd>Reading both ends of the same fragment.</dd>
+        <dt>Phasing</dt><dd>Loss of synchrony among the strands of a cluster as some fall behind or run ahead.</dd>
+        <dt>Phred quality (Q)</dt><dd>\(-10 \log_{10}\) of the probability that a base call is wrong.</dd>
+        <dt>Pileup</dt><dd>The stack of aligned reads covering a position.</dd>
+        <dt>Reversible terminator</dt><dd>A labeled nucleotide whose cap blocks further extension until removed.</dd>
+        <dt>VCF</dt><dd>Variant Call Format, the standard file of variant sites and genotypes.</dd>
+      </dl>
+
+      <div class="chapter-head" style="margin-top:32px"><h2>Sources</h2></div>
+      <ol class="sources">
+        <li>Watson, J. D. &amp; Crick, F. H. C. (1953). Molecular structure of nucleic acids: a structure for deoxyribose nucleic acid. <em>Nature</em> 171; Franklin, R. E. &amp; Gosling, R. G. (1953). Molecular configuration in sodium thymonucleate. <em>Nature</em> 171.</li>
+        <li>Holley, R. W. et al. (1965). Structure of a ribonucleic acid. <em>Science</em> 147.</li>
+        <li>Sanger, F., Nicklen, S. &amp; Coulson, A. R. (1977). DNA sequencing with chain-terminating inhibitors. <em>Proceedings of the National Academy of Sciences</em> 74; Sanger, F. et al. (1977). Nucleotide sequence of bacteriophage φX174 DNA. <em>Nature</em> 265.</li>
+        <li>Maxam, A. M. &amp; Gilbert, W. (1977). A new method for sequencing DNA. <em>Proceedings of the National Academy of Sciences</em> 74.</li>
+        <li>Smith, L. M. et al. (1986). Fluorescence detection in automated DNA sequence analysis. <em>Nature</em> 321.</li>
+        <li>International Human Genome Sequencing Consortium (2001). Initial sequencing and analysis of the human genome. <em>Nature</em> 409; Venter, J. C. et al. (2001). The sequence of the human genome. <em>Science</em> 291.</li>
+        <li>Fleischmann, R. D. et al. (1995). Whole-genome random sequencing and assembly of <em>Haemophilus influenzae</em> Rd. <em>Science</em> 269.</li>
+        <li>Ewing, B. &amp; Green, P. (1998). Base-calling of automated sequencer traces using phred. II. Error probabilities. <em>Genome Research</em> 8.</li>
+        <li>Ronaghi, M., Uhlén, M. &amp; Nyrén, P. (1998). A sequencing method based on real-time pyrophosphate. <em>Science</em> 281.</li>
+        <li>Margulies, M. et al. (2005). Genome sequencing in microfabricated high-density picolitre reactors. <em>Nature</em> 437.</li>
+        <li>Shendure, J. et al. (2005). Accurate multiplex polony sequencing of an evolved bacterial genome. <em>Science</em> 309.</li>
+        <li>Bentley, D. R. et al. (2008). Accurate whole human genome sequencing using reversible terminator chemistry. <em>Nature</em> 456.</li>
+        <li>Wheeler, D. A. et al. (2008). The complete genome of an individual by massively parallel DNA sequencing. <em>Nature</em> 452.</li>
+        <li>Rothberg, J. M. et al. (2011). An integrated semiconductor device enabling non-optical genome sequencing. <em>Nature</em> 475.</li>
+        <li>Wetterstrand, K. A. DNA Sequencing Costs: Data from the NHGRI Genome Sequencing Program (GSP). National Human Genome Research Institute, genome.gov.</li>
+        <li>Lander, E. S. &amp; Waterman, M. S. (1988). Genomic mapping by fingerprinting random clones: a mathematical analysis. <em>Genomics</em> 2.</li>
+        <li>Cock, P. J. A., Fields, C. J., Goto, N., Heuer, M. L. &amp; Rice, P. M. (2010). The Sanger FASTQ file format for sequences with quality scores, and the Solexa/Illumina FASTQ variants. <em>Nucleic Acids Research</em> 38.</li>
+        <li>Burrows, M. &amp; Wheeler, D. J. (1994). A block-sorting lossless data compression algorithm. Digital Equipment Corporation, SRC Research Report 124.</li>
+        <li>Ferragina, P. &amp; Manzini, G. (2000). Opportunistic data structures with applications. <em>Proceedings of the 41st IEEE Symposium on Foundations of Computer Science</em>.</li>
+        <li>Langmead, B., Trapnell, C., Pop, M. &amp; Salzberg, S. L. (2009). Ultrafast and memory-efficient alignment of short DNA sequences to the human genome. <em>Genome Biology</em> 10; Li, H. &amp; Durbin, R. (2009). Fast and accurate short read alignment with Burrows–Wheeler transform. <em>Bioinformatics</em> 25.</li>
+        <li>Idury, R. M. &amp; Waterman, M. S. (1995). A new algorithm for DNA sequence assembly. <em>Journal of Computational Biology</em> 2; Pevzner, P. A., Tang, H. &amp; Waterman, M. S. (2001). An Eulerian path approach to DNA fragment assembly. <em>Proceedings of the National Academy of Sciences</em> 98.</li>
+        <li>Zerbino, D. R. &amp; Birney, E. (2008). Velvet: algorithms for de novo short read assembly using de Bruijn graphs. <em>Genome Research</em> 18.</li>
+        <li>McKenna, A. et al. (2010). The Genome Analysis Toolkit. <em>Genome Research</em> 20; Poplin, R. et al. (2018). A universal SNP and small-indel variant caller using deep neural networks. <em>Nature Biotechnology</em> 36.</li>
+        <li>Eid, J. et al. (2009). Real-time DNA sequencing from single polymerase molecules. <em>Science</em> 323; Wenger, A. M. et al. (2019). Accurate circular consensus long-read sequencing improves variant detection and assembly of a human genome. <em>Nature Biotechnology</em> 37.</li>
+        <li>Kasianowicz, J. J., Brandin, E., Branton, D. &amp; Deamer, D. W. (1996). Characterization of individual polynucleotide molecules using a membrane channel. <em>Proceedings of the National Academy of Sciences</em> 93.</li>
+        <li>Nurk, S. et al. (2022). The complete sequence of a human genome. <em>Science</em> 376; Liao, W.-W. et al. (2023). A draft human pangenome reference. <em>Nature</em> 617.</li>
+        <li>Mortazavi, A. et al. (2008). Mapping and quantifying mammalian transcriptomes by RNA-Seq. <em>Nature Methods</em> 5; Johnson, D. S. et al. (2007). Genome-wide mapping of in vivo protein-DNA interactions. <em>Science</em> 316.</li>
+        <li>Macosko, E. Z. et al. (2015). Highly parallel genome-wide expression profiling of individual cells using nanoliter droplets. <em>Cell</em> 161; Klein, A. M. et al. (2015). Droplet barcoding for single-cell transcriptomics applied to embryonic stem cells. <em>Cell</em> 161.</li>
+        <li>Lo, Y. M. D. et al. (1997). Presence of fetal DNA in maternal plasma and serum. <em>The Lancet</em> 350; Chiu, R. W. K. et al. (2008) and Fan, H. C. et al. (2008), noninvasive diagnosis of fetal aneuploidy by shotgun sequencing of DNA from maternal blood. <em>Proceedings of the National Academy of Sciences</em> 105.</li>
+        <li>1000 Genomes Project Consortium (2015). A global reference for human genetic variation. <em>Nature</em> 526.</li>
+        <li>Gymrek, M. et al. (2013). Identifying personal genomes by surname inference. <em>Science</em> 339.</li>
+        <li>Genetic Information Nondiscrimination Act of 2008, Pub. L. 110-233.</li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">LearnAnything · Volume 4 · Simulated data where noted. Nothing here is medical advice.</footer>
+
+<script src="../../assets/js/lab.js"></script>
+<script src="js/seq.js"></script>
+<script src="js/history.js"></script>
+<script src="js/chemistry.js"></script>
+<script src="js/analysis.js"></script>
+<script src="js/apps.js"></script>
+<script>Lab.rail();</script>
+</body>
+</html>

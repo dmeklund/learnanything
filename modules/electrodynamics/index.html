@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Field Lines</title>
+<meta name="description" content="Classical electrodynamics from Coulomb to Einstein: charges and field lines, currents and magnetism, induction, Maxwell's equations, light as an electromagnetic wave, antennas, and the radiation of accelerated charges, with figures that solve the equations in your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Libre+Franklin:ital,wght@0,400..700;1,400..700&family=Overpass+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<style>
+/* Volume IX identity: the engraved plates of Maxwell's Treatise (1873). Fine black field lines on cool
+   paper, Cormorant Garamond for headings as in a Victorian scientific volume, Libre Franklin for clean
+   reading, Overpass Mono for data, brass for the accent (the instrument maker's metal). Positive and
+   negative keep vermilion and blue throughout. */
+:root {
+  --paper: #F5F6F4; --paper-2: #EBEDEA; --paper-3: #FBFBFA;
+  --grid: #DDE0DC; --rule: #C4C8C2;
+  --ink: #161816; --ink-2: #3D423E; --ink-3: #61675F;
+  --accent: #7D5F12; --signal: #7D5F12; --tertiary: #2E9C82;
+  --s1: #1D4A9E; --s2: #C64A1C; --s3: #2E9C82;
+  --accent-wash: rgba(125, 95, 18, .09); --signal-wash: rgba(125, 95, 18, .1);
+  --f-display: "Cormorant Garamond", "Garamond", Georgia, serif;
+  --f-body: "Libre Franklin", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "Overpass Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --rail: 176px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #121418; --paper-2: #191C21; --paper-3: #1F2227;
+    --grid: #252930; --rule: #353A42;
+    --ink: #E5E6E3; --ink-2: #AFB3AD; --ink-3: #80857E;
+    --accent: #D8B04A; --signal: #D8B04A; --tertiary: #35A386;
+    --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+    --accent-wash: rgba(216, 176, 74, .1); --signal-wash: rgba(216, 176, 74, .1);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #121418; --paper-2: #191C21; --paper-3: #1F2227;
+  --grid: #252930; --rule: #353A42;
+  --ink: #E5E6E3; --ink-2: #AFB3AD; --ink-3: #80857E;
+  --accent: #D8B04A; --signal: #D8B04A; --tertiary: #35A386;
+  --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+  --accent-wash: rgba(216, 176, 74, .1); --signal-wash: rgba(216, 176, 74, .1);
+}
+body { background: var(--paper); font-size: 1.02rem; }
+.prose { line-height: 1.68; }
+.hero { grid-template-columns: 1fr; gap: 24px; }
+.hero h1 { font: 600 clamp(3.6rem, 11vw, 8rem)/.86 var(--f-display); letter-spacing: -.02em; margin-top: 10px; }
+.hero h1 i { font-style: italic; color: var(--accent); font-weight: 500; }
+.hero .dek { max-width: 56ch; }
+.chapter-head .year { font: 600 clamp(3rem, 8vw, 5rem)/.86 var(--f-display); }
+.chapter-head h2 { font: 600 clamp(2rem, 4.6vw, 3.1rem)/1.02 var(--f-display); letter-spacing: -.01em; }
+.prose h3 { font: 600 1.45rem/1.2 var(--f-display); }
+.prose blockquote { font-family: var(--f-display); font-size: 1.35rem; font-style: italic; }
+.bench-head h4, .volume h2 { font-family: var(--f-display); font-weight: 600; }
+.bench-head h4 { font-size: 1.4rem; }
+.rail a { grid-template-columns: 44px 1fr; }
+.rail a .yr { font-size: 11px; }
+.part-head { max-width: var(--measure); padding-top: 64px; display: grid; gap: 4px; }
+.part-head .label { color: var(--accent); }
+.part-head h2 { font: 600 var(--t-xl)/1 var(--f-display); }
+.hero-waves canvas { width: 100%; display: block; border: 1px solid var(--rule); border-radius: var(--radius); }
+.hero-waves figcaption { font: 400 var(--t-xs)/1.5 var(--f-mono); color: var(--ink-3); padding-top: 6px; }
+.chart-wrap svg { width: 100%; display: block; }
+.bench canvas.plain { background: transparent; border: 0; }
+.bench canvas.drag { cursor: grab; touch-action: none; }
+b.warn, .warn { color: var(--s2); }
+.callout { max-width: var(--measure); border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; display: grid; gap: 6px; }
+.callout .label { color: var(--accent); }
+.stat-row { display: flex; flex-wrap: wrap; gap: 12px 40px; max-width: var(--measure); padding-block: 8px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.stat-row div { display: grid; gap: 2px; }
+.stat-row b { font: 600 var(--t-xl)/1.05 var(--f-display); }
+.stat-row span { font: 400 var(--t-xs)/1.3 var(--f-mono); color: var(--ink-3); }
+.maxwell { max-width: var(--measure); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 4px 24px; padding: 14px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.maxwell div { display: grid; gap: 2px; }
+.maxwell span { font: 400 var(--t-xs)/1.3 var(--f-mono); color: var(--ink-3); }
+.table-wrap { overflow-x: auto; max-width: var(--bench); }
+table.compare { border-collapse: collapse; font-size: var(--t-sm); min-width: 620px; width: 100%; }
+table.compare th { font: 500 var(--t-xs)/1.3 var(--f-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px; border-bottom: 1px solid var(--ink-3); vertical-align: bottom; }
+table.compare td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+table.compare td:first-child { font-weight: 600; color: var(--ink); white-space: nowrap; }
+.nocase { text-transform: none; letter-spacing: 0; }
+</style>
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg', 'canvas'] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="brand" href="../../index.html">Learn<b>Anything</b></a>
+  <span class="where">Vol. 9 · Classical electrodynamics</span>
+  <span class="progress" aria-hidden="true"></span>
+</header>
+
+<div class="module">
+  <nav class="rail" aria-label="Chapters"><ol></ol></nav>
+
+  <main class="content">
+
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="label">Volume 9 · Electricity, magnetism, and light</p>
+        <h1 id="title">Field <i>Lines</i></h1>
+        <p class="dek">How a century of experiments with amber, compass needles, coils, and sparks became four equations, how those equations predicted that light is an electromagnetic wave, and how the same laws describe antennas, particle beams, and the radiation of every accelerating charge.</p>
+        <div class="meta">
+          <span class="label">8 chapters</span>
+          <span class="label">7 interactive figures</span>
+          <span class="label">1785 → today</span>
+        </div>
+      </div>
+      <figure class="hero-waves" id="hero-waves" style="margin:0">
+        <canvas role="img" aria-label="Simulated electric field of two antennas radiating waves that interfere into two beams"></canvas>
+        <figcaption>Maxwell's equations solved live on a grid: the electric field of two antennas radiating. Where their waves add, they form beams; where they cancel, quiet zones. Blue and vermilion are opposite directions of the field.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PROLOGUE -->
+    <section class="chapter" id="prologue" data-year="Pro" data-short="Four equations">
+      <div class="chapter-head">
+        <span class="label kicker">Prologue</span>
+        <h2>Four equations and the speed of light</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">For two thousand years electricity and magnetism were curiosities: rubbed amber that picks up straw, lodestones that point north. Between 1785 and 1865 they became one subject, described by a handful of equations that James Clerk Maxwell assembled and Oliver Heaviside wrote in the compact form used today:</p>
+      </div>
+      <div class="maxwell">
+        <div>\[ \nabla\cdot\mathbf E = \frac{\rho}{\varepsilon_0} \]<span>Gauss: charges are sources of electric field</span></div>
+        <div>\[ \nabla\cdot\mathbf B = 0 \]<span>no magnetic charges; field lines close on themselves</span></div>
+        <div>\[ \nabla\times\mathbf E = -\frac{\partial\mathbf B}{\partial t} \]<span>Faraday: a changing magnetic field drives an electric field</span></div>
+        <div>\[ \nabla\times\mathbf B = \mu_0\mathbf J + \mu_0\varepsilon_0\frac{\partial\mathbf E}{\partial t} \]<span>Ampère, with Maxwell's addition</span></div>
+      </div>
+      <div class="prose">
+        <p>Together with the Lorentz force \(\mathbf F = q(\mathbf E + \mathbf v\times\mathbf B)\), which says how the fields push on charges, these equations describe every electrical and magnetic phenomenon short of the quantum scale: motors and generators, radio and radar, the optics of lenses and fibers, and the glow of a hot filament. Their most surprising prediction was that disturbances in the fields travel as waves at a speed fixed by two constants measured on the bench,</p>
+        <div class="math-block">\[ c = \frac{1}{\sqrt{\mu_0\varepsilon_0}} \approx 3.00\times10^8\ \text{m/s}, \]</div>
+        <p>which is the speed of light. This volume follows the experiments that led to each equation, then the consequences: waves, antennas, moving charges, and the conflict with Newtonian mechanics that Einstein resolved in 1905.</p>
+      </div>
+      <div class="stat-row">
+        <div><b>299,792,458 m/s</b><span>the speed of light, exact by definition since 1983</span></div>
+        <div><b>1/r²</b><span>Coulomb's law: how the force between two charges falls with distance</span></div>
+      </div>
+      <dl class="defn">
+        <dt>Field</dt><dd>A quantity defined at every point in space, such as the electric field E, the force per unit charge a test charge would feel there.</dd>
+        <dt>Field line</dt><dd>A curve whose direction at every point is the direction of the field; the density of lines shows the field's strength.</dd>
+        <dt>Flux</dt><dd>The amount of field passing through a surface: the field's component normal to the surface, summed over the surface.</dd>
+      </dl>
+    </section>
+
+    <!-- ===================================================== PART I -->
+    <div class="part-head"><span class="label">Part I</span><h2>Statics and induction</h2></div>
+
+    <section class="chapter" id="coulomb" data-year="1785" data-short="Charges and Gauss's law">
+      <div class="chapter-head">
+        <span class="year">1785</span>
+        <span class="label kicker">Chapter 1 · Electrostatics</span>
+        <h2>Charges, lines, and flux</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1785 Charles-Augustin de Coulomb, a French military engineer, hung a light needle from a fine silver wire and measured how far the wire twisted when a charged ball repelled the needle's charged tip. The force fell as the inverse square of the distance, like Newton's gravity:</p>
+        <div class="math-block">\[ F = \frac{1}{4\pi\varepsilon_0}\,\frac{q_1 q_2}{r^2}. \]</div>
+        <p>Joseph Priestley had inferred the inverse square in 1767, and Henry Cavendish had measured it about 1773 without publishing, but Coulomb's torsion balance made it quantitative. Unlike gravity, the force can attract or repel, because charges come in two signs.</p>
+        <p>Michael Faraday, who had little mathematics, pictured the force differently. Around every charge he imagined <em>lines of force</em> running from positive charges to negative ones, crowded where the force is strong. The picture became physics when it turned out that the lines behave like something real: they can be counted. Carl Friedrich Gauss showed in 1835 (published in 1867) that the total flux of the electric field out of any closed surface depends only on the charge inside it:</p>
+        <div class="math-block">\[ \oint_S \mathbf E\cdot d\mathbf A = \frac{Q_{\text{inside}}}{\varepsilon_0}. \]</div>
+        <p>Every line that enters a surface from an outside charge also leaves it, so outside charges contribute nothing. Lines that start inside must cross the surface, whatever its shape. This is the first of Maxwell's equations in integral form, and it is how the fields of spheres, wires, and plates are computed in a few lines.</p>
+      </div>
+
+      <figure class="bench" id="fig-charges">
+        <div class="bench-head"><span class="fig">Fig. 1.1</span><span class="label">Interactive</span><h4>Field lines, equipotentials, and Gauss's law</h4></div>
+        <div class="controls">
+          <div class="ctl"><span class="label">Arrangement</span><div class="chips"><button class="chip" type="button" data-ch="dipole" aria-pressed="true">Dipole</button><button class="chip" type="button" data-ch="like" aria-pressed="false">Like charges</button><button class="chip" type="button" data-ch="unequal" aria-pressed="false">+2 and −1</button><button class="chip" type="button" data-ch="three" aria-pressed="false">Three charges</button></div></div>
+          <div class="ctl"><label for="ch-r">Sphere radius <output>0.60</output></label><input type="range" id="ch-r" min="0.2" max="2.5" step="0.02" value="0.6"></div>
+          <label class="check"><input type="checkbox" id="ch-g" checked> Show the Gaussian sphere</label>
+        </div>
+        <canvas class="plot plain drag" role="img" aria-label="Electric field lines and equipotential curves of point charges, with a Gaussian sphere"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">Solid lines are field lines traced from the positive charges; dashed teal curves are equipotentials, which the field lines always cross at right angles. Drag the charges and the sphere. The readout integrates the field's flux over the whole sphere numerically: it equals the enclosed charge (in units where 1/4πε₀ = 1, divided by 4π) whatever the sphere's size or position, and drops to zero, or to the net charge, as charges leave it. The number of lines from each charge is proportional to its size. Charges are points in three dimensions, shown in the plane through them.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="ampere" data-year="1820" data-short="Currents and magnetism">
+      <div class="chapter-head">
+        <span class="year">1820</span>
+        <span class="label kicker">Chapter 2 · Magnetostatics</span>
+        <h2>A compass needle beside a wire</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In April 1820 Hans Christian Ørsted, lecturing in Copenhagen, noticed that a compass needle moved when current from a battery flowed through a nearby wire. He published in July. Within months the news had spread across Europe. In Paris, Jean-Baptiste Biot and Félix Savart measured how the magnetic field of a wire falls with distance, and André-Marie Ampère showed that two parallel wires carrying currents attract or repel each other, without any magnet at all. Magnetism, it seemed, was electricity in motion.</p>
+        <p>The Biot–Savart law gives the field of any current distribution as a sum of contributions from each short piece of wire,</p>
+        <div class="math-block">\[ d\mathbf B = \frac{\mu_0}{4\pi}\,\frac{I\,d\boldsymbol\ell\times\hat{\mathbf r}}{r^2}, \]</div>
+        <p>and Ampère's law expresses the same physics as a statement about loops: the field summed around any closed path equals \(\mu_0\) times the current threading it, \(\oint \mathbf B\cdot d\boldsymbol\ell = \mu_0 I\). Magnetic field lines never start or stop; they close on themselves, which is the content of \(\nabla\cdot\mathbf B = 0\).</p>
+        <h3>A uniform field from two coils</h3>
+        <p>A single circular loop makes a field that is strongest at its center and falls off along the axis. Two identical coils sharing an axis do better. When their separation equals their radius, the arrangement named after Hermann von Helmholtz, the falloffs of the two fields cancel to high order at the midpoint: the first three derivatives of the field along the axis vanish there. Helmholtz coils are still the standard way to make a uniform, known magnetic field, for calibrating magnetometers or cancelling Earth's field around a sensitive experiment.</p>
+      </div>
+
+      <figure class="bench" id="fig-helm">
+        <div class="bench-head"><span class="fig">Fig. 2.1</span><span class="label">Interactive</span><h4>Helmholtz coils</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="hz-d">Coil separation <output>1.00 R</output></label><input type="range" id="hz-d" min="0.2" max="2.4" step="0.02" value="1"></div>
+          <label class="check"><input type="checkbox" id="hz-two" checked> Two coils</label>
+        </div>
+        <div class="stage">
+          <canvas class="plot plain" role="img" aria-label="Magnetic field lines of one or two circular coils seen from the side"></canvas>
+          <div class="chart-wrap"><svg role="img" aria-label="Magnetic field along the coil axis relative to its value at the centre"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: field lines in a plane containing the axis; dots and crosses show current coming out of and going into the page. Right: the field along the axis. Move the coils apart and the field sags in the middle; push them together and it peaks. At a separation of exactly one radius, the field varies by less than half a percent across the shaded region, a quarter-radius either side of the centre, and far less nearer the middle, because the deviation grows as the fourth power of distance. Field lines are contours of the exact vector potential of circular loops, computed with complete elliptic integrals.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="faraday" data-year="1831" data-short="Induction">
+      <div class="chapter-head">
+        <span class="year">1831</span>
+        <span class="label kicker">Chapter 3 · Induction</span>
+        <h2>Changing fields make currents</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">If currents make magnetism, can magnetism make currents? Faraday spent years looking. On 29 August 1831, at the Royal Institution in London, he wound two separate coils of wire on an iron ring, connected one to a battery and the other to a galvanometer, and saw the needle jump at the moment he closed the battery circuit and jump the other way when he opened it. A steady current in one coil did nothing; only a changing one induced current in the other. Joseph Henry found the same effect independently in America.</p>
+        <p>The rule, in modern form, is that the voltage induced around a loop, its <em>electromotive force</em>, equals the rate of change of magnetic flux through it,</p>
+        <div class="math-block">\[ \mathcal E = -\frac{d\Phi_B}{dt}, \qquad \Phi_B = \int \mathbf B\cdot d\mathbf A. \]</div>
+        <p>The minus sign is Lenz's law (1834): the induced current flows in the direction that opposes the change. Every electrical generator, transformer, and induction cooktop runs on this equation. In differential form it is the third of Maxwell's equations, \(\nabla\times\mathbf E = -\partial\mathbf B/\partial t\), and it says something stranger than the circuit version: a changing magnetic field creates an electric field even where there is no wire at all.</p>
+      </div>
+
+      <figure class="bench" id="fig-induct">
+        <div class="bench-head"><span class="fig">Fig. 3.1</span><span class="label">Interactive</span><h4>A magnet falling through a coil</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="in-h">Drop height above the coil <output>20 cm</output></label><input type="range" id="in-h" min="2" max="60" step="1" value="20"></div>
+          <div class="ctl"><label for="in-a">Coil radius <output>1.5 cm</output></label><input type="range" id="in-a" min="0.5" max="4" step="0.1" value="1.5"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Magnetic flux through a coil and the induced voltage as a magnet falls through it"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">A small neodymium magnet (dipole moment 1 A·m²) falls from rest along the axis of a 200-turn coil. The flux (top) rises as it approaches and falls as it leaves; the voltage (bottom) is minus the slope of the flux. The two pulses have opposite signs, and the second is larger because the magnet is moving faster. The areas under them are equal and opposite, so the total ∫EMF dt is zero: the flux ends where it started. Drop from higher and the pulses grow and narrow. The calculation assumes an open circuit, so no current flows and there is no braking force; with the coil shorted, Lenz's law would slow the magnet.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PART II -->
+    <div class="part-head"><span class="label">Part II</span><h2>Waves</h2></div>
+
+    <section class="chapter" id="maxwell" data-year="1865" data-short="Maxwell's equations">
+      <div class="chapter-head">
+        <span class="year">1865</span>
+        <span class="label kicker">Chapter 4 · Maxwell</span>
+        <h2>Light is an electromagnetic wave</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">James Clerk Maxwell, working first at King's College London, set out to put Faraday's lines of force into mathematics. In "On Physical Lines of Force" (1861–62) he found that Ampère's law, as it stood, was inconsistent with the conservation of charge when currents change. In a charging capacitor, current flows in the wires but not across the gap. He added a term, the <em>displacement current</em> \(\varepsilon_0\,\partial\mathbf E/\partial t\), which acts like a current wherever the electric field changes.</p>
+        <p>With that term, the equations admit waves. In empty space, taking the curl of Faraday's law and using Ampère's gives</p>
+        <div class="math-block">\[ \nabla^2\mathbf E = \mu_0\varepsilon_0\,\frac{\partial^2\mathbf E}{\partial t^2}, \]</div>
+        <p>a wave equation with speed \(1/\sqrt{\mu_0\varepsilon_0}\). In 1856 Wilhelm Weber and Rudolf Kohlrausch had measured the ratio of electrical units by discharging a capacitor, and Maxwell computed from their data a speed of 310,740 km/s. Hippolyte Fizeau had measured the speed of light in 1849 as about 315,000 km/s. Maxwell wrote that "we can scarcely avoid the inference that light consists in the transverse undulations of the same medium which is the cause of electric and magnetic phenomena." His "A Dynamical Theory of the Electromagnetic Field" (1865) presented the complete theory.</p>
+        <h3>Waves in matter</h3>
+        <p>In a material such as glass, the electric field polarizes the atoms, which raises the effective permittivity to \(\varepsilon = n^2\varepsilon_0\) and slows the wave to \(c/n\), where \(n\) is the refractive index. Where the index changes abruptly, part of the wave reflects. For light arriving straight on, the fraction of energy reflected is given by Augustin-Jean Fresnel's formula, \(R = \big((n-1)/(n+1)\big)^2\), about 4% for glass. A thin coating of intermediate index, a quarter-wavelength thick, makes the reflections from its two surfaces cancel. This is the anti-reflection coating on camera lenses and eyeglasses.</p>
+        <p>The figure solves Maxwell's equations directly on a grid with the method Kane Yee introduced in 1966, now called finite-difference time-domain (FDTD). Electric and magnetic fields are stored at alternating points in space and updated in alternating half-steps of time, each from the curl of the other.</p>
+      </div>
+
+      <figure class="bench" id="fig-fdtd">
+        <div class="bench-head"><span class="fig">Fig. 4.1</span><span class="label">Interactive</span><h4>A light pulse meets glass</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="fd-n">Refractive index of the glass <output>1.50</output></label><input type="range" id="fd-n" min="1" max="3" step="0.05" value="1.5"></div>
+          <label class="check"><input type="checkbox" id="fd-c"> Add a quarter-wave anti-reflection coating</label>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="A wave packet traveling right, splitting at a glass surface into reflected and transmitted pulses"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">A short pulse of light, launched from the left, reaches a glass surface (shaded). Part reflects back and part continues, shorter in wavelength and slower inside the glass. The readout measures the reflected energy from a separate, longer run and compares it with Fresnel's formula; the small difference is the grid's discretization error. Raise the index and more reflects. Add the coating, a layer of index √n a quarter-wavelength thick, and the reflection nearly vanishes. One-dimensional FDTD with Yee's staggered grid, about 60 grid cells per wavelength in vacuum.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="hertz" data-year="1887" data-short="Hertz and antennas">
+      <div class="chapter-head">
+        <span class="year">1887</span>
+        <span class="label kicker">Chapter 5 · Radiation</span>
+        <h2>Sparks across a room</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Maxwell died in 1879 without seeing his waves produced. In 1887, at the technical university in Karlsruhe, Heinrich Hertz drove a spark gap between two metal rods with an induction coil, making charge slosh back and forth hundreds of millions of times a second. A loop of wire with a tiny gap, across the room, sparked in sympathy. Hertz measured the waves' wavelength from standing-wave patterns against a reflecting wall, showed they could be reflected, refracted, and polarized like light, and found their speed equal to light's. "It's of no use whatsoever," he reportedly said of the discovery.</p>
+        <p>An oscillating charge radiates because its field cannot keep up with it, as Chapter 7 shows. For a short antenna, the radiated power goes mostly sideways, perpendicular to the antenna, and none along its axis. Within fifteen years Guglielmo Marconi had sent signals across the Atlantic (1901).</p>
+        <h3>Steering a beam with phase</h3>
+        <p>Several antennas fed from the same source make a pattern that depends on their spacing \(d\) and the phase difference \(\delta\) between neighbors. Waves from all \(N\) elements add in directions where their path differences, \(d\cos\theta\) per element, compensate the phase steps:</p>
+        <div class="math-block">\[ P(\theta) \propto \left|\sum_{m=0}^{N-1} e^{\,i m\left(\frac{2\pi d}{\lambda}\cos\theta + \delta\right)}\right|^2. \]</div>
+        <p>Changing \(\delta\) electronically swings the beam without moving anything. Ferdinand Braun demonstrated directional transmission with phased antennas in 1905 and shared the 1909 Nobel Prize in Physics with Marconi. Today's radars, 5G base stations, and satellite internet terminals steer beams this way. If the elements are more than half a wavelength apart, extra beams called <em>grating lobes</em> appear, the antenna version of the orders of a diffraction grating.</p>
+      </div>
+
+      <figure class="bench" id="fig-array">
+        <div class="bench-head"><span class="fig">Fig. 5.1</span><span class="label">Interactive</span><h4>A phased antenna array</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="ar-n">Number of antennas <output>4</output></label><input type="range" id="ar-n" min="1" max="10" step="1" value="4"></div>
+          <div class="ctl"><label for="ar-d">Spacing <output>0.50 λ</output></label><input type="range" id="ar-d" min="0.1" max="1.5" step="0.05" value="0.5"></div>
+          <div class="ctl"><label for="ar-p">Phase step between antennas <output>0°</output></label><input type="range" id="ar-p" min="-180" max="180" step="5" value="0"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Polar plot of the radiated power of a line of antennas versus direction"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Radiated power versus direction for a row of identical antennas (dots) that each radiate equally in all directions in this plane; the pattern is symmetric about the row, so only half is shown. With no phase step the beam points broadside, at 90°. Add a phase step and the beam swings toward the row; add antennas and it narrows. Push the spacing past half a wavelength while steering and grating lobes appear. Computed from the array factor above.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PART III -->
+    <div class="part-head"><span class="label">Part III</span><h2>Charges in motion</h2></div>
+
+    <section class="chapter" id="lorentz" data-year="1897" data-short="Lorentz force and the electron">
+      <div class="chapter-head">
+        <span class="year">1897</span>
+        <span class="label kicker">Chapter 6 · The Lorentz force</span>
+        <h2>Bending a beam of particles</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Maxwell's equations say how charges make fields. The other half, how fields push charges, was written out in full by Hendrik Lorentz in 1895:</p>
+        <div class="math-block">\[ \mathbf F = q\left(\mathbf E + \mathbf v\times\mathbf B\right). \]</div>
+        <p>The magnetic force is always perpendicular to the velocity, so it changes a particle's direction but never its speed. In a uniform magnetic field a charged particle circles with radius \(r = mv/qB\) and a period \(2\pi m/qB\) that does not depend on its speed, the fact that makes cyclotrons work. Add an electric field perpendicular to the magnetic one and the circle drifts sideways at the speed \(E/B\), in the direction of \(\mathbf E\times\mathbf B\), whatever the particle's charge.</p>
+        <p>In 1897 J. J. Thomson at the Cavendish Laboratory sent cathode rays through crossed electric and magnetic fields. He adjusted them until the beam went straight, which meant \(qE = qvB\) and gave the particles' speed \(v = E/B\); bending the beam with the magnetic field alone then gave the ratio of charge to mass. It was about a thousand times larger than for hydrogen ions. The rays were made of a new, very light particle, soon called the electron. The same crossed-field drift confines plasma in fusion devices and sorts particles in mass spectrometers.</p>
+      </div>
+
+      <figure class="bench" id="fig-lorentz">
+        <div class="bench-head"><span class="fig">Fig. 6.1</span><span class="label">Interactive</span><h4>A charge in electric and magnetic fields</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="lz-b">Magnetic field B (out of the page) <output>1.00</output></label><input type="range" id="lz-b" min="0" max="3" step="0.05" value="1"></div>
+          <div class="ctl"><label for="lz-e">Electric field E (upward) <output>0.30</output></label><input type="range" id="lz-e" min="0" max="2" step="0.05" value="0.3"></div>
+          <div class="ctl"><label for="lz-v">Starting speed (to the right) <output>1.00</output></label><input type="range" id="lz-v" min="0" max="3" step="0.05" value="1"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Trajectory of a positive charge in uniform crossed electric and magnetic fields"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">A positive charge starts at the left. With only B on, it circles. With only E on, it accelerates upward along a parabola. With both, it traces a cycloid that drifts to the right at E/B; set the starting speed equal to E/B and the forces balance, so it flies straight, Thomson's velocity filter. Units with charge-to-mass ratio 1; integrated with the Boris method, which conserves energy in a magnetic field exactly.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="relativity" data-year="1905" data-short="Moving charges and radiation">
+      <div class="chapter-head">
+        <span class="year">1905</span>
+        <span class="label kicker">Chapter 7 · Relativity and radiation</span>
+        <h2>Why accelerating charges radiate</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Maxwell's equations contain a fixed speed, \(c\). In Newtonian mechanics, speeds add, so the equations should look different to observers moving relative to each other; a magnet moving past a wire and a wire moving past a magnet would be different phenomena. They are not: the induced current is the same either way. In 1905 Albert Einstein began "On the electrodynamics of moving bodies" with exactly this example. He resolved the conflict by keeping Maxwell's equations and changing mechanics: space and time transform so that the speed of light is the same for every observer. Electric and magnetic fields turn out to be two aspects of a single field, mixed differently for different observers.</p>
+        <h3>The field of a moving charge</h3>
+        <p>Oliver Heaviside worked out in 1888 that the field of a charge moving steadily at speed \(v\) still points radially away from its present position, but is squeezed toward the plane perpendicular to the motion. With \(\beta = v/c\) and \(\gamma = 1/\sqrt{1-\beta^2}\),</p>
+        <div class="math-block">\[ E(r,\theta) = \frac{q}{4\pi\varepsilon_0 r^2}\,\frac{1-\beta^2}{\left(1-\beta^2\sin^2\theta\right)^{3/2}}, \]</div>
+        <p>so the field beside the charge is \(\gamma^3\) times stronger than the field ahead of it.</p>
+        <h3>The kink is the radiation</h3>
+        <p>Now stop the charge suddenly. News of the stop spreads outward at the speed of light. Inside a sphere of radius \(ct\) around the stopping point, the field is that of a charge at rest. Outside it, the field has not yet heard, and still points to where the charge would be had it kept going. Field lines cannot break, so in the thin shell between, each line runs sideways, almost perpendicular to the radius. J. J. Thomson drew this picture in 1904, and Edward Purcell made it the standard explanation in his 1965 textbook. The sideways field in the shell is the radiation. Its strength falls as \(1/r\), not \(1/r^2\), because the shell stretches sideways as it grows, so it carries energy to arbitrary distances. Joseph Larmor had derived the power radiated by an accelerating charge in 1897, \(P = q^2a^2/(6\pi\varepsilon_0 c^3)\). The same physics makes X-rays when electrons stop in a tungsten target, as in the linear accelerators of Volume 6.</p>
+      </div>
+
+      <figure class="bench" id="fig-kink">
+        <div class="bench-head"><span class="fig">Fig. 7.1</span><span class="label">Interactive</span><h4>A charge that stops: the kink is the radiation</h4></div>
+        <div class="controls">
+          <div class="ctl"><span class="label">Charge</span><div class="chips"><button class="chip" type="button" data-kk="move" aria-pressed="false">Moving steadily</button><button class="chip" type="button" data-kk="stop" aria-pressed="true">Stopped at time 0</button></div></div>
+          <div class="ctl"><label for="kk-b">Speed before stopping <output>0.70c</output></label><input type="range" id="kk-b" min="0" max="0.95" step="0.01" value="0.7"></div>
+          <div class="ctl"><label for="kk-t">Time since the stop (c = 1) <output>1.60</output></label><input type="range" id="kk-t" min="0.2" max="3.4" step="0.02" value="1.6"></div>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="Electric field lines of a charge that was moving and stopped, with kinks in a spherical shell expanding at the speed of light"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">Moving steadily: the field lines point from the charge's present position and bunch toward the vertical as the speed rises. Stopped: inside the expanding shell (shaded) the lines are those of a charge at rest at the centre; outside, they still point to where the charge would be now (dotted ring). In the shell they run sideways, and that transverse field is the outgoing pulse of radiation. Slide time forward and watch the shell expand while the kinks stretch. The deceleration takes 0.15 time units, which sets the shell's thickness. Line directions follow the exact field of a uniformly moving charge.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== NOW -->
+    <section class="chapter" id="now" data-year="Now" data-short="Electrodynamics today">
+      <div class="chapter-head">
+        <span class="label kicker">Chapter 8 · Today</span>
+        <h2>Still the working theory</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Quantum electrodynamics, completed in the late 1940s, explains how light and matter exchange energy in quanta and predicts the electron's magnetic moment to about one part in a trillion. But for anything larger than an atom, classical electrodynamics remains the theory engineers use.</p>
+        <ul>
+          <li><strong>Computational electromagnetics.</strong> Yee's FDTD method, finite elements, and the method of moments solve Maxwell's equations for antennas, microwave circuits, chip interconnects, MRI coils, and the absorption of phone signals in the head. The hero and Fig. 4.1 use FDTD.</li>
+          <li><strong>Metamaterials.</strong> Structures engineered smaller than a wavelength can give effective permittivity and permeability not found in nature. John Pendry predicted in 2000 that a material with negative refractive index could focus beyond the usual diffraction limit, and David Smith's group demonstrated negative refraction of microwaves in 2001. Cloaks that bend waves around an object have been demonstrated at microwave frequencies.</li>
+          <li><strong>Photonics.</strong> Optical fibers, guided by total internal reflection, carry most of the world's data. Silicon photonics puts waveguides, modulators, and detectors on chips beside transistors.</li>
+          <li><strong>Units.</strong> Since 1983 the meter has been defined by fixing the speed of light at 299,792,458 m/s. In the 2019 revision of the SI, the elementary charge was fixed exactly and \(\mu_0\), which had been exactly \(4\pi\times10^{-7}\) N/A², became a measured quantity; it agrees with the old value to about a part in ten billion.</li>
+        </ul>
+      </div>
+      <div class="table-wrap">
+        <table class="compare">
+          <thead><tr><th>Law</th><th>Discovered by</th><th>Year</th><th>What it says</th></tr></thead>
+          <tbody>
+            <tr><td>Coulomb's law</td><td>Coulomb (Priestley, Cavendish earlier)</td><td>1785</td><td>Force between charges falls as 1/r²</td></tr>
+            <tr><td>Gauss's law</td><td>Gauss</td><td>1835 (pub. 1867)</td><td>Flux out of a closed surface measures the charge inside</td></tr>
+            <tr><td>Biot–Savart, Ampère</td><td>Ørsted, Biot, Savart, Ampère</td><td>1820</td><td>Currents make magnetic fields</td></tr>
+            <tr><td>Faraday's law</td><td>Faraday, Henry; Lenz for the sign</td><td>1831</td><td>Changing flux induces an electromotive force</td></tr>
+            <tr><td>Displacement current</td><td>Maxwell</td><td>1861–65</td><td>Changing electric fields act like currents; light is a wave</td></tr>
+            <tr><td>Lorentz force</td><td>Lorentz</td><td>1895</td><td>How fields push on moving charges</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose">
+        <div class="callout">
+          <span class="label">The common thread</span>
+          <p>Faraday's lines of force began as a picture for someone who could not follow the mathematics. Maxwell took the picture seriously and found that the lines carry energy and momentum and can travel on their own as light. Every figure in this volume draws or computes those same lines: around charges, through coils, across a glass surface, and, in the end, as the kink that carries a charge's news to the far side of the universe.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== glossary -->
+    <section class="chapter" id="glossary" data-year="Ref" data-short="Glossary & sources">
+      <div class="chapter-head">
+        <span class="label kicker">Reference</span>
+        <h2>Glossary</h2>
+      </div>
+      <dl class="glossary">
+        <dt>Displacement current</dt><dd>Maxwell's term ε₀ ∂E/∂t, which acts as a source of magnetic field wherever the electric field changes.</dd>
+        <dt>Electromotive force</dt><dd>The voltage driving current around a circuit; in induction, minus the rate of change of magnetic flux.</dd>
+        <dt>Equipotential</dt><dd>A surface (a curve, in a plane) on which the electric potential is constant; field lines cross it at right angles.</dd>
+        <dt>FDTD</dt><dd>Finite-difference time-domain: solving Maxwell's equations on a staggered grid of electric and magnetic field points.</dd>
+        <dt>Gaussian surface</dt><dd>An imaginary closed surface used with Gauss's law to relate flux to enclosed charge.</dd>
+        <dt>Grating lobe</dt><dd>An unwanted extra beam of an antenna array whose elements are spaced more than half a wavelength apart.</dd>
+        <dt>Helmholtz coil</dt><dd>A pair of coaxial coils separated by their radius, giving a nearly uniform field between them.</dd>
+        <dt>Lorentz force</dt><dd>The force q(E + v × B) on a charge moving in electric and magnetic fields.</dd>
+        <dt>Permittivity, permeability</dt><dd>ε and μ, the constants relating fields to charges and currents in a medium; in vacuum ε₀ and μ₀.</dd>
+        <dt>Refractive index</dt><dd>The ratio of the speed of light in vacuum to its speed in a material.</dd>
+      </dl>
+
+      <div class="chapter-head" style="margin-top:32px"><h2>Sources</h2></div>
+      <ol class="sources">
+        <li>Coulomb, C.-A. (1785). Premier mémoire sur l'électricité et le magnétisme. <em>Histoire de l'Académie Royale des Sciences</em>; Priestley, J. (1767). <em>The History and Present State of Electricity</em>.</li>
+        <li>Gauss, C. F. (1867). <em>Werke</em>, vol. 5. Göttingen (Gauss's law, written 1835).</li>
+        <li>Ørsted, H. C. (1820). Experimenta circa effectum conflictus electrici in acum magneticam. Copenhagen; Biot, J.-B. &amp; Savart, F. (1820). Note sur le magnétisme de la pile de Volta. <em>Annales de chimie et de physique</em> 15; Ampère, A.-M. (1826). <em>Théorie des phénomènes électro-dynamiques, uniquement déduite de l'expérience</em>.</li>
+        <li>Faraday, M. (1832). Experimental researches in electricity. <em>Philosophical Transactions of the Royal Society</em> 122; Lenz, E. (1834). Über die Bestimmung der Richtung der durch elektrodynamische Vertheilung erregten galvanischen Ströme. <em>Annalen der Physik</em> 107; Royal Institution, "August 1831" (the induction ring, 29 August 1831).</li>
+        <li>Weber, W. &amp; Kohlrausch, R. (1856). Ueber die Elektricitätsmenge, welche bei galvanischen Strömen durch den Querschnitt der Kette fliesst. <em>Annalen der Physik</em> 99.</li>
+        <li>Maxwell, J. C. (1861–62). On physical lines of force. <em>Philosophical Magazine</em> 21–23; Maxwell, J. C. (1865). A dynamical theory of the electromagnetic field. <em>Philosophical Transactions of the Royal Society</em> 155; Maxwell, J. C. (1873). <em>A Treatise on Electricity and Magnetism</em>. Oxford.</li>
+        <li>Heaviside, O. (1888). The electro-magnetic effects of a moving charge. <em>The Electrician</em> 22; Heaviside, O. (1893). <em>Electromagnetic Theory</em>, vol. 1.</li>
+        <li>Hertz, H. (1888). Über Strahlen elektrischer Kraft. <em>Sitzungsberichte der Preussischen Akademie der Wissenschaften</em>; Hertz, H. (1893). <em>Electric Waves</em>. Macmillan.</li>
+        <li>Braun, K. F. (1909). Electrical oscillations and wireless telegraphy. Nobel Lecture; The Nobel Prize in Physics 1909, nobelprize.org.</li>
+        <li>Lorentz, H. A. (1895). <em>Versuch einer Theorie der electrischen und optischen Erscheinungen in bewegten Körpern</em>. Leiden; Thomson, J. J. (1897). Cathode rays. <em>Philosophical Magazine</em> 44.</li>
+        <li>Larmor, J. (1897). On a dynamical theory of the electric and luminiferous medium. <em>Philosophical Transactions of the Royal Society A</em> 190; Thomson, J. J. (1904). <em>Electricity and Matter</em>. Yale University Press.</li>
+        <li>Einstein, A. (1905). Zur Elektrodynamik bewegter Körper. <em>Annalen der Physik</em> 17.</li>
+        <li>Purcell, E. M. (1965). <em>Electricity and Magnetism</em>. Berkeley Physics Course, vol. 2. McGraw-Hill (3rd ed. with D. J. Morin, Cambridge University Press, 2013).</li>
+        <li>Griffiths, D. J. (2017). <em>Introduction to Electrodynamics</em>, 4th ed. Cambridge University Press; Jackson, J. D. (1999). <em>Classical Electrodynamics</em>, 3rd ed. Wiley.</li>
+        <li>Yee, K. S. (1966). Numerical solution of initial boundary value problems involving Maxwell's equations in isotropic media. <em>IEEE Transactions on Antennas and Propagation</em> 14; Taflove, A. &amp; Hagness, S. C. (2005). <em>Computational Electrodynamics: The Finite-Difference Time-Domain Method</em>, 3rd ed. Artech House.</li>
+        <li>Pendry, J. B. (2000). Negative refraction makes a perfect lens. <em>Physical Review Letters</em> 85; Shelby, R. A., Smith, D. R. &amp; Schultz, S. (2001). Experimental verification of a negative index of refraction. <em>Science</em> 292.</li>
+        <li>BIPM (2019). <em>The International System of Units (SI)</em>, 9th ed.; CODATA 2018 recommended value of the vacuum magnetic permeability.</li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">LearnAnything · Volume 9 · Every figure computes its fields in your browser; units are normalized where captions say so.</footer>
+
+<script src="../../assets/js/lab.js"></script>
+<script src="js/em.js"></script>
+<script src="js/hero.js"></script>
+<script src="js/statics.js"></script>
+<script src="js/dynamics.js"></script>
+<script src="js/particles.js"></script>
+<script>Lab.rail();</script>
+</body>
+</html>

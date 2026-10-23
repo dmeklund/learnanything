@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ab Initio</title>
+<meta name="description" content="Computational chemistry: solving the Schrödinger equation for molecules, from Hartree–Fock and basis sets to electron correlation and density functional theory, then reaction surfaces, Monte Carlo, and molecular dynamics.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martian+Mono:wdth,wght@75..112.5,100..800&family=Crimson+Pro:ital,wght@0,400..700;1,400..700&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<style>
+/* Volume VII identity: the line-printer output of a 1970s quantum chemistry run. Green-bar
+   continuous paper with sprocket holes in the margins; Martian Mono, set condensed and heavy,
+   for headings and data, as if printed; Crimson Pro for reading. Orbital phases use the blue
+   and vermilion of hand-drawn MO diagrams; potential surfaces use a cool sequential ramp. */
+:root {
+  --paper: #F6F7F2; --paper-2: #ECEFE6; --paper-3: #FBFCF8;
+  --grid: #DCE3D6; --rule: #C3CDBD;
+  --ink: #15181A; --ink-2: #3C4440; --ink-3: #5F6964;
+  --accent: #1D6B52; --signal: #9A4A12; --tertiary: #2E9C82;
+  --s1: #1D4A9E; --s2: #C64A1C; --s3: #2E9C82;
+  --accent-wash: rgba(29, 107, 82, .08); --signal-wash: rgba(154, 74, 18, .1);
+  --band: rgba(120, 170, 110, .13); --hole: #E2E6DC;
+  --pes-1: #22305E; --pes-2: #3D6A9A; --pes-3: #7FB0C4; --pes-4: #CFE3DA; --pes-5: #F7F7EE;
+  --f-display: "Martian Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --f-body: "Crimson Pro", Georgia, "Times New Roman", serif;
+  --f-mono: "Martian Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --rail: 184px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #111412; --paper-2: #171C19; --paper-3: #1D231F;
+    --grid: #222A25; --rule: #313B35;
+    --ink: #E2E8E3; --ink-2: #ABB7B0; --ink-3: #7D8A83;
+    --accent: #6FD3A9; --signal: #F0A05A; --tertiary: #35A386;
+    --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+    --accent-wash: rgba(111, 211, 169, .1); --signal-wash: rgba(240, 160, 90, .12);
+    --band: rgba(120, 190, 140, .045); --hole: #1A201C;
+    --pes-1: #0E1A2E; --pes-2: #1F3F66; --pes-3: #3F7790; --pes-4: #86B5B0; --pes-5: #D9E6DA;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #111412; --paper-2: #171C19; --paper-3: #1D231F;
+  --grid: #222A25; --rule: #313B35;
+  --ink: #E2E8E3; --ink-2: #ABB7B0; --ink-3: #7D8A83;
+  --accent: #6FD3A9; --signal: #F0A05A; --tertiary: #35A386;
+  --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+  --accent-wash: rgba(111, 211, 169, .1); --signal-wash: rgba(240, 160, 90, .12);
+  --band: rgba(120, 190, 140, .045); --hole: #1A201C;
+  --pes-1: #0E1A2E; --pes-2: #1F3F66; --pes-3: #3F7790; --pes-4: #86B5B0; --pes-5: #D9E6DA;
+}
+body {
+  background-color: var(--paper);
+  /* green-bar paper: alternating bands three lines deep, with tractor-feed holes in both margins */
+  background-image:
+    radial-gradient(circle at 9px 12px, var(--hole) 0 3.5px, transparent 4px),
+    radial-gradient(circle at calc(100% - 9px) 12px, var(--hole) 0 3.5px, transparent 4px),
+    repeating-linear-gradient(to bottom, var(--band) 0 84px, transparent 84px 168px);
+  background-size: 100% 24px, 100% 24px, 100% 168px;
+  font-size: 1.12rem;
+}
+.hero { grid-template-columns: 1fr; gap: 24px; }
+.hero h1 { font: 800 clamp(3rem, 10vw, 7rem)/.9 var(--f-display); font-stretch: 75%; letter-spacing: -.04em; margin-top: 10px; }
+.hero h1 i { font-style: normal; color: var(--accent); }
+.hero .dek { max-width: 54ch; }
+.printout { font: 400 var(--t-xs)/1.55 var(--f-mono); color: var(--ink-2); border-top: 1px dashed var(--rule); border-bottom: 1px dashed var(--rule); padding-block: 8px; max-width: 64ch; white-space: pre-wrap; overflow-x: auto; }
+.chapter-head .year { font: 800 clamp(2.4rem, 6.6vw, 4.2rem)/.9 var(--f-display); font-stretch: 75%; letter-spacing: -.03em; }
+.chapter-head h2 { font: 700 clamp(1.7rem, 3.8vw, 2.6rem)/1.08 var(--f-display); font-stretch: 80%; letter-spacing: -.03em; }
+.prose h3 { font: 700 var(--t-md)/1.3 var(--f-display); font-stretch: 85%; letter-spacing: -.01em; }
+.prose blockquote { font-family: var(--f-body); font-size: 1.15rem; }
+.bench-head h4 { font-family: var(--f-display); font-stretch: 85%; letter-spacing: -.02em; font-size: 1.05rem; }
+.volume h2 { font-family: var(--f-display); }
+.rail a { grid-template-columns: 48px 1fr; }
+.rail a .yr { font-size: 10.5px; }
+.part-head { max-width: var(--measure); padding-top: 64px; display: grid; gap: 4px; }
+.part-head .label { color: var(--accent); }
+.part-head h2 { font: 800 var(--t-xl)/1 var(--f-display); font-stretch: 75%; letter-spacing: -.03em; }
+.hero-mo canvas { width: 100%; display: block; cursor: pointer; }
+.hero-mo-cap { font: 400 var(--t-xs)/1.5 var(--f-mono); color: var(--ink-3); padding-top: 6px; }
+.chart-wrap svg { width: 100%; display: block; }
+.bench canvas.plain { background: transparent; border: 0; }
+.callout { max-width: var(--measure); border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; display: grid; gap: 6px; }
+.callout .label { color: var(--accent); }
+.stat-row { display: flex; flex-wrap: wrap; gap: 12px 40px; max-width: var(--measure); padding-block: 8px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.stat-row div { display: grid; gap: 2px; }
+.stat-row b { font: 800 var(--t-xl)/1 var(--f-display); font-stretch: 75%; letter-spacing: -.03em; }
+.stat-row span { font: 400 var(--t-xs)/1.3 var(--f-mono); color: var(--ink-3); }
+.table-wrap { overflow-x: auto; max-width: var(--bench); }
+table.compare { border-collapse: collapse; font-size: var(--t-sm); min-width: 640px; width: 100%; }
+table.compare th { font: 500 var(--t-xs)/1.3 var(--f-mono); letter-spacing: .03em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px; border-bottom: 1px solid var(--ink-3); vertical-align: bottom; }
+table.compare td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+table.compare td:first-child { font-weight: 600; color: var(--ink); white-space: nowrap; }
+.nocase { text-transform: none; letter-spacing: 0; }
+.ctl label span { text-transform: inherit; }
+</style>
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg', 'canvas'] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="brand" href="../../index.html">Learn<b>Anything</b></a>
+  <span class="where">Vol. 7 · Computational chemistry</span>
+  <span class="progress" aria-hidden="true"></span>
+</header>
+
+<div class="module">
+  <nav class="rail" aria-label="Chapters"><ol></ol></nav>
+
+  <main class="content">
+
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="label">Volume 7 · Chemistry by calculation</p>
+        <h1 id="title">Ab <i>initio</i></h1>
+        <p class="dek">How chemists learned to compute molecules from the laws of quantum mechanics: approximating the Schrödinger equation for many electrons, choosing basis functions, accounting for correlation, replacing wavefunctions with densities, and then letting the nuclei move to simulate reactions, liquids, and proteins.</p>
+        <div class="meta">
+          <span class="label">11 chapters</span>
+          <span class="label">9 interactive figures</span>
+          <span class="label">1926 → today</span>
+        </div>
+      </div>
+      <figure class="hero-mo" id="hero-mo" style="margin:0">
+        <canvas role="img" aria-label="Naphthalene's ten carbon atoms with circles showing the size and sign of a π molecular orbital on each atom, and a ladder of the ten orbital energies"></canvas>
+        <figcaption class="hero-mo-cap">π orbitals of naphthalene from Hückel theory, computed in your browser. Click an energy level to choose an orbital.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PROLOGUE -->
+    <section class="chapter" id="prologue" data-year="Pro" data-short="The laws are known">
+      <div class="chapter-head">
+        <span class="label kicker">Prologue</span>
+        <h2>The equations are known; solving them is the problem</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1929, three years after quantum mechanics took its modern form, Paul Dirac wrote a sentence that has served as the charter of computational chemistry ever since:</p>
+        <blockquote>The underlying physical laws necessary for the mathematical theory of a large part of physics and the whole of chemistry are thus completely known, and the difficulty is only that the exact application of these laws leads to equations much too complicated to be soluble.</blockquote>
+        <p>He went on to say that approximate practical methods ought to be developed. That is the subject of this volume. The picture above is one of the oldest such methods: Erich Hückel's 1931 treatment of the π electrons of flat aromatic molecules, which reduces a molecule to a small matrix that can be diagonalized by hand. Modern methods are far more accurate and far more expensive, and choosing among them is a trade between the two.</p>
+        <p>Part I is about electrons. It follows the approximations that make the many-electron Schrödinger equation solvable: orbitals, the self-consistent field, basis sets, correlation, and density functional theory. Part II is about nuclei. Once the electrons give an energy for every arrangement of atoms, chemists can map reaction paths, sample molecular shapes, and run atoms forward in time.</p>
+      </div>
+      <div class="printout" aria-label="Example program output"> SCF Done:  E(RHF) =  -1.11671428     A.U. after    3 cycles
+ R(H-H) = 0.7408 Å     basis: STO-3G     (computed on this page, Fig. 4.1)</div>
+      <div class="stat-row">
+        <div><b>1 Ha</b><span>one hartree = 27.2 eV = 627.5 kcal/mol</span></div>
+        <div><b>1 kcal/mol</b><span>"chemical accuracy," about 0.0016 hartree</span></div>
+        <div><b>N⁷</b><span>how the cost of the CCSD(T) method grows with molecule size</span></div>
+      </div>
+      <dl class="defn">
+        <dt>Ab initio</dt><dd>"From the beginning": a calculation that uses only the laws of physics and fundamental constants, with no parameters fitted to experiment.</dd>
+        <dt>Atomic units</dt><dd>Units in which the electron's mass and charge, Planck's constant over 2π, and the Coulomb constant all equal 1. Energies come out in hartrees and lengths in bohrs (0.529 Å).</dd>
+        <dt>Potential energy surface</dt><dd>The energy of a molecule as a function of the positions of its nuclei.</dd>
+      </dl>
+    </section>
+
+    <!-- ===================================================== PART I -->
+    <div class="part-head"><span class="label">Part I</span><h2>Electrons</h2></div>
+
+    <section class="chapter" id="schrodinger" data-year="1926" data-short="Schrödinger's equation">
+      <div class="chapter-head">
+        <span class="year">1926</span>
+        <span class="label kicker">Chapter 1 · The wave equation</span>
+        <h2>An equation for the electron</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In the first half of 1926 Erwin Schrödinger, then at the University of Zurich, published four papers that described an electron by a wave function \(\psi\) obeying an equation. For a single particle of mass \(m\) moving in one dimension in a potential \(V(x)\), the time-independent form is</p>
+        <div class="math-block">\[ -\frac{\hbar^2}{2m}\frac{d^2\psi}{dx^2} + V(x)\,\psi = E\,\psi. \]</div>
+        <p>Only certain energies \(E\) admit solutions that stay finite, so energy comes in discrete levels. Schrödinger's first paper derived the energy levels of the hydrogen atom this way, reproducing Bohr's formula without Bohr's ad hoc rules. The square of \(\psi\), as Max Born proposed later that year, gives the probability of finding the particle at each place.</p>
+        <p>For a molecule, the same equation includes every electron and every nucleus. In 1927 Born and J. Robert Oppenheimer showed that because nuclei are thousands of times heavier than electrons, the two motions can be separated to a good approximation. The electrons adjust instantly to wherever the nuclei are. Solving for the electrons at fixed nuclear positions gives an energy, and that energy, as a function of the nuclear positions, is the potential the nuclei move in. Part I of this volume is about computing that energy; Part II is about using it.</p>
+        <h3>Solving it on a computer</h3>
+        <p>Only a handful of potentials have solutions in closed form. The general method is to put the equation on a grid. Replacing the second derivative by a finite difference,</p>
+        <div class="math-block">\[ \frac{d^2\psi}{dx^2}\bigg|_{x_i} \approx \frac{\psi_{i+1} - 2\psi_i + \psi_{i-1}}{h^2}, \]</div>
+        <p>turns the equation into a matrix eigenvalue problem, \(\mathbf H\boldsymbol\psi = E\boldsymbol\psi\), with a few hundred unknowns. Its lowest eigenvalues are the energy levels and its eigenvectors the wavefunctions. The figure solves a 700-point version each time you move a slider.</p>
+      </div>
+
+      <figure class="bench" id="fig-schrod">
+        <div class="bench-head"><span class="fig">Fig. 1.1</span><span class="label">Interactive</span><h4>Solving the Schrödinger equation on a grid</h4></div>
+        <div class="controls">
+          <div class="ctl"><span class="label">System</span><div class="chips"><button class="chip" type="button" data-sc="box" aria-pressed="true">Electron in a box</button><button class="chip" type="button" data-sc="well" aria-pressed="false">Proton in a double well</button><button class="chip" type="button" data-sc="morse" aria-pressed="false">H₂ vibration</button></div></div>
+          <div class="ctl"><label for="sc-p"><span>Box width</span> <output>6 Å</output></label><input type="range" id="sc-p" min="2" max="20" step="0.5" value="6"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Potential energy curve with the lowest energy levels and their wavefunctions"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The thick line is the potential; each wavefunction is drawn at the height of its energy. For the box, compare the computed lowest level with the textbook formula and shrink the box to see confinement raise the energy. The double well holds a proton shared between two sites 0.7 Å apart, roughly the situation in a strong hydrogen bond. Its two lowest states are a symmetric and an antisymmetric mix of the two sites; the small gap between them is set by tunneling through the barrier, and raising the barrier shrinks it rapidly. The H₂ option uses a proton-mass oscillator in a Morse potential fitted to the measured bond energy and vibration of hydrogen: the levels crowd together as they rise, unlike the evenly spaced levels of the harmonic approximation. All values are computed by finite differences on a 700-point grid.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="bond" data-year="1927" data-short="The chemical bond">
+      <div class="chapter-head">
+        <span class="year">1927</span>
+        <span class="label kicker">Chapter 2 · The chemical bond</span>
+        <h2>Why two atoms stick</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Chemists had drawn bonds as lines for sixty years, and Gilbert Lewis had proposed in 1916 that a bond is a shared pair of electrons, but nobody could say why sharing lowered the energy. Quantum mechanics answered within a year. In 1927 Øyvind Burrau in Copenhagen solved the Schrödinger equation numerically for the simplest molecule, the hydrogen molecule ion H₂⁺, one electron and two protons, and found it bound. The same year Walter Heitler and Fritz London in Zurich treated H₂, with two electrons, and showed that the bond comes from a purely quantum effect: the electrons' wavefunction must be antisymmetric, and the symmetric spatial arrangement that this allows piles electron density between the nuclei.</p>
+        <p>Two languages for bonding grew from these papers. Linus Pauling and John Slater built <em>valence bond</em> theory on Heitler and London's picture of electron pairs. Friedrich Hund and Robert Mulliken built <em>molecular orbital</em> theory, in which each electron occupies an orbital spread over the whole molecule. Molecular orbitals proved easier to compute, and almost all of modern computational chemistry descends from them. Mulliken received the 1966 Nobel Prize in Chemistry for the work.</p>
+        <h3>Orbitals from atomic orbitals</h3>
+        <p>The simplest molecular orbital is a sum or difference of atomic orbitals on each nucleus, a <em>linear combination of atomic orbitals</em> (LCAO), as John Lennard-Jones proposed in 1929. For H₂⁺, with hydrogen 1s orbitals \(\phi_A\) and \(\phi_B\),</p>
+        <div class="math-block">\[ \psi_\pm = \frac{\phi_A \pm \phi_B}{\sqrt{2(1 \pm S)}}, \qquad E_\pm = \frac{H_{AA} \pm H_{AB}}{1 \pm S}, \]</div>
+        <p>where \(S\) is the overlap of the two atomic orbitals and \(H_{AA}\), \(H_{AB}\) are matrix elements of the Hamiltonian. The sum puts electron density between the protons, where it is attracted by both, and lowers the energy: a <em>bonding</em> orbital. The difference has a node between them and raises the energy: an <em>antibonding</em> orbital. All the integrals for 1s orbitals have closed forms, so this calculation can be done exactly with pencil and paper. It gives a bond of the right kind but too weak and too long. Letting the atomic orbitals shrink as the protons approach, by varying the exponent \(\zeta\) in \(e^{-\zeta r}\), recovers much of the error, as Finkelstein and Horowitz showed in 1928.</p>
+        <p>Hückel's 1931 theory, shown in the hero figure, applies the same idea to the π electrons of molecules such as benzene and naphthalene. It replaces every integral by one of two empirical parameters, \(\alpha\) for an atom and \(\beta\) for a bond, and explained why rings with 4n + 2 π electrons are especially stable.</p>
+      </div>
+
+      <figure class="bench" id="fig-h2p">
+        <div class="bench-head"><span class="fig">Fig. 2.1</span><span class="label">Interactive</span><h4>H₂⁺ from two atomic orbitals</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="hp-r">Proton separation <output>1.32 Å</output></label><input type="range" id="hp-r" min="1" max="7" step="0.05" value="2.5"></div>
+          <label class="check"><input type="checkbox" id="hp-z"> Let the orbitals shrink (vary ζ)</label>
+        </div>
+        <div class="stage">
+          <div class="chart-wrap"><svg role="img" aria-label="Energy of the bonding and antibonding states of H2+ versus distance"></svg></div>
+          <div class="chart-wrap"><svg role="img" aria-label="Bonding and antibonding wavefunctions along the axis through the two protons"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: energy relative to a hydrogen atom and a bare proton far apart. The bonding curve has a minimum, the antibonding curve is repulsive everywhere, and the circle marks the exact answer. Right: the two wavefunctions along the line through the protons at the chosen separation; the bonding orbital builds up between the protons and the antibonding orbital changes sign there. Turn on the variable exponent and the bond moves to almost exactly the right length. Computed from the closed-form integrals of hydrogen 1s orbitals.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="scf" data-year="1951" data-short="Self-consistent fields">
+      <div class="chapter-head">
+        <span class="year">1951</span>
+        <span class="label kicker">Chapter 3 · Hartree–Fock</span>
+        <h2>Each electron in the average field of the others</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">With more than one electron, the electron-electron repulsion couples every electron to every other one. In 1928 Douglas Hartree in Cambridge proposed approximating each electron as moving in the average field of the rest. Guess the orbitals, compute the field they produce, solve for new orbitals in that field, and repeat until the orbitals stop changing. He called the result a <em>self-consistent field</em> and computed atoms with a mechanical desk calculator. In 1930 Vladimir Fock and John Slater added the exchange term that comes from writing the wavefunction as an antisymmetrized product of orbitals, a <em>Slater determinant</em>. The method is now called Hartree–Fock.</p>
+        <p>Atoms are spherical, so their orbitals can be found on a radial grid. Molecules are not. In 1951 Clemens Roothaan, and independently George Hall, expanded each molecular orbital in a fixed set of <em>basis functions</em>, \(\psi_i = \sum_\mu C_{\mu i}\,\chi_\mu\), which turned Hartree–Fock into a matrix equation:</p>
+        <div class="math-block">\[ \mathbf F(\mathbf C)\,\mathbf C = \mathbf S\,\mathbf C\,\boldsymbol\varepsilon. \]</div>
+        <p>The Fock matrix \(\mathbf F\) depends on the coefficients \(\mathbf C\) it determines, so the equation is solved iteratively. Building \(\mathbf F\) requires the two-electron repulsion integrals \((\mu\nu|\lambda\sigma)\) between every quadruple of basis functions, roughly \(N^4/8\) of them for \(N\) basis functions. That number set the cost of quantum chemistry for decades.</p>
+        <h3>Gaussians</h3>
+        <p>The natural basis functions are Slater-type orbitals, \(e^{-\zeta r}\), shaped like the hydrogen atom's. But two-electron integrals over Slater functions on four different atoms have no closed form. In 1950 S. Francis Boys pointed out that Gaussian functions, \(e^{-\alpha r^2}\), have a remarkable property: the product of two Gaussians on different centers is a single Gaussian on a point between them. Every integral then reduces to a short formula. A Gaussian has the wrong shape, flat at the nucleus and falling off too fast, but a fixed combination of several Gaussians can mimic a Slater function. John Pople's group packaged such combinations as standard basis sets, starting with STO-3G in 1969, in a program called Gaussian 70, released in 1970. Making quantum chemistry a tool any chemist could run earned Pople a share of the 1998 Nobel Prize in Chemistry.</p>
+      </div>
+
+      <figure class="bench" id="fig-basis">
+        <div class="bench-head"><span class="fig">Fig. 3.1</span><span class="label">Interactive</span><h4>Building a hydrogen orbital from Gaussians</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="bs-n">Number of Gaussians <output>3</output></label><input type="range" id="bs-n" min="1" max="6" step="1" value="3"></div>
+        </div>
+        <div class="stage">
+          <div class="chart-wrap"><svg role="img" aria-label="Exact hydrogen 1s wavefunction and its approximation by a sum of Gaussians"></svg></div>
+          <div class="chart-wrap"><svg role="img" aria-label="Energy error of the hydrogen atom versus number of Gaussian functions, on a log scale"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: the exact hydrogen 1s orbital (dashed), the best combination of Gaussians (blue), and the individual weighted Gaussians (thin teal lines). Gaussians always have zero slope at the nucleus, where the true orbital has a sharp cusp, and they fall off too fast far away. Right: how the energy error shrinks as Gaussians are added. Errors fall roughly tenfold per pair of functions; reaching chemical accuracy takes four. Exponents were optimized variationally for this page and reproduce Huzinaga's 1965 values; coefficients are recomputed in your browser.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="correlation" data-year="1934" data-short="Electron correlation">
+      <div class="chapter-head">
+        <span class="year">1934</span>
+        <span class="label kicker">Chapter 4 · Correlation</span>
+        <h2>What the average field misses</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Hartree–Fock gets about 99% of the total energy of a molecule. The remaining 1%, the <em>correlation energy</em>, is what an electron gains by actively avoiding the others instead of seeing only their average. Because chemical bonds are worth only a small fraction of the total energy, that 1% is often comparable to the energy changes chemists care about. Defined by Per-Olov Löwdin in 1955 as the difference between the exact and Hartree–Fock energies, it is the central problem of quantum chemistry.</p>
+        <p>The cleanest example is pulling apart H₂. Hartree–Fock puts both electrons in the same bonding orbital. Near the equilibrium distance that is reasonable. Far apart, it is not: the doubly occupied orbital gives equal weight to two neutral hydrogen atoms and to the ionic pair H⁺ + H⁻, and the energy goes far too high. Mixing in a second configuration, with both electrons in the antibonding orbital, cancels the ionic part. Allowing every possible configuration within a basis is called <em>full configuration interaction</em>. It is exact for that basis, and its cost grows combinatorially.</p>
+        <h3>A hierarchy of methods</h3>
+        <ul>
+          <li><strong>Perturbation theory (1934).</strong> Christian Møller and Milton Plesset treated correlation as a small perturbation of the Hartree–Fock solution. The second-order correction, MP2, is the cheapest systematic improvement.</li>
+          <li><strong>Configuration interaction.</strong> Add excited configurations to the Hartree–Fock determinant and solve for their weights. Truncated versions are not size-consistent: the error for two separated molecules is not twice the error for one.</li>
+          <li><strong>Coupled cluster (1966).</strong> Jiří Čížek adapted a method from nuclear physics that writes the wavefunction as \(e^{\hat T}\) acting on the Hartree–Fock determinant, which keeps the method size-consistent. In 1989 Krishnan Raghavachari, Gary Trucks, John Pople, and Martin Head-Gordon added an inexpensive estimate of triple excitations. CCSD(T) became known as the "gold standard," typically within about 1 kcal/mol of experiment for well-behaved molecules, given a large basis.</li>
+        </ul>
+        <p>Accurate calculations can now beat experiment. In 1968 Włodzimierz Kołos and Lutosław Wolniewicz computed the dissociation energy of H₂ and got a value slightly larger than the accepted measurement. Gerhard Herzberg remeasured it in 1970 and found the calculation was right.</p>
+      </div>
+
+      <figure class="bench" id="fig-h2">
+        <div class="bench-head"><span class="fig">Fig. 4.1</span><span class="label">Interactive</span><h4>Pulling H₂ apart</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="h2-r">H–H distance <output>0.74 Å</output></label><input type="range" id="h2-r" min="0.4" max="4" step="0.02" value="0.74"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Energy of H2 versus bond length from Hartree–Fock, full configuration interaction in the same basis, and experiment"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Both quantum curves are computed in your browser in the STO-3G basis (two basis functions), with a real Hartree–Fock self-consistent field and a 2 × 2 configuration interaction. Near equilibrium they differ by 13 kcal/mol, the correlation energy. Pull the atoms apart and Hartree–Fock climbs far above the energy of two atoms, while full CI levels off, its electrons shared between a doubly occupied bonding and antibonding orbital in nearly equal measure. Full CI does not reach the exact limit of −1 hartree because this tiny basis cannot describe a hydrogen atom exactly. The dashed curve is a Morse function fitted to experiment.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>The cost of accuracy</h3>
+        <p>Each step up the hierarchy costs more, and the cost grows with molecule size as a power law: roughly \(N^4\) for Hartree–Fock, \(N^5\) for MP2, and \(N^7\) for CCSD(T), where \(N\) measures the size of the system. Doubling a molecule multiplies the CCSD(T) cost by 128. Since the 1990s, "local" methods that exploit the fact that correlation is short-ranged have cut these exponents dramatically for large molecules, but the formal scaling still explains which methods are used for what.</p>
+      </div>
+
+      <figure class="bench" id="fig-cost">
+        <div class="bench-head"><span class="fig">Fig. 4.2</span><span class="label">Interactive</span><h4>How cost grows with molecule size</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="co-s">Computer speed-up <output>1×</output></label><input type="range" id="co-s" min="0" max="6" step="1" value="0"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Relative computational cost versus number of atoms for DFT, Hartree–Fock, MP2, and CCSD(T)"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Each method is scaled to cost one unit for a three-atom molecule, so the chart shows growth, not absolute speed; the dashed horizontal line is a day's computing if that unit is one second. Speed the computer up a millionfold and see how little bigger a molecule CCSD(T) can handle. Formal scaling exponents only; real programs differ in prefactors and use many tricks.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="dft" data-year="1964" data-short="Density functional theory">
+      <div class="chapter-head">
+        <span class="year">1964</span>
+        <span class="label kicker">Chapter 5 · Density functional theory</span>
+        <h2>Three dimensions instead of 3N</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A wavefunction for \(N\) electrons is a function of \(3N\) coordinates. The electron density \(\rho(\mathbf r)\) is a function of three. In 1964 Pierre Hohenberg and Walter Kohn proved that the ground-state density determines everything about a system, including its energy: there exists an energy functional \(E[\rho]\), minimized by the true density. They did not say what the functional is.</p>
+        <p>In 1965 Kohn and Lu Jeu Sham made the idea practical. They imagined a system of non-interacting electrons with the same density as the real one. Its kinetic energy can be computed exactly from orbitals, and everything that is hard about the real system is swept into one term, the <em>exchange-correlation energy</em> \(E_{xc}[\rho]\):</p>
+        <div class="math-block">\[ \left[-\tfrac12\nabla^2 + v_{\text{nuc}}(\mathbf r) + v_H(\mathbf r) + v_{xc}(\mathbf r)\right]\phi_i = \varepsilon_i\,\phi_i, \qquad \rho = \sum_i f_i\,|\phi_i|^2. \]</div>
+        <p>The equations are solved self-consistently, like Hartree–Fock, at similar or lower cost. If \(E_{xc}\) were known exactly, the answer would be exact. The simplest approximation, the <em>local density approximation</em> (LDA), takes the exchange-correlation energy at each point from a uniform electron gas of the same density. Its exchange part is the formula \(-\tfrac34(3/\pi)^{1/3}\rho^{4/3}\) known since Dirac (1930); its correlation part was computed by David Ceperley and Berni Alder with quantum Monte Carlo in 1980 and fitted by Vosko, Wilk, and Nusair the same year.</p>
+        <p>LDA was good enough for solids and became the workhorse of condensed-matter physics, but it overbinds molecules badly. Chemists adopted DFT only after functionals that also depend on the density's gradient appeared in the late 1980s, from Axel Becke, from Chengteh Lee, Weitao Yang, and Robert Parr, and later from John Perdew, Kieron Burke, and Matthias Ernzerhof (PBE, 1996). Becke's 1993 "hybrid" functionals mixed in some exact Hartree–Fock exchange; one of them, B3LYP, became the most widely used method in chemistry. Kohn shared the 1998 Nobel Prize with Pople. Perdew described the growing family of functionals as a "Jacob's ladder" climbing from LDA toward chemical accuracy, each rung adding more information and cost.</p>
+      </div>
+
+      <figure class="bench" id="fig-ks">
+        <div class="bench-head"><span class="fig">Fig. 5.1</span><span class="label">Interactive</span><h4>A Kohn–Sham atom, solved in your browser</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="ks-z">Element <output>Ne (Z = 10)</output></label><input type="range" id="ks-z" min="1" max="18" step="1" value="10"></div>
+        </div>
+        <div class="stage">
+          <div class="chart-wrap"><svg role="img" aria-label="Radial electron density of an atom with the contribution of each shell"></svg></div>
+          <div class="chart-wrap"><svg role="img" aria-label="Kohn–Sham orbital energy levels"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: electrons per unit distance from the nucleus, with each shell's contribution; the shells of the periodic table appear as separate humps. Right: orbital energies on a compressed scale. Step through the second and third rows and watch the outer shell fill and contract. The readout compares the LDA total energy with the Hartree–Fock limit and the exact nonrelativistic energy: LDA errs by hundreds of kcal/mol in the total, mostly from the core, yet differences between similar systems are far better. Spherical, spin-unpolarized LDA with VWN correlation on a 1,200-point logarithmic grid; results agree with the NIST atomic reference data to within 0.001 hartree through neon and 0.003 hartree for argon. Open-shell atoms would need spin polarization for a full treatment.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PART II -->
+    <div class="part-head"><span class="label">Part II</span><h2>Nuclei</h2></div>
+
+    <section class="chapter" id="pes" data-year="1935" data-short="Reaction surfaces">
+      <div class="chapter-head">
+        <span class="year">1935</span>
+        <span class="label kicker">Chapter 6 · Potential energy surfaces</span>
+        <h2>A landscape for a reaction</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The simplest chemical reaction is a hydrogen atom swapping partners: H + H₂ → H₂ + H. In 1929 Fritz London gave an approximate formula for the energy of three hydrogen atoms. In 1931 Henry Eyring and Michael Polanyi used it to draw the first <em>potential energy surface</em> for a reaction: the energy as a function of two bond lengths, plotted as a contour map. Reactants and products sit in two valleys. Between them lies a mountain pass, the <em>saddle point</em> or <em>transition state</em>, the lowest-energy route over the ridge.</p>
+        <p>In 1935 Eyring, and independently Meredith Evans and Polanyi, turned the picture into a theory of reaction rates. <em>Transition state theory</em> assumes that molecules at the saddle are in equilibrium with reactants and cross at a rate set by temperature, which gives</p>
+        <div class="math-block">\[ k = \frac{k_B T}{h}\, e^{-\Delta G^\ddagger / RT}, \]</div>
+        <p>where \(\Delta G^\ddagger\) is the free-energy barrier. Finding saddle points on computed surfaces is still one of the main things computational chemists do.</p>
+        <p>The figure uses the London–Eyring–Polanyi–Sato (LEPS) surface, an improved form of London's formula introduced by Shin Sato in 1955. Its one adjustable parameter is set here so that the barrier matches the accurate value for H₃, about 0.42 eV (9.8 kcal/mol), at a symmetric geometry with both bonds 0.93 Å long, as found by Siegbahn and Liu's 1978 calculations. On this surface you can run classical trajectories: give the incoming atom a speed and the molecule some vibration, integrate Newton's equations, and watch whether the atoms find the pass.</p>
+      </div>
+
+      <figure class="bench" id="fig-pes">
+        <div class="bench-head"><span class="fig">Fig. 6.1</span><span class="label">Interactive</span><h4>H + H₂ on a potential energy surface</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="pe-c">Collision energy <output>0.50 eV</output></label><input type="range" id="pe-c" min="0.05" max="1.5" step="0.01" value="0.5"></div>
+          <div class="ctl"><label for="pe-v">Vibrational energy of H₂ <output>0.27 eV</output></label><input type="range" id="pe-v" min="0" max="1.2" step="0.01" value="0.27"></div>
+          <div class="ctl"><label for="pe-p">Bond at the start <output>stretched</output></label><input type="range" id="pe-p" min="0" max="1" step="1" value="0"></div>
+          <button class="chip" type="button" id="pe-go">Run trajectory</button>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="Contour map of the energy of three collinear hydrogen atoms versus the two bond lengths, with a reaction trajectory"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">Atoms A, B, and C stay on a line; A approaches the molecule B–C from the right of the map along the reactant valley. Contours are every 0.25 eV above the bottom of the H₂ valley; lighter is higher. Below the barrier, A bounces off. Above it, the outcome depends on the timing of B–C's vibration, so a reaction can fail even with enough energy: try the stretched and compressed starts. The vibrational energy of 0.27 eV is H₂'s zero-point energy, treated classically. Classical mechanics on a LEPS surface; real H + H₂ dynamics includes tunneling and quantization.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="mc" data-year="1953" data-short="Monte Carlo">
+      <div class="chapter-head">
+        <span class="year">1953</span>
+        <span class="label kicker">Chapter 7 · Sampling</span>
+        <h2>Random walks that obey Boltzmann</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A molecule at room temperature does not sit at its energy minimum. It visits every arrangement with a probability proportional to the Boltzmann factor \(e^{-E/k_BT}\), and measurable properties are averages over all of them. For anything bigger than a few atoms, the number of arrangements is far too large to enumerate.</p>
+        <p>In 1953 Nicholas Metropolis, Arianna and Marshall Rosenbluth, and Augusta and Edward Teller, working on the MANIAC computer at Los Alamos, published a way to sample them. Starting from any arrangement, propose a small random change. If it lowers the energy, accept it. If it raises the energy by \(\Delta E\), accept it with probability \(e^{-\Delta E/k_BT}\); otherwise keep the old arrangement and count it again. The walk visits arrangements in exactly the right proportions, so a simple average over the walk gives the thermal average. Their test case was a gas of hard disks. The Metropolis algorithm is now used throughout physics, statistics, and machine learning.</p>
+        <p>The figure applies it to the simplest flexible molecule, butane, CH₃–CH₂–CH₂–CH₃, whose shape is set mostly by one twist angle around the central bond. The torsion energy, from Jean-Paul Ryckaert and André Bellemans (1975), has a lowest minimum at 180° (<em>trans</em>, the zigzag chain), two shallower minima near ±60° (<em>gauche</em>), and barriers between.</p>
+      </div>
+
+      <figure class="bench" id="fig-mc">
+        <div class="bench-head"><span class="fig">Fig. 7.1</span><span class="label">Interactive</span><h4>Metropolis sampling of butane's twist</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="mc-t">Temperature <output>300 K</output></label><input type="range" id="mc-t" min="100" max="1200" step="25" value="300"></div>
+          <div class="ctl"><label for="mc-s">Largest trial step <output>30°</output></label><input type="range" id="mc-s" min="2" max="180" step="2" value="30"></div>
+          <button class="chip" type="button" id="mc-r">Restart</button>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Histogram of sampled dihedral angles of butane compared with the exact Boltzmann distribution, and a trace of the walk"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Top: how often the walk visits each angle (bars) against the exact Boltzmann distribution (line), with the torsion energy dotted on its own scale. Bottom: the angle every tenth step. With tiny steps nearly every move is accepted, but the walk rarely crosses a barrier, so the histogram converges slowly; with huge steps most moves are rejected. Raise the temperature and gauche fills in. The walk runs while the figure is on screen and stops at 200,000 steps.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="md" data-year="1964" data-short="Molecular dynamics">
+      <div class="chapter-head">
+        <span class="year">1964</span>
+        <span class="label kicker">Chapter 8 · Molecular dynamics</span>
+        <h2>Running the atoms forward in time</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Monte Carlo samples arrangements but says nothing about how they change in time. Molecular dynamics integrates Newton's equations for every atom. Berni Alder and Thomas Wainwright at Livermore did it first, in 1957, for hard spheres that interact only by colliding, and found that even such a simple system freezes. In 1964 Aneesur Rahman at Argonne simulated 864 argon atoms with a smooth Lennard-Jones potential,</p>
+        <div class="math-block">\[ V(r) = 4\varepsilon\left[\left(\frac{\sigma}{r}\right)^{12} - \left(\frac{\sigma}{r}\right)^{6}\right], \]</div>
+        <p>and reproduced measured diffusion and structure of liquid argon. The \(r^{-6}\) term is the London dispersion attraction; the \(r^{-12}\) term is a convenient stand-in for repulsion at short range. In 1967 Loup Verlet introduced the time-stepping scheme still used in nearly every program: positions and velocities are advanced in half steps,</p>
+        <div class="math-block">\[ \mathbf v_{t+\Delta t/2} = \mathbf v_t + \tfrac{\Delta t}{2m}\mathbf F_t,\quad \mathbf x_{t+\Delta t} = \mathbf x_t + \Delta t\,\mathbf v_{t+\Delta t/2},\quad \mathbf v_{t+\Delta t} = \mathbf v_{t+\Delta t/2} + \tfrac{\Delta t}{2m}\mathbf F_{t+\Delta t}, \]</div>
+        <p>which conserves energy well over millions of steps. Periodic boundary conditions, in which an atom leaving one side of the box re-enters on the other, make a few hundred atoms behave like a piece of bulk matter.</p>
+        <p>A useful window into a simulation is the <em>radial distribution function</em> \(g(r)\): how much more likely than average it is to find another atom at distance \(r\) from a given one. A crystal shows sharp, regularly spaced peaks; a liquid shows a few broad ones that fade with distance; a gas shows almost none. It is the same quantity X-ray and neutron scattering measure in real liquids.</p>
+      </div>
+
+      <figure class="bench" id="fig-md">
+        <div class="bench-head"><span class="fig">Fig. 8.1</span><span class="label">Interactive</span><h4>Molecular dynamics of a Lennard-Jones fluid</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="md-t">Thermostat temperature <output>40 K</output></label><input type="range" id="md-t" min="10" max="200" step="5" value="40"></div>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="Two-dimensional box of atoms moving under Lennard-Jones forces, with the radial distribution function"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: 168 atoms in a periodic two-dimensional box, shaded by speed. Right: the radial distribution function averaged over recent steps. At 40 K the atoms vibrate about a hexagonal crystal and g(r) shows sharp, regularly spaced peaks. Heat past about 100 K and the crystal melts: the peaks broaden, the long-range ones fade, and atoms wander. A weak thermostat nudges the kinetic energy toward the target so changes take visible time. Velocity Verlet in reduced units, scaled to argon (ε/k = 120 K, σ = 3.4 Å). Melting in two dimensions differs in detail from real, three-dimensional argon, and a small box can briefly stay crystalline above its melting point.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="bio" data-year="1977" data-short="Force fields and proteins">
+      <div class="chapter-head">
+        <span class="year">1977</span>
+        <span class="label kicker">Chapter 9 · Biomolecules</span>
+        <h2>Ball-and-spring molecules</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Quantum calculations are far too expensive for a protein of thousands of atoms in water. <em>Force fields</em> replace the electrons with a classical energy expression built from springs and charges:</p>
+        <div class="math-block">\[ E = \sum_{\text{bonds}} k_b (b - b_0)^2 + \sum_{\text{angles}} k_\theta(\theta - \theta_0)^2 + \sum_{\text{torsions}} \sum_n \frac{V_n}{2}\big[1 + \cos(n\phi - \gamma)\big] + \sum_{i\lt j}\left[\frac{q_i q_j}{4\pi\varepsilon_0 r_{ij}} + 4\varepsilon_{ij}\left(\frac{\sigma_{ij}^{12}}{r_{ij}^{12}} - \frac{\sigma_{ij}^{6}}{r_{ij}^{6}}\right)\right]. \]</div>
+        <p>The parameters are fitted to experiments and to quantum calculations on small fragments. Shneior Lifson's group at the Weizmann Institute developed the approach in the late 1960s as the "consistent force field"; two young members of the group, Arieh Warshel and Michael Levitt, used it in 1969 for the first energy minimization of whole proteins. Norman Allinger's MM2 (1977) became the standard for organic molecules, and AMBER and CHARMM, from Peter Kollman's and Martin Karplus's groups, for proteins and nucleic acids.</p>
+        <p>In 1977 Andrew McCammon, Bruce Gelin, and Karplus published the first molecular dynamics simulation of a protein: 9.2 picoseconds of the small bovine pancreatic trypsin inhibitor, in vacuum. It showed that a folded protein is not rigid but fluctuates constantly. A year earlier, Warshel and Levitt had described how to treat the reacting part of an enzyme with quantum mechanics and the rest with a force field, the <em>QM/MM</em> method. Karplus, Levitt, and Warshel shared the 2013 Nobel Prize in Chemistry "for the development of multiscale models for complex chemical systems."</p>
+        <p>Simulated time has grown about a billionfold since then. In 2010 D. E. Shaw Research used Anton, a computer built specifically for molecular dynamics, to run a full millisecond of the same protein, now in water, and watched it switch between distinct shapes.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== NOW -->
+    <section class="chapter" id="now" data-year="Now" data-short="Where the field is going">
+      <div class="chapter-head">
+        <span class="label kicker">Chapter 10 · Today</span>
+        <h2>Learned potentials and predicted proteins</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The basic trade-off of this volume, accuracy against cost, is being renegotiated by machine learning.</p>
+        <ul>
+          <li><strong>Machine-learned potentials.</strong> In 2007 Jörg Behler and Michele Parrinello showed that a neural network trained on DFT energies could reproduce a potential energy surface at a tiny fraction of the cost, by summing contributions from each atom's local environment. Successors trained on millions of quantum calculations now run molecular dynamics with near-DFT accuracy on systems of many thousands of atoms.</li>
+          <li><strong>Protein structure.</strong> For fifty years, predicting a protein's folded shape from its amino-acid sequence was a grand challenge. At the CASP14 assessment in 2020, DeepMind's AlphaFold 2 predicted most structures with accuracy comparable to experiment. Demis Hassabis and John Jumper shared the 2024 Nobel Prize in Chemistry for it, with David Baker, whose group designs new proteins computationally.</li>
+          <li><strong>Quantum computers.</strong> Electron correlation is a quantum problem whose cost grows exponentially on classical computers, which made it one of the first proposed applications for quantum computers. Small demonstrations have computed energies of molecules like H₂ and LiH; resource estimates for industrially interesting targets, such as the iron-molybdenum cofactor of the nitrogen-fixing enzyme nitrogenase, call for machines far larger than any built so far.</li>
+        </ul>
+        <p>Meanwhile the older methods keep improving. Local coupled-cluster methods bring near-CCSD(T) accuracy to molecules of hundreds of atoms, and DFT, in its many forms, runs in a large share of the world's scientific computing time.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="compare">
+          <thead><tr><th>Method</th><th>What it treats</th><th>Formal cost</th><th>Typical size</th><th>Typical use</th></tr></thead>
+          <tbody>
+            <tr><td>Force field MD</td><td>Atoms as classical balls and springs</td><td>~N to N log N</td><td>10⁴–10⁷ atoms</td><td>Proteins, membranes, materials</td></tr>
+            <tr><td>Semi-empirical (Hückel, AM1, xTB)</td><td>Valence electrons, fitted integrals</td><td>N²–N³</td><td>10²–10⁴ atoms</td><td>Screening, large systems</td></tr>
+            <tr><td>DFT</td><td>Electron density, approximate functional</td><td>N³–N⁴</td><td>10–10³ atoms</td><td>Most chemistry and materials work</td></tr>
+            <tr><td>Hartree–Fock</td><td>Mean-field electrons</td><td>N⁴</td><td>10–10³ atoms</td><td>Starting point for correlated methods</td></tr>
+            <tr><td>MP2</td><td>Second-order correlation</td><td>N⁵</td><td>10–10² atoms</td><td>Weak interactions, quick corrections</td></tr>
+            <tr><td>CCSD(T)</td><td>Correlation to high order</td><td>N⁷</td><td>up to ~30 atoms (more with local methods)</td><td>Benchmarks, thermochemistry</td></tr>
+            <tr><td>Full CI</td><td>Exact within the basis</td><td>Exponential</td><td>a few atoms</td><td>Testing other methods</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose">
+        <p>Sizes are rough orders of magnitude for routine work and depend on basis set, hardware, and the property being computed.</p>
+        <div class="callout">
+          <span class="label">The common thread</span>
+          <p>Dirac's equations have not changed since 1929. Every method in this volume is an approximation chosen to make them solvable for a particular question, and every one of them was checked against the few cases, like H₂, where the exact answer is known. Progress has come from better approximations, faster computers, and, increasingly, from learning the answers of expensive methods so that cheap ones can reproduce them.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== glossary -->
+    <section class="chapter" id="glossary" data-year="Ref" data-short="Glossary & sources">
+      <div class="chapter-head">
+        <span class="label kicker">Reference</span>
+        <h2>Glossary</h2>
+      </div>
+      <dl class="glossary">
+        <dt>Basis set</dt><dd>The fixed set of functions in which molecular orbitals are expanded.</dd>
+        <dt>Born–Oppenheimer approximation</dt><dd>Treating nuclei as fixed while solving for the electrons, justified by their much larger mass.</dd>
+        <dt>Correlation energy</dt><dd>The difference between the exact energy and the Hartree–Fock energy.</dd>
+        <dt>Coupled cluster</dt><dd>A correlated method that writes the wavefunction as an exponential of excitation operators acting on a reference determinant.</dd>
+        <dt>Exchange-correlation functional</dt><dd>The approximate part of density functional theory, containing all many-electron effects beyond the classical repulsion.</dd>
+        <dt>Force field</dt><dd>A classical energy expression for molecules built from bond, angle, torsion, and non-bonded terms.</dd>
+        <dt>Full configuration interaction</dt><dd>The exact solution within a given basis, using every possible arrangement of electrons in the orbitals.</dd>
+        <dt>Hartree–Fock</dt><dd>The self-consistent field method in which each electron moves in the average field of the others, with exact exchange.</dd>
+        <dt>LCAO</dt><dd>Linear combination of atomic orbitals: building molecular orbitals as sums of orbitals on each atom.</dd>
+        <dt>Metropolis algorithm</dt><dd>A random walk that accepts or rejects proposed moves so that states are visited with Boltzmann probabilities.</dd>
+        <dt>Molecular dynamics</dt><dd>Simulating atomic motion by integrating Newton's equations.</dd>
+        <dt>Radial distribution function</dt><dd>The relative probability of finding a particle at a given distance from another.</dd>
+        <dt>Saddle point</dt><dd>The highest point on the lowest path between two valleys of a potential energy surface; the transition state.</dd>
+        <dt>Self-consistent field</dt><dd>An iterative solution in which orbitals and the field they generate are made consistent with each other.</dd>
+        <dt>Size consistency</dt><dd>The property that a method's energy for two distant molecules equals the sum of their separate energies.</dd>
+      </dl>
+
+      <div class="chapter-head" style="margin-top:32px"><h2>Sources</h2></div>
+      <ol class="sources">
+        <li>Dirac, P. A. M. (1929). Quantum mechanics of many-electron systems. <em>Proceedings of the Royal Society A</em> 123.</li>
+        <li>Schrödinger, E. (1926). Quantisierung als Eigenwertproblem. <em>Annalen der Physik</em> 79–81; Born, M. &amp; Oppenheimer, R. (1927). Zur Quantentheorie der Molekeln. <em>Annalen der Physik</em> 84.</li>
+        <li>Burrau, Ø. (1927). Berechnung des Energiewertes des Wasserstoffmolekel-Ions (H₂⁺) im Normalzustand. <em>Det Kongelige Danske Videnskabernes Selskab, Mathematisk-fysiske Meddelelser</em> 7; Heitler, W. &amp; London, F. (1927). Wechselwirkung neutraler Atome und homöopolare Bindung nach der Quantenmechanik. <em>Zeitschrift für Physik</em> 44.</li>
+        <li>Lennard-Jones, J. E. (1929). The electronic structure of some diatomic molecules. <em>Transactions of the Faraday Society</em> 25; Finkelstein, B. N. &amp; Horowitz, G. E. (1928). Über die Energie des He-Atoms und des positiven H₂-Ions im Normalzustande. <em>Zeitschrift für Physik</em> 48.</li>
+        <li>Hückel, E. (1931). Quantentheoretische Beiträge zum Benzolproblem. <em>Zeitschrift für Physik</em> 70.</li>
+        <li>Hartree, D. R. (1928). The wave mechanics of an atom with a non-Coulomb central field. <em>Proceedings of the Cambridge Philosophical Society</em> 24; Fock, V. (1930). Näherungsmethode zur Lösung des quantenmechanischen Mehrkörperproblems. <em>Zeitschrift für Physik</em> 61.</li>
+        <li>Roothaan, C. C. J. (1951). New developments in molecular orbital theory. <em>Reviews of Modern Physics</em> 23; Hall, G. G. (1951). The molecular orbital theory of chemical valency VIII. <em>Proceedings of the Royal Society A</em> 205.</li>
+        <li>Boys, S. F. (1950). Electronic wave functions I. A general method of calculation for the stationary states of any molecular system. <em>Proceedings of the Royal Society A</em> 200; Huzinaga, S. (1965). Gaussian-type functions for polyatomic systems. I. <em>Journal of Chemical Physics</em> 42.</li>
+        <li>Hehre, W. J., Stewart, R. F. &amp; Pople, J. A. (1969). Self-consistent molecular-orbital methods. I. Use of Gaussian expansions of Slater-type atomic orbitals. <em>Journal of Chemical Physics</em> 51.</li>
+        <li>Szabo, A. &amp; Ostlund, N. S. (1982). <em>Modern Quantum Chemistry</em>. Macmillan (Dover reprint 1996). The H₂ STO-3G calculation of Fig. 4.1 follows its Chapter 3.</li>
+        <li>Møller, C. &amp; Plesset, M. S. (1934). Note on an approximation treatment for many-electron systems. <em>Physical Review</em> 46; Löwdin, P.-O. (1955). Quantum theory of many-particle systems. III. <em>Physical Review</em> 97.</li>
+        <li>Čížek, J. (1966). On the correlation problem in atomic and molecular systems. <em>Journal of Chemical Physics</em> 45; Raghavachari, K., Trucks, G. W., Pople, J. A. &amp; Head-Gordon, M. (1989). A fifth-order perturbation comparison of electron correlation theories. <em>Chemical Physics Letters</em> 157.</li>
+        <li>Kołos, W. &amp; Wolniewicz, L. (1968). Improved theoretical ground-state energy of the hydrogen molecule. <em>Journal of Chemical Physics</em> 49; Herzberg, G. (1970). The dissociation energy of the hydrogen molecule. <em>Journal of Molecular Spectroscopy</em> 33.</li>
+        <li>Hohenberg, P. &amp; Kohn, W. (1964). Inhomogeneous electron gas. <em>Physical Review</em> 136; Kohn, W. &amp; Sham, L. J. (1965). Self-consistent equations including exchange and correlation effects. <em>Physical Review</em> 140.</li>
+        <li>Ceperley, D. M. &amp; Alder, B. J. (1980). Ground state of the electron gas by a stochastic method. <em>Physical Review Letters</em> 45; Vosko, S. H., Wilk, L. &amp; Nusair, M. (1980). Accurate spin-dependent electron liquid correlation energies for local spin density calculations. <em>Canadian Journal of Physics</em> 58.</li>
+        <li>Becke, A. D. (1993). Density-functional thermochemistry. III. The role of exact exchange. <em>Journal of Chemical Physics</em> 98; Lee, C., Yang, W. &amp; Parr, R. G. (1988). <em>Physical Review B</em> 37; Perdew, J. P., Burke, K. &amp; Ernzerhof, M. (1996). Generalized gradient approximation made simple. <em>Physical Review Letters</em> 77; Perdew, J. P. &amp; Schmidt, K. (2001). Jacob's ladder of density functional approximations for the exchange-correlation energy. <em>AIP Conference Proceedings</em> 577.</li>
+        <li>Kotochigova, S., Levine, Z. H., Shirley, E. L., Stiles, M. D. &amp; Clark, C. W. (1997). Atomic reference data for electronic structure calculations. NIST; Clementi, E. &amp; Roetti, C. (1974). Roothaan–Hartree–Fock atomic wavefunctions. <em>Atomic Data and Nuclear Data Tables</em> 14; Chakravorty, S. J. et al. (1993). Ground-state correlation energies for atomic ions with 3 to 18 electrons. <em>Physical Review A</em> 47.</li>
+        <li>The Nobel Prize in Chemistry: 1966 (Mulliken), 1998 (Kohn, Pople), 2013 (Karplus, Levitt, Warshel), 2024 (Baker, Hassabis, Jumper). nobelprize.org.</li>
+        <li>London, F. (1929). Quantenmechanische Deutung des Vorgangs der Aktivierung. <em>Zeitschrift für Elektrochemie</em> 35; Eyring, H. &amp; Polanyi, M. (1931). Über einfache Gasreaktionen. <em>Zeitschrift für physikalische Chemie B</em> 12.</li>
+        <li>Eyring, H. (1935). The activated complex in chemical reactions. <em>Journal of Chemical Physics</em> 3; Evans, M. G. &amp; Polanyi, M. (1935). Some applications of the transition state method to the calculation of reaction velocities. <em>Transactions of the Faraday Society</em> 31; Sato, S. (1955). Potential energy surface of the system of three atoms. <em>Journal of Chemical Physics</em> 23.</li>
+        <li>Liu, B. (1973). Ab initio potential energy surface for linear H₃. <em>Journal of Chemical Physics</em> 58; Siegbahn, P. &amp; Liu, B. (1978). An accurate three-dimensional potential energy surface for H₃. <em>Journal of Chemical Physics</em> 68.</li>
+        <li>Metropolis, N., Rosenbluth, A. W., Rosenbluth, M. N., Teller, A. H. &amp; Teller, E. (1953). Equation of state calculations by fast computing machines. <em>Journal of Chemical Physics</em> 21.</li>
+        <li>Ryckaert, J.-P. &amp; Bellemans, A. (1975). Molecular dynamics of liquid n-butane near its boiling point. <em>Chemical Physics Letters</em> 30.</li>
+        <li>Alder, B. J. &amp; Wainwright, T. E. (1957). Phase transition for a hard sphere system. <em>Journal of Chemical Physics</em> 27; Rahman, A. (1964). Correlations in the motion of atoms in liquid argon. <em>Physical Review</em> 136; Verlet, L. (1967). Computer "experiments" on classical fluids. I. <em>Physical Review</em> 159.</li>
+        <li>Lifson, S. &amp; Warshel, A. (1968). Consistent force field for calculations of conformations, vibrational spectra, and enthalpies of cycloalkane and n-alkane molecules. <em>Journal of Chemical Physics</em> 49; Levitt, M. &amp; Lifson, S. (1969). Refinement of protein conformations using a macromolecular energy minimization procedure. <em>Journal of Molecular Biology</em> 46.</li>
+        <li>Allinger, N. L. (1977). Conformational analysis. 130. MM2. <em>Journal of the American Chemical Society</em> 99; Brooks, B. R. et al. (1983). CHARMM. <em>Journal of Computational Chemistry</em> 4; Cornell, W. D. et al. (1995). A second generation force field for the simulation of proteins, nucleic acids, and organic molecules. <em>Journal of the American Chemical Society</em> 117.</li>
+        <li>McCammon, J. A., Gelin, B. R. &amp; Karplus, M. (1977). Dynamics of folded proteins. <em>Nature</em> 267; Warshel, A. &amp; Levitt, M. (1976). Theoretical studies of enzymic reactions. <em>Journal of Molecular Biology</em> 103.</li>
+        <li>Shaw, D. E. et al. (2010). Atomic-level characterization of the structural dynamics of proteins. <em>Science</em> 330.</li>
+        <li>Behler, J. &amp; Parrinello, M. (2007). Generalized neural-network representation of high-dimensional potential-energy surfaces. <em>Physical Review Letters</em> 98; Jumper, J. et al. (2021). Highly accurate protein structure prediction with AlphaFold. <em>Nature</em> 596.</li>
+        <li>Reiher, M. et al. (2017). Elucidating reaction mechanisms on quantum computers. <em>Proceedings of the National Academy of Sciences</em> 114.</li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">LearnAnything · Volume 7 · Every figure computes its result in your browser from the methods described; models are simplified where captions say so.</footer>
+
+<script src="../../assets/js/lab.js"></script>
+<script src="js/cc.js"></script>
+<script src="js/hero.js"></script>
+<script src="js/electrons.js"></script>
+<script src="js/nuclei.js"></script>
+<script>Lab.rail();</script>
+</body>
+</html>

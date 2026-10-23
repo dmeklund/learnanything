@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Downhill</title>
+<meta name="description" content="Convex optimization: Lagrange multipliers, gradient descent, linear programming, duality, portfolios, interior-point methods, and sparsity, with figures that run the algorithms in your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=STIX+Two+Text:ital,wght@0,400..700;1,400..700&family=Fragment+Mono:ital@0;1&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<style>
+/* Volume VIII identity: a topographic survey sheet. Contour lines in survey brown ring the title,
+   water blue and vegetation green appear only as data, Young Serif for headings (a map-title face),
+   STIX Two Text for reading because it was drawn to sit beside mathematics, Fragment Mono for data. */
+:root {
+  --paper: #F8F8F4; --paper-2: #EEEFE8; --paper-3: #FCFCFA;
+  --grid: #E0E2D8; --rule: #C8CBBD;
+  --ink: #1A1C1A; --ink-2: #3F4440; --ink-3: #636963;
+  --accent: #8A4F1D; --signal: #1E5F6E; --tertiary: #2E9C82;
+  --s1: #1D4A9E; --s2: #C64A1C; --s3: #2E9C82;
+  --accent-wash: rgba(138, 79, 29, .08); --signal-wash: rgba(30, 95, 110, .1);
+  --topo: #A8733F;
+  --f-display: "Young Serif", Georgia, "Times New Roman", serif;
+  --f-body: "STIX Two Text", "STIX Two", Georgia, "Times New Roman", serif;
+  --f-mono: "Fragment Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --rail: 180px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #14161A; --paper-2: #1B1E22; --paper-3: #212428;
+    --grid: #262A2F; --rule: #363B42;
+    --ink: #E6E7E3; --ink-2: #B0B4AE; --ink-3: #82877F;
+    --accent: #E0A266; --signal: #7CC4D4; --tertiary: #35A386;
+    --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+    --accent-wash: rgba(224, 162, 102, .1); --signal-wash: rgba(124, 196, 212, .1);
+    --topo: #9A7350;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #14161A; --paper-2: #1B1E22; --paper-3: #212428;
+  --grid: #262A2F; --rule: #363B42;
+  --ink: #E6E7E3; --ink-2: #B0B4AE; --ink-3: #82877F;
+  --accent: #E0A266; --signal: #7CC4D4; --tertiary: #35A386;
+  --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+  --accent-wash: rgba(224, 162, 102, .1); --signal-wash: rgba(124, 196, 212, .1);
+  --topo: #9A7350;
+}
+body { background: var(--paper); font-size: 1.08rem; }
+.hero { position: relative; grid-template-columns: 1fr; gap: 24px; isolation: isolate; }
+.hero::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none; top: -110px; right: 0; width: min(720px, 100%); height: 560px;
+  background: repeating-radial-gradient(ellipse 120% 80% at 75% 28%, transparent 0 26px, var(--topo) 26px 27px);
+  opacity: .28;
+  -webkit-mask-image: radial-gradient(ellipse at 75% 28%, #000 0 30%, transparent 66%); mask-image: radial-gradient(ellipse at 75% 28%, #000 0 30%, transparent 66%);
+}
+.hero h1 { font: 400 clamp(3.4rem, 10vw, 7.4rem)/.92 var(--f-display); letter-spacing: -.02em; margin-top: 10px; }
+.hero h1 i { font-style: normal; color: var(--accent); }
+.hero .dek { max-width: 54ch; }
+.chapter-head .year { font: 400 clamp(2.8rem, 7.4vw, 4.6rem)/.9 var(--f-display); letter-spacing: -.02em; }
+.chapter-head h2 { font: 400 clamp(1.9rem, 4.4vw, 3rem)/1.06 var(--f-display); letter-spacing: -.015em; }
+.prose h3 { font: 400 var(--t-lg)/1.25 var(--f-display); }
+.bench-head h4, .volume h2 { font-family: var(--f-display); font-weight: 400; }
+.bench-head h4 { font-size: 1.25rem; }
+.rail a { grid-template-columns: 46px 1fr; }
+.rail a .yr { font-size: 11px; }
+.part-head { max-width: var(--measure); padding-top: 64px; display: grid; gap: 4px; }
+.part-head .label { color: var(--accent); }
+.part-head h2 { font: 400 var(--t-xl)/1 var(--f-display); }
+.hero-bowl canvas { width: 100%; display: block; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.hero-bowl figcaption { font: 400 var(--t-xs)/1.5 var(--f-mono); color: var(--ink-3); padding-top: 6px; }
+.chart-wrap svg { width: 100%; display: block; }
+b.warn, .warn { color: var(--s2); }
+.callout { max-width: var(--measure); border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; display: grid; gap: 6px; }
+.callout .label { color: var(--accent); }
+.stat-row { display: flex; flex-wrap: wrap; gap: 12px 40px; max-width: var(--measure); padding-block: 8px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.stat-row div { display: grid; gap: 2px; }
+.stat-row b { font: 400 var(--t-xl)/1.05 var(--f-display); }
+.stat-row span { font: 400 var(--t-xs)/1.3 var(--f-mono); color: var(--ink-3); }
+.table-wrap { overflow-x: auto; max-width: var(--bench); }
+table.compare { border-collapse: collapse; font-size: var(--t-sm); min-width: 640px; width: 100%; }
+table.compare th { font: 500 var(--t-xs)/1.3 var(--f-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px; border-bottom: 1px solid var(--ink-3); vertical-align: bottom; }
+table.compare td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+table.compare td:first-child { font-weight: 600; color: var(--ink); white-space: nowrap; }
+.nocase { text-transform: none; letter-spacing: 0; }
+</style>
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg', 'canvas'] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="brand" href="../../index.html">Learn<b>Anything</b></a>
+  <span class="where">Vol. 8 · Convex optimization</span>
+  <span class="progress" aria-hidden="true"></span>
+</header>
+
+<div class="module">
+  <nav class="rail" aria-label="Chapters"><ol></ol></nav>
+
+  <main class="content">
+
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="label">Volume 8 · The mathematics of the best choice</p>
+        <h1 id="title">Down<i>hill</i></h1>
+        <p class="dek">How to find the best of infinitely many options: Lagrange's multipliers, gradient descent, linear programming, the duality that certifies an answer is optimal, the interior-point methods that made large problems routine, and the sparsity behind modern statistics, all resting on one property, convexity.</p>
+        <div class="meta">
+          <span class="label">10 chapters</span>
+          <span class="label">9 interactive figures</span>
+          <span class="label">1788 → today</span>
+        </div>
+      </div>
+      <figure class="hero-bowl" id="hero-bowl" style="margin:0">
+        <canvas role="img" aria-label="Contour map of a convex function with steepest-descent paths starting from points all around the edge and all ending at the single minimum"></canvas>
+        <figcaption>Paths of steepest descent from 24 starting points on a convex function (Boyd &amp; Vandenberghe, §9.3). Every path ends at the same minimum.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PROLOGUE -->
+    <section class="chapter" id="prologue" data-year="Pro" data-short="One watershed">
+      <div class="chapter-head">
+        <span class="label kicker">Prologue</span>
+        <h2>The great watershed</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">An optimization problem asks for the values of some variables that make an objective as small (or large) as possible while respecting constraints: the cheapest diet that meets nutritional requirements, the portfolio with the least risk for a given return, the model that best fits data. Most such problems are hopeless in general. A function can have countless valleys, and a search that finds the bottom of one learns nothing about the others.</p>
+        <p>Convex problems are different. The function curves upward everywhere, like a bowl, and the feasible set has no dents. Then any valley is the only valley, as the paths in the figure above show, and there are efficient algorithms that find its bottom and prove they have. In 1993 the mathematician R. Tyrrell Rockafellar put it this way:</p>
+        <blockquote>In fact the great watershed in optimization isn't between linearity and nonlinearity, but convexity and nonconvexity.</blockquote>
+        <p>This volume follows the ideas that led there: Lagrange's multipliers for constraints, Cauchy's gradient descent, the linear programming of the 1940s and its duality theory, the conditions for optimality that Karush, Kuhn, and Tucker found, Markowitz's portfolios, the interior-point methods of the 1980s, and the convex penalties that find sparse answers in statistics and signal processing.</p>
+      </div>
+      <div class="stat-row">
+        <div><b>local = global</b><span>for a convex function, every local minimum is a global minimum</span></div>
+        <div><b>p* ≥ d*</b><span>the dual always bounds the optimum; for convex problems they usually meet</span></div>
+      </div>
+      <dl class="defn">
+        <dt>Convex set</dt><dd>A set that contains the straight segment between any two of its points.</dd>
+        <dt>Convex function</dt><dd>A function whose graph lies on or below the chord between any two of its points: \(f(\theta x + (1-\theta)y) \le \theta f(x) + (1-\theta) f(y)\) for \(0 \le \theta \le 1\).</dd>
+        <dt>Feasible</dt><dd>Satisfying all of a problem's constraints.</dd>
+      </dl>
+    </section>
+
+    <!-- ===================================================== PART I -->
+    <div class="part-head"><span class="label">Part I</span><h2>Calculus, then linear programs</h2></div>
+
+    <section class="chapter" id="lagrange" data-year="1788" data-short="Lagrange multipliers">
+      <div class="chapter-head">
+        <span class="year">1788</span>
+        <span class="label kicker">Chapter 1 · Constraints</span>
+        <h2>Where the level set touches the constraint</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Calculus finds unconstrained minima by setting the derivative to zero, an idea Pierre de Fermat used in the 1630s. Constraints complicate it: the best point on a curve is usually not where the function's gradient vanishes. Joseph-Louis Lagrange gave the answer in his <em>Mécanique analytique</em> of 1788, in the course of treating mechanical systems with constraints.</p>
+        <p>To minimize \(f(x)\) subject to \(h(x) = 0\), look for points where you cannot move along the constraint and still go downhill. That happens exactly when the gradient of \(f\) is perpendicular to the constraint, which is to say parallel to the constraint's own gradient:</p>
+        <div class="math-block">\[ \nabla f(x^\star) + \nu\,\nabla h(x^\star) = 0, \qquad h(x^\star) = 0. \]</div>
+        <p>The number \(\nu\) is the <em>Lagrange multiplier</em>. Lagrange packaged the conditions as the stationary points of a single function, the <em>Lagrangian</em> \(L(x, \nu) = f(x) + \nu\,h(x)\). The multiplier also has a meaning of its own: it is the rate at which the best achievable value changes when the constraint is loosened. Economists call it a <em>shadow price</em>, the value of one more unit of a scarce resource.</p>
+      </div>
+
+      <figure class="bench" id="fig-lagrange">
+        <div class="bench-head"><span class="fig">Fig. 1.1</span><span class="label">Interactive</span><h4>A Lagrange multiplier</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="lg-r"><span>Constraint radius <span class="nocase">r</span></span> <output>1.50</output></label><input type="range" id="lg-r" min="0.5" max="2.6" step="0.01" value="1.5"></div>
+          <div class="ctl"><label for="lg-t">Probe point angle <output>200°</output></label><input type="range" id="lg-t" min="0" max="359" step="1" value="200"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Level sets of a function with a circular constraint, gradients at a probe point and at the constrained minimum"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Gray ellipses are level sets of \(f(x,y) = (x-2)^2 + 3(y-1.2)^2\); the blue circle is the constraint. At the probe point the downhill direction (vermilion) has a component along the circle, so moving along it lowers \(f\). At the constrained minimum the two arrows line up, and the circle is tangent to a level set. The readouts check the multiplier's meaning: \(-2r\nu\) predicts how fast the optimal value changes with the radius, and a finite difference measures it.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="gradient" data-year="1847" data-short="Gradient descent">
+      <div class="chapter-head">
+        <span class="year">1847</span>
+        <span class="label kicker">Chapter 2 · Iteration</span>
+        <h2>Walking downhill</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Lagrange's conditions are equations, and most equations cannot be solved by hand. In 1847 Augustin-Louis Cauchy, wanting to solve the equations of astronomical orbits, proposed a method that needs only the gradient: from the current point, take a step in the direction of steepest descent, and repeat,</p>
+        <div class="math-block">\[ x_{k+1} = x_k - \alpha\,\nabla f(x_k). \]</div>
+        <p>On a bowl-shaped function this always makes progress, but how fast depends on the bowl's shape. If the function is much steeper in some directions than others, measured by the <em>condition number</em> \(\kappa = L/\mu\) (the ratio of the largest to the smallest curvature), the steps zigzag across the narrow valley. With the best fixed step size, the error on a quadratic shrinks by a factor of \(\big((\kappa-1)/(\kappa+1)\big)^2\) per step, so the number of steps needed grows in proportion to \(\kappa\).</p>
+        <h3>Momentum</h3>
+        <p>In 1964 Boris Polyak added momentum: each step also continues some of the previous step, \(x_{k+1} = x_k - \alpha\nabla f(x_k) + \beta(x_k - x_{k-1})\), like a heavy ball rolling down the valley, whose inertia damps the zigzag. In 1983 Yurii Nesterov found a variant that evaluates the gradient after the momentum step and proved it optimal: no method using only gradients can do better on the worst smooth convex functions. Both reduce the number of steps from order \(\kappa\) to order \(\sqrt\kappa\). Stochastic versions of these methods train nearly every neural network today.</p>
+      </div>
+
+      <figure class="bench" id="fig-gd">
+        <div class="bench-head"><span class="fig">Fig. 2.1</span><span class="label">Interactive</span><h4>Gradient descent and momentum</h4></div>
+        <div class="controls">
+          <div class="ctl"><span class="label">Method</span><div class="chips"><button class="chip" type="button" data-gd="gd" aria-pressed="true">Gradient descent</button><button class="chip" type="button" data-gd="hb" aria-pressed="false">Heavy ball</button><button class="chip" type="button" data-gd="nest" aria-pressed="false">Nesterov</button></div></div>
+          <div class="ctl"><label for="gd-k"><span>Condition number <span class="nocase">κ</span></span> <output>20</output></label><input type="range" id="gd-k" min="0" max="2.5" step="0.05" value="1.3"></div>
+          <div class="ctl"><label for="gd-s">Step size, relative to the best <output>×1.00</output></label><input type="range" id="gd-s" min="0.1" max="1.15" step="0.01" value="1"></div>
+        </div>
+        <div class="stage">
+          <div class="chart-wrap"><svg role="img" aria-label="Path of the chosen method on the contours of an elongated quadratic bowl"></svg></div>
+          <div class="chart-wrap"><svg role="img" aria-label="Error versus iteration for gradient descent, heavy ball, and Nesterov's method on a log scale"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: the first 60 steps of the chosen method on \(f = \tfrac12(u^2 + \kappa v^2)\), rotated 30°. Right: the error for all three methods, the chosen one in bold. Raise κ and plain gradient descent slows in proportion while the momentum methods slow only with its square root. Push the step size past ×1 and gradient descent starts to overshoot; beyond ×(1 + 1/κ) it diverges. Each method uses its textbook step size times the multiplier.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="lp" data-year="1947" data-short="Linear programming">
+      <div class="chapter-head">
+        <span class="year">1947</span>
+        <span class="label kicker">Chapter 3 · Linear programming</span>
+        <h2>Corners of a polygon</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A linear program minimizes or maximizes a linear objective subject to linear inequalities. The Soviet mathematician Leonid Kantorovich formulated such problems for planning plywood production in 1939, but his work was little known outside the USSR. In the United States, George Dantzig was trying to mechanize the planning of Air Force logistics. In 1947 he invented the <em>simplex method</em> to solve them.</p>
+        <p>The feasible set of a linear program is a convex polyhedron, and a linear objective always attains its best value at a corner. The simplex method starts at a corner and moves along an edge to a neighboring corner that improves the objective, repeating until no neighbor is better. In 1947 Jack Laderman of the National Bureau of Standards used it on George Stigler's "diet problem," the cheapest combination of 77 foods meeting nine nutritional requirements. Nine clerks with desk calculators spent 120 person-days to find the optimum: $39.69 a year, at 1939 prices.</p>
+        <p>Linear programming spread through industry and economics within a decade: refinery blending, airline crew scheduling, shipping. Kantorovich and Tjalling Koopmans shared the 1975 Nobel Memorial Prize in Economic Sciences for their contributions to the theory of the optimal allocation of resources. In 1972 Victor Klee and George Minty constructed problems on which the simplex method visits every one of exponentially many corners, but on practical problems it usually takes a modest number of steps, a gap between theory and practice that took decades to explain.</p>
+        <p>The figure uses a two-variable example from Frederick Hillier and Gerald Lieberman's operations research textbook. A glass company decides weekly production of two products (in batches) to maximize profit \(3x + 5y\) (thousands of dollars), given limited hours in three plants: \(x \le 4\), \(2y \le 12\), \(3x + 2y \le 18\).</p>
+      </div>
+
+      <figure class="bench" id="fig-lp">
+        <div class="bench-head"><span class="fig">Fig. 3.1</span><span class="label">Interactive</span><h4>The simplex method on a small production problem</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="lp-a">Direction of the objective <output>59°</output></label><input type="range" id="lp-a" min="0" max="90" step="1" value="59"></div>
+          <button class="chip" type="button" id="lp-go">Run simplex from (0, 0)</button>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Feasible polygon of a two-variable linear program with the simplex path from the origin to the optimal corner"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The shaded polygon is every production plan the plants can handle. The arrow points in the direction of increasing objective, and the dashed line is the set of plans as good as the current corner. Starting from producing nothing, the simplex method moves to the adjacent corner with the larger gain until none is better. At the default direction (profit 3x + 5y) it reaches (2, 6), profit 36, after two pivots, the path the textbook shows. Rotate the objective and the best corner jumps; at some angles a whole edge is optimal.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="kkt" data-year="1951" data-short="Convexity and KKT">
+      <div class="chapter-head">
+        <span class="year">1951</span>
+        <span class="label kicker">Chapter 4 · Optimality conditions</span>
+        <h2>Why convexity makes local global</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Lagrange handled equality constraints. Inequalities, which say a resource can be used up to some limit, need more care: a constraint matters at the optimum only if it is tight. William Karush worked out the conditions in his 1939 master's thesis at the University of Chicago, which went unpublished; Harold Kuhn and Albert Tucker found them independently and published them in 1951. For minimizing \(f(x)\) subject to \(g_i(x) \le 0\), the Karush–Kuhn–Tucker (KKT) conditions require multipliers \(\lambda_i\) with</p>
+        <div class="math-block">\[ \nabla f(x^\star) + \sum_i \lambda_i \nabla g_i(x^\star) = 0, \qquad \lambda_i \ge 0, \qquad \lambda_i\, g_i(x^\star) = 0. \]</div>
+        <p>The last condition, <em>complementary slackness</em>, says that each multiplier is zero unless its constraint is active. For a general problem these conditions are necessary, under mild assumptions, but not sufficient: they hold at every local minimum, every saddle, and every local maximum of the right kind.</p>
+        <h3>Convexity</h3>
+        <p>For convex problems, the KKT conditions are also sufficient. The reason is the defining inequality of a convex function: it lies above all its tangent lines,</p>
+        <div class="math-block">\[ f(y) \ge f(x) + \nabla f(x)^{\mathsf T}(y - x) \quad \text{for all } x, y. \]</div>
+        <p>If the gradient is zero at \(x\), then \(f(y) \ge f(x)\) for every \(y\): a point where the slope vanishes is a global minimum. Any local minimum of a convex function is therefore global, and any algorithm that reliably goes downhill will find it. Werner Fenchel's 1951 lecture notes and Rockafellar's <em>Convex Analysis</em> (1970) built this into a complete theory.</p>
+      </div>
+
+      <figure class="bench" id="fig-local">
+        <div class="bench-head"><span class="fig">Fig. 4.1</span><span class="label">Interactive</span><h4>Local is global, until the function stops being convex</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="lc-s"><span>Wiggle amplitude <span class="nocase">s</span></span> <output>0.300</output></label><input type="range" id="lc-s" min="0" max="0.8" step="0.004" value="0.3"></div>
+          <div class="ctl"><label for="lc-a">Chord start <output>-4.0</output></label><input type="range" id="lc-a" min="-6" max="6" step="0.1" value="-4"></div>
+          <div class="ctl"><label for="lc-b">Chord end <output>3.0</output></label><input type="range" id="lc-b" min="-6" max="6" step="0.1" value="3"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="A one-dimensional function with the endpoints of 40 gradient-descent runs and a chord between two points"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Forty gradient-descent runs start at evenly spaced points; each circle is a place where some of them stopped, labeled with how many. Blue marks the global minimum. Set s below 0.048 and the function is convex: every run ends in the same place, and no chord dips below the curve. Raise s and dents appear; most runs get stuck in local minima, and the vermilion shading shows where the chord passes under the curve, the visible failure of the convexity inequality.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PART II -->
+    <div class="part-head"><span class="label">Part II</span><h2>Duality, risk, and interior points</h2></div>
+
+    <section class="chapter" id="duality" data-year="Dual" data-short="Duality">
+      <div class="chapter-head">
+        <span class="year">Dual</span>
+        <span class="label kicker">Chapter 5 · Duality</span>
+        <h2>A lower bound that meets the answer</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">On 31 October 1947 Dantzig visited John von Neumann at the Institute for Advanced Study to describe linear programming. Von Neumann, who had just finished <em>Theory of Games and Economic Behavior</em> with Oskar Morgenstern, saw immediately that every linear program has a twin, a <em>dual</em> program, and conjectured that their optimal values are equal, as in his minimax theorem for games. David Gale, Kuhn, and Tucker published the first proof in 1951.</p>
+        <p>The idea works for any problem. Move the constraints into the objective with multipliers, and minimize over \(x\) without constraints. The result is the <em>dual function</em></p>
+        <div class="math-block">\[ g(\lambda) = \min_x \Big[f(x) + \sum_i \lambda_i\, g_i(x)\Big], \qquad \lambda \ge 0. \]</div>
+        <p>For any feasible \(x\) and any \(\lambda \ge 0\), the penalty terms are non-positive, so \(g(\lambda) \le f(x)\). Every value of the dual function is a lower bound on the optimum \(p^\star\). This is <em>weak duality</em>, and it needs no assumptions. The best bound, \(d^\star = \max_\lambda g(\lambda)\), is found by solving the dual problem, which is always concave even when the original problem is not.</p>
+        <p>For convex problems, under a mild condition found by Morton Slater in 1950 (some point strictly satisfies the inequality constraints), the bound is tight: \(d^\star = p^\star\), <em>strong duality</em>. This is what makes convex optimization certifiable. An algorithm that holds a feasible point and a dual value whose gap is below \(10^{-8}\) has proved its answer is within \(10^{-8}\) of optimal. For nonconvex problems a gap usually remains.</p>
+      </div>
+
+      <figure class="bench" id="fig-dual">
+        <div class="bench-head"><span class="fig">Fig. 5.1</span><span class="label">Interactive</span><h4>Weak and strong duality</h4></div>
+        <div class="controls">
+          <div class="ctl"><span class="label">Objective</span><div class="chips"><button class="chip" type="button" data-dp="convex" aria-pressed="true">Convex: x²</button><button class="chip" type="button" data-dp="nonconvex" aria-pressed="false">Nonconvex: x⁴ − 4x² + x</button></div></div>
+          <div class="ctl"><label for="du-b"><span>Constraint <span class="nocase">x ≥ b</span></span> <output>1.0</output></label><input type="range" id="du-b" min="-2" max="2" step="0.1" value="1"></div>
+          <div class="ctl"><label for="du-l"><span>Multiplier <span class="nocase">λ</span></span> <output>1.00</output></label><input type="range" id="du-l" min="0" max="8" step="0.05" value="1"></div>
+        </div>
+        <div class="stage">
+          <div class="chart-wrap"><svg role="img" aria-label="Objective function with feasible region and the Lagrangian for the chosen multiplier"></svg></div>
+          <div class="chart-wrap"><svg role="img" aria-label="Dual function versus multiplier, with the primal optimal value"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: the objective (black), the feasible region (shaded), and the Lagrangian for your λ (dashed), whose minimum over all x is the dual value g(λ). Right: g(λ) for every λ, always below p*. For the convex objective, the peak of the dual function touches p* exactly. Switch to the nonconvex objective with b near 0: the best lower bound falls short, and the shortfall is the duality gap. Computed by brute-force minimization on a fine grid.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="markowitz" data-year="1952" data-short="Portfolios">
+      <div class="chapter-head">
+        <span class="year">1952</span>
+        <span class="label kicker">Chapter 6 · Quadratic programming</span>
+        <h2>Risk as a quadratic</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1952 Harry Markowitz, a graduate student at the University of Chicago, published "Portfolio Selection." Investors, he argued, care about two things: expected return and risk, measured by the variance of return. A portfolio with weights \(w\) on assets with expected returns \(\mu\) and covariance matrix \(\Sigma\) has expected return \(\mu^{\mathsf T}w\) and variance \(w^{\mathsf T}\Sigma w\), a convex quadratic. Diversification works because assets that do not move together have small covariances, so a mix can have less variance than any of its parts.</p>
+        <p>The best portfolios for every attitude toward risk solve</p>
+        <div class="math-block">\[ \max_w\ \mu^{\mathsf T}w - \frac{\gamma}{2}\,w^{\mathsf T}\Sigma w \quad \text{subject to}\quad \mathbf 1^{\mathsf T}w = 1,\ \ w \ge 0, \]</div>
+        <p>where \(\gamma\) measures risk aversion. As \(\gamma\) varies, the solutions trace the <em>efficient frontier</em>: no portfolio off it has both higher return and lower risk. Without the constraint \(w \ge 0\), which forbids borrowing assets to sell them short, the problem has a closed-form solution; with it, the problem is a <em>quadratic program</em>, convex but requiring an algorithm. Markowitz developed one, the critical line method, in 1956. He shared the 1990 Nobel Memorial Prize in Economic Sciences. Mean-variance optimization is a building block of investment practice, though estimation error in \(\mu\) makes its raw answers notoriously unstable.</p>
+      </div>
+
+      <figure class="bench" id="fig-port">
+        <div class="bench-head"><span class="fig">Fig. 6.1</span><span class="label">Interactive</span><h4>Markowitz's efficient frontier</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="pf-g"><span>Risk aversion <span class="nocase">γ</span></span> <output>10</output></label><input type="range" id="pf-g" min="-1" max="2.8" step="0.02" value="1"></div>
+          <label class="check"><input type="checkbox" id="pf-s"> Allow short sales</label>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Efficient frontier of four assets in risk-return space, with the chosen portfolio and its weights"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Four asset classes (open circles) and the frontier of the best long-only portfolios (blue). The vermilion dot is the optimum for your risk aversion, with its weights in the bar below. At low risk aversion the portfolio concentrates in the highest-return asset; as γ rises it diversifies and slides down the frontier toward bonds. Notice that the low end of the frontier has less risk than bonds alone, from mixing in weakly correlated stocks. Allowing short sales extends the frontier beyond any single asset. Returns, volatilities, and correlations are illustrative round numbers, not market estimates. Solved by projected gradient ascent onto the budget simplex.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="interior" data-year="1984" data-short="Interior-point methods">
+      <div class="chapter-head">
+        <span class="year">1984</span>
+        <span class="label kicker">Chapter 7 · Interior-point methods</span>
+        <h2>Through the middle instead of around the edge</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The Klee–Minty examples left open whether linear programs could be solved in time polynomial in their size. In 1979 Leonid Khachiyan showed they could, with the ellipsoid method; the news reached the front page of <em>The New York Times</em>, but the method was too slow to use. In 1984 Narendra Karmarkar of AT&amp;T Bell Laboratories announced a polynomial-time method that was also fast in practice, and it too made the front page. His method moved through the interior of the feasible region instead of along its edges.</p>
+        <p>The modern form uses a <em>logarithmic barrier</em>. Replace the constraints \(a_i^{\mathsf T}x \le b_i\) by a penalty that grows without bound at the boundary, and weight the objective by a parameter \(t\):</p>
+        <div class="math-block">\[ \min_x\ \ t\, c^{\mathsf T}x - \sum_{i=1}^m \log\big(b_i - a_i^{\mathsf T}x\big). \]</div>
+        <p>For each \(t\) the minimizer \(x^\star(t)\) lies strictly inside, and it can be found quickly with Newton's method. As \(t\) grows, \(x^\star(t)\) traces the <em>central path</em> toward the optimal corner. Duality supplies the stopping rule: the point on the central path is within \(m/t\) of optimal, where \(m\) is the number of constraints. Increase \(t\) by a constant factor, take a few Newton steps from the previous point, and repeat; the number of steps grows only slowly with problem size.</p>
+        <p>In 1994 Yurii Nesterov and Arkadi Nemirovski showed that the same approach works for any convex problem with a suitable "self-concordant" barrier, including second-order cone and semidefinite programs. Interior-point methods now solve problems with millions of variables and sit inside most commercial solvers alongside the simplex method.</p>
+      </div>
+
+      <figure class="bench" id="fig-barrier">
+        <div class="bench-head"><span class="fig">Fig. 7.1</span><span class="label">Interactive</span><h4>The central path</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="ba-t"><span>Barrier parameter <span class="nocase">t</span></span> <output>0.316</output></label><input type="range" id="ba-t" min="-2.5" max="3" step="0.05" value="-0.5"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="The production problem's feasible polygon with barrier level sets and the central path from the analytic center to the optimal corner"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The same production problem as Fig. 3.1. At small t the barrier dominates and the minimizer sits near the analytic center, the point farthest from all constraints in a logarithmic sense. Increase t and the minimizer slides along the blue central path toward the optimal corner (2, 6), with the gray level sets of the barrier problem squeezing around it. The readout confirms the duality bound: the true gap is always below m/t with m = 5 constraints. Each point is computed by damped Newton's method in your browser.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PART III -->
+    <div class="part-head"><span class="label">Part III</span><h2>Sparsity and modern practice</h2></div>
+
+    <section class="chapter" id="sparsity" data-year="1996" data-short="Sparsity and the lasso">
+      <div class="chapter-head">
+        <span class="year">1996</span>
+        <span class="label kicker">Chapter 8 · Sparsity</span>
+        <h2>Corners that give exact zeros</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Fitting a model with many possible inputs raises a question that convexity answers elegantly: which inputs matter? Choosing the best subset of \(k\) out of \(p\) variables is a combinatorial problem. In 1996 Robert Tibshirani proposed the <em>lasso</em>, which instead penalizes the sum of absolute values of the coefficients,</p>
+        <div class="math-block">\[ \min_\beta\ \frac{1}{2n}\,\|y - X\beta\|_2^2 + \lambda\,\|\beta\|_1, \qquad \|\beta\|_1 = \sum_j |\beta_j|. \]</div>
+        <p>The problem is convex, and its solutions have many coefficients exactly equal to zero. The reason is geometric. The equivalent constrained problem asks for the point of a diamond-shaped region \(\|\beta\|_1 \le \tau\) where the loss is smallest, and an expanding elliptical level set of the loss usually first touches the diamond at a corner, where some coordinates are zero. A round constraint \(\|\beta\|_2 \le \tau\) (ridge regression, Hoerl and Kennard, 1970) has no corners, so it shrinks coefficients without zeroing them.</p>
+        <p>The same idea appeared in signal processing. Scott Chen, David Donoho, and Michael Saunders's <em>basis pursuit</em> (1998) found sparse representations of signals by \(\ell_1\) minimization, and in 2006 Emmanuel Candès, Justin Romberg, and Terence Tao, and independently Donoho, proved that sparse signals can be recovered exactly from far fewer measurements than classical sampling theory requires. <em>Compressed sensing</em> now shortens MRI scans: modern scanners undersample k-space and reconstruct by convex optimization.</p>
+      </div>
+
+      <figure class="bench" id="fig-l1">
+        <div class="bench-head"><span class="fig">Fig. 8.1</span><span class="label">Interactive</span><h4>Diamonds and circles</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="l1-t"><span>Budget <span class="nocase">τ</span></span> <output>1.20</output></label><input type="range" id="l1-t" min="0.2" max="2.6" step="0.02" value="1.2"></div>
+          <div class="ctl"><label for="l1-a">Direction of the unconstrained fit <output>15°</output></label><input type="range" id="l1-a" min="0" max="90" step="1" value="15"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="An l1 diamond and an l2 circle with the level sets of a least-squares loss touching each"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The black dot is the least-squares fit without constraints; gray ellipses are its loss levels. The vermilion point is the best fit inside the diamond (lasso) and the blue point the best fit inside the circle (ridge), each where a level set first touches its region. Over a wide range of directions the lasso solution sits exactly at a corner with one coefficient zero, while the ridge solution never does; only when the fit points near the diagonal does the lasso land on an edge. Solved by projected gradient descent with exact projections onto each ball.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>The regularization path</h3>
+        <p>Varying \(\lambda\) from large to small traces the <em>lasso path</em>. At large \(\lambda\) every coefficient is zero; as \(\lambda\) decreases, variables enter one at a time. Bradley Efron, Trevor Hastie, Iain Johnstone, and Tibshirani showed in 2004 that the path is piecewise linear and can be computed with least-angle regression; in 2007 Jerome Friedman, Hastie, and Tibshirani showed that simple coordinate descent, which cycles through the coefficients and soft-thresholds each one, is fast enough for problems with hundreds of thousands of variables.</p>
+      </div>
+
+      <figure class="bench" id="fig-path">
+        <div class="bench-head"><span class="fig">Fig. 8.2</span><span class="label">Interactive</span><h4>The lasso path</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="lp-l">Position along the path <output></output></label><input type="range" id="lp-l" min="0" max="80" step="1" value="40"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Lasso coefficient paths for ten features as the penalty decreases"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Synthetic data: 60 samples of 10 correlated features, of which only x1, x5, and x2 truly affect the response (colored), plus noise. Reading left to right, the penalty weakens and coefficients enter. The three true features enter first; with less penalty, the noise features (gray) start to enter too, which is why λ is usually chosen by cross-validation. Solved by coordinate descent with warm starts.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== NOW -->
+    <section class="chapter" id="now" data-year="Now" data-short="Modern practice">
+      <div class="chapter-head">
+        <span class="label kicker">Chapter 9 · Today</span>
+        <h2>Write the model, let the solver work</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Stephen Boyd and Lieven Vandenberghe's textbook <em>Convex Optimization</em> (2004) argued that recognizing a problem as convex is the hard part, and solving it is technology. Modeling languages such as CVX, CVXPY, and JuMP let users write a problem in mathematical notation; a set of composition rules called <em>disciplined convex programming</em> verifies convexity and converts the problem into a standard form for an interior-point or first-order solver.</p>
+        <ul>
+          <li><strong>Semidefinite programming.</strong> Optimizing over positive semidefinite matrices generalizes linear programming to matrix inequalities. In 1995 Michel Goemans and David Williamson used it to approximate the hard max-cut problem in graphs to within 87.8% of optimal, a landmark in approximation algorithms.</li>
+          <li><strong>Control.</strong> Model predictive control solves a convex problem every few milliseconds to choose the next actions of a vehicle or chemical plant. SpaceX's landing rockets compute their descent trajectories with convex optimization on board, building on work by Lars Blackmore and Behçet Açıkmeşe.</li>
+          <li><strong>Distributed and first-order methods.</strong> For problems too large for Newton steps, methods such as the alternating direction method of multipliers (ADMM), popularized by Boyd and colleagues in 2011, split a problem into pieces solved in parallel.</li>
+          <li><strong>Nonconvex problems.</strong> Training neural networks is not convex, yet stochastic gradient methods from this volume find good solutions anyway. Convex relaxations, in which a hard problem is replaced by a convex one whose solution bounds or approximates it, remain the main tool for proving how good a solution is.</li>
+        </ul>
+      </div>
+      <div class="table-wrap">
+        <table class="compare">
+          <thead><tr><th>Problem class</th><th>Form</th><th>Typical algorithm</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Linear program</td><td>Linear objective and constraints</td><td>Simplex, interior point</td><td>Production planning, diets, scheduling</td></tr>
+            <tr><td>Quadratic program</td><td>Convex quadratic objective, linear constraints</td><td>Active set, interior point</td><td>Portfolios, support vector machines</td></tr>
+            <tr><td>Second-order cone program</td><td>Norm constraints ‖Ax + b‖ ≤ cᵀx + d</td><td>Interior point</td><td>Robust design, rocket landing</td></tr>
+            <tr><td>Semidefinite program</td><td>Matrix inequalities X ⪰ 0</td><td>Interior point, first-order</td><td>Max-cut relaxation, control stability</td></tr>
+            <tr><td>ℓ₁-regularized problems</td><td>Smooth loss plus λ‖x‖₁</td><td>Coordinate descent, proximal gradient</td><td>Lasso, compressed sensing</td></tr>
+            <tr><td>General smooth convex</td><td>Differentiable convex f</td><td>Gradient, Nesterov, Newton</td><td>Logistic regression</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose">
+        <div class="callout">
+          <span class="label">The common thread</span>
+          <p>Every method here exploits the same two facts. A convex function's tangent lies below it, so local information tells you about the whole problem; and every convex problem has a dual whose value bounds the answer from the other side. The first lets an algorithm move confidently downhill. The second lets it prove when it has arrived.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== glossary -->
+    <section class="chapter" id="glossary" data-year="Ref" data-short="Glossary & sources">
+      <div class="chapter-head">
+        <span class="label kicker">Reference</span>
+        <h2>Glossary</h2>
+      </div>
+      <dl class="glossary">
+        <dt>Barrier function</dt><dd>A penalty that grows without bound as a point approaches the boundary of the feasible set.</dd>
+        <dt>Central path</dt><dd>The curve of barrier-problem minimizers x*(t), which leads to the optimum as t increases.</dd>
+        <dt>Complementary slackness</dt><dd>The KKT condition that each multiplier is zero unless its constraint is active.</dd>
+        <dt>Condition number</dt><dd>The ratio of a function's largest to smallest curvature; it governs how fast gradient methods converge.</dd>
+        <dt>Dual function</dt><dd>The minimum of the Lagrangian over the primal variables, as a function of the multipliers; always a lower bound on the optimum.</dd>
+        <dt>Duality gap</dt><dd>The difference between the primal optimum and the best dual bound.</dd>
+        <dt>Efficient frontier</dt><dd>The set of portfolios with the highest return for each level of risk.</dd>
+        <dt>KKT conditions</dt><dd>The first-order optimality conditions for problems with inequality constraints.</dd>
+        <dt>Lagrange multiplier</dt><dd>A weight on a constraint at the optimum; the sensitivity of the optimal value to that constraint.</dd>
+        <dt>Lasso</dt><dd>Least squares with an ℓ₁ penalty, which sets many coefficients exactly to zero.</dd>
+        <dt>Linear program</dt><dd>Optimization of a linear objective subject to linear constraints.</dd>
+        <dt>Simplex method</dt><dd>An algorithm for linear programs that moves between adjacent vertices of the feasible polyhedron.</dd>
+        <dt>Strong duality</dt><dd>Equality of the primal and dual optimal values, which holds for convex problems under Slater's condition.</dd>
+      </dl>
+
+      <div class="chapter-head" style="margin-top:32px"><h2>Sources</h2></div>
+      <ol class="sources">
+        <li>Rockafellar, R. T. (1993). Lagrange multipliers and optimality. <em>SIAM Review</em> 35; Rockafellar, R. T. (1970). <em>Convex Analysis</em>. Princeton University Press.</li>
+        <li>Boyd, S. &amp; Vandenberghe, L. (2004). <em>Convex Optimization</em>. Cambridge University Press. The hero function is their two-variable example of §9.3.</li>
+        <li>Lagrange, J.-L. (1788). <em>Mécanique analytique</em>. Paris.</li>
+        <li>Cauchy, A. (1847). Méthode générale pour la résolution des systèmes d'équations simultanées. <em>Comptes Rendus de l'Académie des Sciences</em> 25.</li>
+        <li>Polyak, B. T. (1964). Some methods of speeding up the convergence of iteration methods. <em>USSR Computational Mathematics and Mathematical Physics</em> 4; Nesterov, Y. (1983). A method for solving the convex programming problem with convergence rate O(1/k²). <em>Soviet Mathematics Doklady</em> 27.</li>
+        <li>Kantorovich, L. V. (1939). <em>Mathematical Methods of Organizing and Planning Production</em>. Leningrad (English translation, <em>Management Science</em> 6, 1960).</li>
+        <li>Dantzig, G. B. (1963). <em>Linear Programming and Extensions</em>. Princeton University Press; Dantzig, G. B. (1990). The diet problem. <em>Interfaces</em> 20.</li>
+        <li>Stigler, G. J. (1945). The cost of subsistence. <em>Journal of Farm Economics</em> 27.</li>
+        <li>Klee, V. &amp; Minty, G. J. (1972). How good is the simplex algorithm? In <em>Inequalities III</em>. Academic Press.</li>
+        <li>Hillier, F. S. &amp; Lieberman, G. J. <em>Introduction to Operations Research</em>. McGraw-Hill (the Wyndor Glass Co. example, many editions).</li>
+        <li>Karush, W. (1939). Minima of functions of several variables with inequalities as side constraints. M.Sc. thesis, University of Chicago; Kuhn, H. W. &amp; Tucker, A. W. (1951). Nonlinear programming. <em>Proceedings of the Second Berkeley Symposium on Mathematical Statistics and Probability</em>.</li>
+        <li>Fenchel, W. (1951). <em>Convex Cones, Sets, and Functions</em>. Lecture notes, Princeton University.</li>
+        <li>Gale, D., Kuhn, H. W. &amp; Tucker, A. W. (1951). Linear programming and the theory of games. In Koopmans, T. C. (ed.), <em>Activity Analysis of Production and Allocation</em>. Wiley; Slater, M. (1950). Lagrange multipliers revisited. Cowles Commission Discussion Paper 403.</li>
+        <li>von Neumann, J. &amp; Morgenstern, O. (1944). <em>Theory of Games and Economic Behavior</em>. Princeton University Press.</li>
+        <li>Markowitz, H. (1952). Portfolio selection. <em>Journal of Finance</em> 7; Markowitz, H. (1956). The optimization of a quadratic function subject to linear constraints. <em>Naval Research Logistics Quarterly</em> 3.</li>
+        <li>Khachiyan, L. G. (1979). A polynomial algorithm in linear programming. <em>Soviet Mathematics Doklady</em> 20; Karmarkar, N. (1984). A new polynomial-time algorithm for linear programming. <em>Combinatorica</em> 4.</li>
+        <li>Nesterov, Y. &amp; Nemirovski, A. (1994). <em>Interior-Point Polynomial Algorithms in Convex Programming</em>. SIAM.</li>
+        <li>Tibshirani, R. (1996). Regression shrinkage and selection via the lasso. <em>Journal of the Royal Statistical Society B</em> 58; Hoerl, A. E. &amp; Kennard, R. W. (1970). Ridge regression. <em>Technometrics</em> 12.</li>
+        <li>Chen, S. S., Donoho, D. L. &amp; Saunders, M. A. (1998). Atomic decomposition by basis pursuit. <em>SIAM Journal on Scientific Computing</em> 20; Candès, E. J., Romberg, J. &amp; Tao, T. (2006). Robust uncertainty principles. <em>IEEE Transactions on Information Theory</em> 52; Donoho, D. L. (2006). Compressed sensing. Same journal and volume.</li>
+        <li>Efron, B., Hastie, T., Johnstone, I. &amp; Tibshirani, R. (2004). Least angle regression. <em>Annals of Statistics</em> 32; Friedman, J., Hastie, T., Höfling, H. &amp; Tibshirani, R. (2007). Pathwise coordinate optimization. <em>Annals of Applied Statistics</em> 1.</li>
+        <li>Duchi, J., Shalev-Shwartz, S., Singer, Y. &amp; Chandra, T. (2008). Efficient projections onto the ℓ₁-ball for learning in high dimensions. <em>Proceedings of ICML</em>.</li>
+        <li>Grant, M. &amp; Boyd, S. CVX: Matlab software for disciplined convex programming; Diamond, S. &amp; Boyd, S. (2016). CVXPY. <em>Journal of Machine Learning Research</em> 17.</li>
+        <li>Goemans, M. X. &amp; Williamson, D. P. (1995). Improved approximation algorithms for maximum cut and satisfiability problems using semidefinite programming. <em>Journal of the ACM</em> 42.</li>
+        <li>Açıkmeşe, B. &amp; Ploen, S. R. (2007). Convex programming approach to powered descent guidance for Mars landing. <em>Journal of Guidance, Control, and Dynamics</em> 30; Blackmore, L. (2016). Autonomous precision landing of space rockets. <em>The Bridge</em> 46.</li>
+        <li>Boyd, S. et al. (2011). Distributed optimization and statistical learning via the alternating direction method of multipliers. <em>Foundations and Trends in Machine Learning</em> 3.</li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">LearnAnything · Volume 8 · Every figure runs its algorithm in your browser; datasets are illustrative or synthetic where captions say so.</footer>
+
+<script src="../../assets/js/lab.js"></script>
+<script src="js/co.js"></script>
+<script src="js/hero.js"></script>
+<script src="js/basics.js"></script>
+<script src="js/duality.js"></script>
+<script src="js/sparsity.js"></script>
+<script>Lab.rail();</script>
+</body>
+</html>

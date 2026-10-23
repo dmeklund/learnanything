@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Isodose</title>
+<meta name="description" content="Radiation therapy and medical physics: how photons, electrons, and protons deposit dose, why treatment is split into fractions, how computers plan beams around organs, and how physicists check that the dose delivered is the dose prescribed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500..900&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Red+Hat+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<style>
+/* Volume VI identity: the treatment bunker. Cool poured-concrete ground with isodose rings
+   radiating from the masthead; radiation-trefoil purple for the accent and a strip of caution
+   tape; Big Shoulders Display (signage lettering) for headings, Spectral for reading, Red Hat Mono
+   for data. Dose images sit on dark CT film in both themes, washed light-on-dark like a planning console. */
+:root {
+  --paper: #E9EDF0; --paper-2: #DDE3E8; --paper-3: #F5F7F9;
+  --grid: #D3DAE0; --rule: #BAC4CC;
+  --ink: #121820; --ink-2: #39434E; --ink-3: #5D6874;
+  --accent: #7A2C8C; --signal: #8F5E00; --tertiary: #9A1F63;
+  --s1: #2457C5; --s2: #B37700; --s3: #9A1F63;
+  --accent-wash: rgba(122, 44, 140, .08); --signal-wash: rgba(179, 119, 0, .12);
+  --caution: #E8B22A;
+  /* CT film and the dose wash: the same in both themes */
+  --film: #07090C; --film-ink: #E6EAEE; --film-ink-2: #9AA4AE;
+  --film-fat: #3A3F45; --film-tissue: #5C636B; --film-fluid: #4C535A; --film-bone: #D9DCDF; --film-marrow: #8D9399;
+  --wash-1: #3D0F6E; --wash-2: #A2236F; --wash-3: #E0513A; --wash-4: #F7A531; --wash-5: #FBEA8C;
+  --laser-r: #FF3B3B; --laser-g: #36E05A;
+  --f-display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Spectral", Georgia, "Times New Roman", serif;
+  --f-mono: "Red Hat Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --rail: 184px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #13161B; --paper-2: #1A1E24; --paper-3: #20252C;
+    --grid: #242A32; --rule: #333B45;
+    --ink: #E3E7EC; --ink-2: #AEB6C0; --ink-3: #7F8893;
+    --accent: #CF9BE6; --signal: #E9B040; --tertiary: #D9529A;
+    --s1: #6C9BF0; --s2: #E9B040; --s3: #D9529A;
+    --accent-wash: rgba(207, 155, 230, .1); --signal-wash: rgba(233, 176, 64, .12);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #13161B; --paper-2: #1A1E24; --paper-3: #20252C;
+  --grid: #242A32; --rule: #333B45;
+  --ink: #E3E7EC; --ink-2: #AEB6C0; --ink-3: #7F8893;
+  --accent: #CF9BE6; --signal: #E9B040; --tertiary: #D9529A;
+  --s1: #6C9BF0; --s2: #E9B040; --s3: #D9529A;
+  --accent-wash: rgba(207, 155, 230, .1); --signal-wash: rgba(233, 176, 64, .12);
+}
+body { background: var(--paper); font-size: 1.06rem; }
+.hero { position: relative; grid-template-columns: 1fr; gap: 26px; isolation: isolate; }
+/* isodose rings radiating from behind the title */
+.hero::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  top: -120px; right: 0; width: min(760px, 100%); height: 640px;
+  background: repeating-radial-gradient(circle at 70% 30%, transparent 0 30px, var(--grid) 30px 31.5px);
+  -webkit-mask-image: radial-gradient(circle at 70% 30%, #000 0 35%, transparent 68%);
+  mask-image: radial-gradient(circle at 70% 30%, #000 0 35%, transparent 68%);
+}
+.hero h1 { font: 900 clamp(4rem, 13vw, 9.4rem)/.8 var(--f-display); letter-spacing: .01em; text-transform: uppercase; }
+.hero h1 i { font-style: normal; color: var(--accent); }
+.hero h1 { margin-top: 12px; }
+.hero .dek { max-width: 52ch; }
+.caution { height: 8px; max-width: 280px; background: repeating-linear-gradient(-45deg, var(--caution) 0 9px, var(--ink) 9px 18px); border-radius: 1px; }
+.chapter-head .year { font: 800 clamp(3rem, 8vw, 5.2rem)/.86 var(--f-display); letter-spacing: .01em; }
+.chapter-head h2 { font: 700 clamp(2.1rem, 4.8vw, 3.3rem)/1 var(--f-display); letter-spacing: .005em; }
+.prose h3 { font: 700 var(--t-lg)/1.2 var(--f-display); letter-spacing: .02em; text-transform: uppercase; }
+.bench-head h4, .volume h2 { font-family: var(--f-display); letter-spacing: .02em; }
+.bench-head h4 { font-size: 1.35rem; font-weight: 700; }
+.rail a { grid-template-columns: 46px 1fr; }
+.rail a .yr { font-size: 11px; }
+.part-head { max-width: var(--measure); padding-top: 64px; display: grid; gap: 4px; }
+.part-head .label { color: var(--accent); }
+.part-head h2 { font: 800 var(--t-xl)/1 var(--f-display); text-transform: uppercase; letter-spacing: .02em; }
+.hero-plan canvas { width: 100%; display: block; border-radius: var(--radius); background: var(--film); }
+.hero-plan .readout { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 18px; font: 400 var(--t-xs)/1.4 var(--f-mono); color: var(--ink-3); padding-top: 8px; }
+.chart-wrap svg { width: 100%; display: block; }
+.bench canvas.plain { background: transparent; border: 0; }
+.bench canvas.film { background: var(--film); }
+b.warn, .warn { color: var(--s2); }
+.callout { max-width: var(--measure); border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; display: grid; gap: 6px; }
+.callout .label { color: var(--accent); }
+.stat-row { display: flex; flex-wrap: wrap; gap: 12px 40px; max-width: var(--measure); padding-block: 8px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.stat-row div { display: grid; gap: 2px; }
+.stat-row b { font: 800 var(--t-xl)/1 var(--f-display); }
+.stat-row span { font: 400 var(--t-xs)/1.3 var(--f-mono); color: var(--ink-3); }
+.table-wrap { overflow-x: auto; max-width: var(--bench); }
+table.compare { border-collapse: collapse; font-size: var(--t-sm); min-width: 640px; width: 100%; }
+table.compare th { font: 500 var(--t-xs)/1.3 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px; border-bottom: 1px solid var(--ink-3); vertical-align: bottom; }
+table.compare td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+table.compare td:first-child { font-weight: 600; color: var(--ink); white-space: nowrap; }
+.imrt-stage { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); align-items: start; }
+.chips-row { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
+.chips-row .label { margin-right: 4px; }
+.nocase { text-transform: none; letter-spacing: 0; }
+</style>
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg', 'canvas'] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="brand" href="../../index.html">Learn<b>Anything</b></a>
+  <span class="where">Vol. 6 · Radiation therapy and medical physics</span>
+  <span class="progress" aria-hidden="true"></span>
+</header>
+
+<div class="module">
+  <nav class="rail" aria-label="Chapters"><ol></ol></nav>
+
+  <main class="content">
+
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="label">Volume 6 · Treating cancer with radiation</p>
+        <h1 id="title">Iso<i>dose</i></h1>
+        <p class="dek">How X-rays, electrons, and protons deposit energy in tissue, why a course of treatment is split into dozens of small doses, how computers aim beams so the dose wraps around a tumor and avoids the organs beside it, and how physicists check that the dose delivered is the dose prescribed.</p>
+        <div class="meta">
+          <span class="label">11 chapters</span>
+          <span class="label">9 interactive figures</span>
+          <span class="label">1896 → today</span>
+        </div>
+        <div class="caution" aria-hidden="true"></div>
+      </div>
+      <figure class="hero-plan" id="hero-plan" style="margin:0">
+        <canvas role="img" aria-label="Axial slice through a pelvis with a dose color wash that wraps the prostate and falls away from the rectum and bladder; a gantry turns around the patient and the room lasers cross at the isocenter"></canvas>
+        <div class="readout"><span>A seven-field plan for a prostate target, optimized in your browser.</span><span>Illustrative anatomy and dose model.</span></div>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PROLOGUE -->
+    <section class="chapter" id="prologue" data-year="Pro" data-short="Dose as a drug">
+      <div class="chapter-head">
+        <span class="label kicker">Prologue</span>
+        <h2>A drug measured in joules per kilogram</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The picture above is a radiation treatment plan. The colors show where the energy of seven X-ray beams will be absorbed: bright inside the prostate, falling off steeply toward the rectum behind it and the bladder above. The patient will lie on the couch for ten to twenty minutes a day while the machine turns around them, for anywhere from five to forty days.</p>
+        <p>About half of all people with cancer need radiation therapy at some point in their illness; an evidence-based estimate from Australia put the figure at 52%. It cures many cancers of the head and neck, cervix, prostate, and skin on its own or with chemotherapy, and it shrinks tumors that cause pain or pressure. It works because ionizing radiation breaks DNA, and cells that cannot repair the breaks die when they next try to divide.</p>
+        <p>The difficulty is that radiation does not distinguish tumor from normal tissue. Everything in the beam's path is dosed. The history of the field is a long effort to concentrate the dose where it is wanted. Part I covers the physics: how photons, electrons, and protons deposit energy and how machines shape beams. Part II covers the biology that makes splitting treatment into many small fractions work. Part III covers modern planning, protons, and the medical physicists who verify every number.</p>
+      </div>
+      <div class="stat-row">
+        <div><b>1 Gy</b><span>one joule absorbed per kilogram of tissue</span></div>
+        <div><b>~52%</b><span>of cancer patients with an indication for radiotherapy</span></div>
+        <div><b>±5%</b><span>the accuracy in delivered dose that clinical practice aims for</span></div>
+      </div>
+      <dl class="defn">
+        <dt>Absorbed dose</dt><dd>Energy deposited by ionizing radiation per unit mass, measured in grays (Gy). One gray is one joule per kilogram.</dd>
+        <dt>Fraction</dt><dd>One treatment session. A course of radiotherapy is usually delivered as many fractions, one a day on weekdays.</dd>
+        <dt>Isodose line</dt><dd>A contour joining points that receive the same dose, drawn on a scan like the height contours of a map.</dd>
+      </dl>
+    </section>
+
+    <!-- ===================================================== PART I -->
+    <div class="part-head"><span class="label">Part I</span><h2>The physics of dose</h2></div>
+
+    <section class="chapter" id="early" data-year="1896" data-short="Burns and cures">
+      <div class="chapter-head">
+        <span class="year">1896</span>
+        <span class="label kicker">Chapter 1 · The first treatments</span>
+        <h2>Burns, then cures</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Wilhelm Röntgen discovered X-rays in Würzburg on 8 November 1895 and announced them at the end of December. Within weeks, laboratories around the world had X-ray tubes, and within months the people using them had reddened skin, lost hair, and painful burns. If the rays could injure skin, physicians reasoned, perhaps they could destroy disease.</p>
+        <p>In July 1896 Victor Despeignes in Lyon treated a man with advanced stomach cancer and published the case, the first published account of X-ray therapy for cancer. The patient died soon after. In November 1896 Leopold Freund in Vienna began treating a five-year-old girl with a large hairy mole on her back; the hair fell out, and he reported the result, which is accepted as the first documented therapeutic use of X-rays. Emil Grubbé of Chicago later claimed he had irradiated a breast cancer in January 1896, but the earliest record of that claim is his own account written decades afterward, and historians treat it as unverified.</p>
+        <p>Radioactivity followed. Henri Becquerel discovered it in 1896, and Marie and Pierre Curie isolated radium in 1898. Becquerel was burned through his waistcoat by a radium tube he carried in his pocket, and Pierre Curie deliberately burned his own arm to study the effect. By the early 1900s physicians were placing radium tubes against skin cancers and inside the cervix. Treatment with sources placed in or against the body is called <em>brachytherapy</em>, from the Greek for "short"; treatment with beams from outside is <em>external beam</em> or <em>teletherapy</em>.</p>
+        <h3>The problem of dose</h3>
+        <p>Early practitioners had no way to measure how much radiation they gave. A common gauge was the <em>erythema dose</em>, the amount that reddened the skin, and many early operators lost fingers and hands to cumulative exposure. The first international unit, the roentgen, was adopted in 1928. It measured the electric charge that X-rays freed in a given mass of air, which made exposure measurable and repeatable for the first time.</p>
+        <p>In the 1920s Claudius Regaud and colleagues at the Radium Institute in Paris found that the testes of rams could be sterilized without serious skin damage if the radiation was given in small daily portions instead of all at once. Henri Coutard, working at the same institute, applied the idea to cancers of the larynx. In 1922 Regaud, Coutard, and Antoine Hautant reported cures of advanced laryngeal cancer at the International Congress of Otology in Paris, and Coutard's protracted, fractionated method became the pattern for radiotherapy for the rest of the century. Chapter 5 explains why it works.</p>
+        <h3>Laying out radium needles</h3>
+        <p>Radium needles placed in or on tissue give a dose that falls off steeply with distance. A point source gives a dose rate</p>
+        <div class="math-block">\[ \dot D(r) \propto \frac{A}{r^2}, \]</div>
+        <p>where \(A\) is the activity, so tissue 5 mm from a needle gets four times the dose of tissue 10 mm away. A row of needles evenly spaced over a flat area does not give an even dose: points near the middle are close to many needles, while points at the edge have needles on only one side. In 1934 Ralston Paterson, a radiotherapist, and Herbert Parker, a physicist, at the Holt Radium Institute in Manchester published rules for arranging radium so that the dose over a planar implant, measured 5 mm away, varies by no more than about ±10%. For small areas, two-thirds of the radium goes around the edge; for larger areas, half or one-third. The Manchester system was one of the first collaborations between a clinician and a physicist to put radiation dose on a quantitative footing, and it is the origin of the profession of medical physics.</p>
+      </div>
+
+      <figure class="bench" id="fig-radium">
+        <div class="bench-head"><span class="fig">Fig. 1.1</span><span class="label">Interactive</span><h4>Spacing radium needles</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="rd-l">Side of the implant <output>4.0 cm</output></label><input type="range" id="rd-l" min="2" max="12" step="0.5" value="4"></div>
+          <div class="ctl"><label for="rd-p">Share of radium on the edge <output>40%</output></label><input type="range" id="rd-p" min="0" max="100" step="5" value="40"></div>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="Dose map in a plane 5 mm from a square implant of radium needles, with a dose profile across its middle"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: dose in a plane 5 mm from a square implant, with the needles drawn thicker where they carry more radium per centimeter. Inside the solid contour the dose is more than 10% above the average over the area; outside the dashed contour it is more than 10% below. Right: dose across the middle, with the shaded band marking ±10%. With too little radium on the edge, the middle is hot and the edges are cold. Find the share that flattens the profile, then enlarge the implant and find it again. Computed from the inverse-square law for line sources, ignoring absorption in tissue; uniformity is measured inside a 5 mm border.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="photons" data-year="hν" data-short="How photons deposit energy">
+      <div class="chapter-head">
+        <span class="year">hν</span>
+        <span class="label kicker">Chapter 2 · Interactions</span>
+        <h2>How a photon gives up its energy</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">An X-ray photon does not deposit energy steadily along its path the way a bullet slows. It travels in a straight line until, at a random point, it interacts with an atom and hands energy to an electron. That electron, moving fast, does the damage: it ionizes thousands of molecules along a track a few millimeters to centimeters long. Photons are called <em>indirectly ionizing</em> for this reason.</p>
+        <p>Three interactions matter for therapy:</p>
+        <ul>
+          <li><strong>Photoelectric absorption.</strong> The photon is absorbed by a tightly bound inner electron, which is ejected with nearly all the photon's energy. The probability rises steeply with atomic number, roughly as \(Z^3/E^3\). This is why bone stands out on a diagnostic X-ray taken at tens of kiloelectronvolts.</li>
+          <li><strong>Compton scattering.</strong> The photon strikes a loosely bound outer electron, gives it part of its energy, and continues in a new direction with less energy. Arthur Compton measured the wavelength shift in 1923, confirming that light carries momentum in particles, and won the 1927 Nobel Prize in Physics for it. Compton scattering depends on electron density, not atomic number, so bone and soft tissue absorb nearly equally per electron at megavoltage energies.</li>
+          <li><strong>Pair production.</strong> Above 1.022 MeV, twice the rest energy of an electron, a photon passing near a nucleus can turn into an electron and a positron. It becomes important only above about 10 MeV.</li>
+        </ul>
+        <p>In water, and so in soft tissue, Compton scattering is the dominant interaction from about 25 keV to 25 MeV. That covers nearly all of radiation therapy.</p>
+        <h3>The Klein–Nishina formula</h3>
+        <p>The energy of the scattered photon follows from conservation of energy and momentum. With \(\varepsilon = E/m_e c^2\), where \(m_e c^2 = 511\) keV is the electron's rest energy, a photon of energy \(E\) scattered through angle \(\theta\) keeps</p>
+        <div class="math-block">\[ E' = \frac{E}{1 + \varepsilon(1 - \cos\theta)}, \]</div>
+        <p>and the electron gets the rest. How often each angle occurs was worked out by Oskar Klein and Yoshio Nishina in 1929 from Dirac's new relativistic quantum mechanics. Writing \(P = E'/E\), the differential cross-section per electron is</p>
+        <div class="math-block">\[ \frac{d\sigma}{d\Omega} = \frac{r_e^2}{2}\,P^2\left(P + \frac{1}{P} - \sin^2\theta\right), \]</div>
+        <p>where \(r_e\) is the classical electron radius. At low energy, \(P \approx 1\) and the photon scatters forward and backward about equally. At megavoltage energies, scattering is strongly forward, the photon loses a large share of its energy at each collision, and the electrons set in motion travel mostly in the beam direction. That forward motion is what produces the skin-sparing build-up described in the next chapter.</p>
+      </div>
+
+      <figure class="bench" id="fig-compton">
+        <div class="bench-head"><span class="fig">Fig. 2.1</span><span class="label">Interactive</span><h4>Compton scattering from diagnostic to megavoltage energies</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="cp-e">Photon energy <output>1.25 MeV</output></label><input type="range" id="cp-e" min="1" max="4.3" step="0.02" value="3.1"></div>
+        </div>
+        <div class="stage">
+          <div class="chart-wrap"><svg role="img" aria-label="Polar plot of the Klein–Nishina angular distribution of scattered photons"></svg></div>
+          <div class="chart-wrap"><svg role="img" aria-label="Average fraction of the photon's energy transferred to the electron as a function of photon energy"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: how likely a photon is to scatter in each direction, with the photon arriving from the left; the dashed outline is a 10 keV photon for comparison. Right: the average share of the photon's energy handed to the electron in one Compton collision. Slide from diagnostic energies to the megavoltage range and watch the scattering turn forward and the electron's share grow from a few percent to more than half. Hover the polar plot to read the scattered photon's energy at any angle. Computed from the Klein–Nishina formula for a free electron.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="depth" data-year="Gy" data-short="Dose and depth">
+      <div class="chapter-head">
+        <span class="year">Gy</span>
+        <span class="label kicker">Chapter 3 · Absorbed dose</span>
+        <h2>One joule per kilogram</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Louis Harold Gray, a British physicist, showed in 1936 how to infer the energy absorbed in tissue from the ionization measured in a small gas-filled cavity placed in it. The <em>Bragg–Gray cavity principle</em>, building on earlier work by William Henry Bragg, made absorbed dose measurable. Dose is energy per mass,</p>
+        <div class="math-block">\[ D = \frac{d\bar\varepsilon}{dm}, \qquad 1\ \text{Gy} = 1\ \text{J/kg}, \]</div>
+        <p>and the unit was named the gray in his honor in 1975, replacing the rad (0.01 Gy). The energies involved are tiny. A typical daily fraction of 2 Gy raises the temperature of tissue by about half a thousandth of a degree, since water needs 4,186 joules per kilogram to warm by one degree. Primary standards laboratories measure dose with calorimeters that detect exactly this temperature rise.</p>
+        <h3>Depth dose</h3>
+        <p>The <em>percentage depth dose</em> curve shows how dose varies along the central axis of a beam entering a water tank, relative to its maximum. It is the first thing a physicist measures on a new machine.</p>
+        <p>Low-energy X-rays of 200 to 300 kV, the workhorses before 1950, deposit their highest dose at the skin. Skin reactions limited how much dose could reach a deep tumor. Megavoltage photons behave differently. The fast electrons they set moving travel forward for a centimeter or more before stopping, so dose builds up over the first few millimeters to centimeters and reaches its maximum below the surface. The skin is spared. Beyond the maximum, dose falls as the photon beam is attenuated, roughly exponentially, and as it spreads out with distance from the source:</p>
+        <div class="math-block">\[ \text{PDD}(d) \approx B(d)\, e^{-\mu d} \left(\frac{f + d_{\max}}{f + d}\right)^2, \]</div>
+        <p>where \(B(d)\) describes the build-up, \(\mu\) is an effective attenuation coefficient, and \(f\) is the source-to-skin distance. A longer source distance makes the inverse-square term change more slowly, so deep dose rises slightly.</p>
+        <p>Electron beams, produced by the same accelerators with the target removed, behave differently again. Electrons are charged, so they lose energy continuously and stop. Dose is fairly uniform to a depth of a few centimeters, then drops steeply. A rule of thumb is that the depth of the 90% dose in centimeters is about the beam energy in MeV divided by 3.2. Electrons treat skin cancers and superficial lymph nodes and spare what lies beneath. Protons, also charged but nearly 2,000 times heavier, deposit most of their energy at the end of their range in the <em>Bragg peak</em>, the subject of Chapter 8.</p>
+      </div>
+
+      <figure class="bench" id="fig-depth">
+        <div class="bench-head"><span class="fig">Fig. 3.1</span><span class="label">Interactive</span><h4>Depth dose for three kinds of beam</h4></div>
+        <div class="controls">
+          <div class="ctl"><span class="label">Photon beam</span><div class="chips"><button class="chip" type="button" data-ph="co60" aria-pressed="false">Co-60</button><button class="chip" type="button" data-ph="mv6" aria-pressed="true">6 MV</button><button class="chip" type="button" data-ph="mv18" aria-pressed="false">18 MV</button></div></div>
+          <div class="ctl"><label for="dd-ssd">Source-to-skin distance <output>100 cm</output></label><input type="range" id="dd-ssd" min="60" max="140" step="5" value="100"></div>
+          <div class="ctl"><label for="dd-e">Electron energy <output>12 MeV</output></label><input type="range" id="dd-e" min="6" max="20" step="1" value="12"></div>
+          <div class="ctl"><label for="dd-p">Proton energy <output>150 MeV</output></label><input type="range" id="dd-p" min="70" max="230" step="5" value="150"></div>
+          <div class="chips-row">
+            <label class="check"><input type="checkbox" id="dd-showph" checked> Photons</label>
+            <label class="check"><input type="checkbox" id="dd-showel" checked> Electrons</label>
+            <label class="check"><input type="checkbox" id="dd-showpr" checked> Protons</label>
+          </div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Percentage depth dose curves in water for a photon beam, an electron beam, and a proton beam"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Each curve is scaled to its own maximum, so the chart compares shapes, not absolute doses. Compare cobalt-60 with 18 MV photons and watch the dose maximum move deeper. Raise the electron energy to treat deeper while still sparing what lies beyond. Raise the proton energy to move the peak. The photon curves are a model fitted to typical published values for a 10 × 10 cm field: depth of maximum dose 0.5, 1.5, and 3.2 cm and 56%, 67%, and 79% at 10 cm deep. Electron curves follow standard range rules; proton curves use Bortfeld's analytic model. Real beams vary by machine.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="machines" data-year="1951" data-short="Cobalt and the linac">
+      <div class="chapter-head">
+        <span class="year">1951</span>
+        <span class="label kicker">Chapter 4 · Megavoltage machines</span>
+        <h2>The cobalt bomb and the linear accelerator</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Megavoltage beams had been made before 1950 with large Van de Graaff generators and betatrons, but these were expensive and rare. The atomic age provided a cheaper source. Cobalt-59 placed in a nuclear reactor absorbs neutrons and becomes cobalt-60, which emits gamma rays of 1.17 and 1.33 MeV and has a half-life of 5.27 years. Canada's NRX reactor at Chalk River could make it intensely radioactive.</p>
+        <p>Two Canadian groups built cobalt-60 treatment units in 1951. Harold Johns at the University of Saskatchewan designed one in Saskatoon. Engineers at Eldorado Mining and Refining built another for Victoria Hospital in London, Ontario, where Ivan Smith treated the first patient on 27 October 1951; Saskatoon treated its first patient a few weeks later. The press called them "cobalt bombs." Cobalt units were simple, reliable, and needed only a source change every five years or so. Tens of thousands of patients in Canada and around the world were treated on them, and they are still used where electricity and maintenance are unreliable.</p>
+        <p>The linear accelerator came from wartime radar. A klystron or magnetron feeds microwaves into a copper waveguide, where they accelerate a beam of electrons to several million electron volts in about a meter. The electrons strike a tungsten target and produce X-rays. The first patient on a medical linac was treated at Hammersmith Hospital in London in August 1953 on an 8 MV machine built by Metropolitan-Vickers. In 1956 Henry Kaplan and Edward Ginzton put a 6 MV linac into clinical use at Stanford. Its best-known early patient was Gordon Isaacs, a small child with retinoblastoma. One eye had to be removed; Kaplan treated the tumor in the other with the new beam, and Isaacs grew up with normal vision in that eye. Linacs replaced cobalt in wealthy countries over the following decades, because they give higher energies, sharper beam edges, and no radioactive source to replace or secure.</p>
+        <p>The same year as the first cobalt treatments, the Swedish neurosurgeon Lars Leksell proposed <em>radiosurgery</em>: destroying a small target in the brain with many narrow beams converging from different directions, each too weak alone to harm the tissue it crosses. His Gamma Knife, which focuses gamma rays from an array of cobalt-60 sources, treated its first patient in Stockholm in 1968.</p>
+        <h3>Penumbra</h3>
+        <p>A beam's edge is never perfectly sharp. The dose falls from 80% to 20% over a band called the <em>penumbra</em>. Part of it is geometric. A source of diameter \(s\) at distance \(\text{SDD}\) from the collimating jaw casts a partial shadow whose width at depth \(d\) below the skin is, by similar triangles,</p>
+        <div class="math-block">\[ P = s\,\frac{\text{SSD} + d - \text{SDD}}{\text{SDD}}. \]</div>
+        <p>A cobalt source is 1.5 to 2 cm across, so cobalt units have wide penumbras unless extra "trimmer" bars are brought close to the patient. A linac's electron beam strikes the target in a spot a millimeter or two wide, so its geometric penumbra is small; what remains comes mostly from scattered photons and electrons traveling sideways in tissue. Since the 1990s, beams have been shaped by <em>multileaf collimators</em>, banks of tungsten leaves a few millimeters wide, each driven by its own motor.</p>
+      </div>
+
+      <figure class="bench" id="fig-penumbra">
+        <div class="bench-head"><span class="fig">Fig. 4.1</span><span class="label">Interactive</span><h4>Source size and the sharpness of a beam edge</h4></div>
+        <div class="controls">
+          <div class="ctl"><span class="label">Machine</span><div class="chips"><button class="chip" type="button" data-pn="co60" aria-pressed="true">Cobalt-60 unit</button><button class="chip" type="button" data-pn="linac" aria-pressed="false">Linac</button></div></div>
+          <div class="ctl"><label for="pn-s">Source diameter <output>2.0 cm</output></label><input type="range" id="pn-s" min="0.1" max="3" step="0.1" value="2"></div>
+          <div class="ctl"><label for="pn-ssd">Source to skin <output>80 cm</output></label><input type="range" id="pn-ssd" min="60" max="120" step="5" value="80"></div>
+          <div class="ctl"><label for="pn-sdd">Source to jaw <output>55 cm</output></label><input type="range" id="pn-sdd" min="25" max="100" step="5" value="55"></div>
+          <div class="ctl"><label for="pn-d">Depth <output>5 cm</output></label><input type="range" id="pn-d" min="0" max="20" step="1" value="5"></div>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="Diagram of rays from the two edges of a radioactive source passing a collimator jaw, and the resulting dose profile across the field edge"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: rays from opposite edges of the source graze the jaw and diverge, so points under the shaded wedge see only part of the source. The diagram exaggerates widths sideways. Right: dose across the field edge, with the 80%–20% penumbra shaded. Move the jaw closer to the patient to sharpen the cobalt beam, then switch to the linac. The geometric part follows the formula above; lateral transport in tissue is modeled as a Gaussian blur that grows slowly with depth, with representative widths.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PART II -->
+    <div class="part-head"><span class="label">Part II</span><h2>Radiobiology</h2></div>
+
+    <section class="chapter" id="lq" data-year="1956" data-short="Counting survivors">
+      <div class="chapter-head">
+        <span class="year">1956</span>
+        <span class="label kicker">Chapter 5 · Cell survival</span>
+        <h2>Counting the cells that survive</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">For half a century, radiotherapists set doses by clinical experience alone. In 1956 Theodore Puck and Philip Marcus at the University of Colorado irradiated single human cancer cells (HeLa cells) in culture and counted how many could still grow into colonies. Their survival curve, the first for mammalian cells, had a curved "shoulder" at low doses and then fell steeply. It showed that human cells were far more sensitive than had been thought, and that sensitivity could be measured.</p>
+        <p>A cell that "survives" in this sense keeps the ability to divide indefinitely. Radiation kills mainly by causing breaks in both strands of DNA. A cell can repair most breaks, but a break left unrepaired or joined wrongly causes the cell to die when it next tries to divide, sometimes days or weeks later. This is why tumors shrink gradually during and after treatment.</p>
+        <h3>The linear-quadratic model</h3>
+        <p>Survival curves are well described by</p>
+        <div class="math-block">\[ S(D) = e^{-\alpha D - \beta D^2}. \]</div>
+        <p>The linear term counts lethal damage from a single particle track. The quadratic term counts damage from two separate tracks whose sublethal lesions interact; it can be repaired if the dose is spread out in time. The ratio \(\alpha/\beta\), in grays, is the dose at which the two terms contribute equally, and it measures how much a tissue's response depends on dose per fraction.</p>
+        <p>Tissues fall into two broad groups. Rapidly dividing tissues such as the skin's surface layer, gut lining, and most tumors have \(\alpha/\beta\) around 10 Gy and respond within weeks. Slowly dividing tissues such as the spinal cord, kidney, and connective tissue have \(\alpha/\beta\) around 3 Gy, and damage appears months or years later. These <em>late effects</em> are what limit how much dose can be given.</p>
+        <p>With complete repair between fractions, \(n\) fractions of dose \(d\) give \(S = e^{-n(\alpha d + \beta d^2)}\). Two courses have the same effect on a tissue when they have the same <em>biologically effective dose</em>,</p>
+        <div class="math-block">\[ \text{BED} = n d \left(1 + \frac{d}{\alpha/\beta}\right), \qquad \text{EQD}_2 = \frac{\text{BED}}{1 + 2/(\alpha/\beta)}, \]</div>
+        <p>where \(\text{EQD}_2\) converts back to the total dose that would have the same effect if given in standard 2 Gy fractions. Because late-responding tissue has the smaller \(\alpha/\beta\), it is more sensitive to fraction size. Small fractions spare it relative to a tumor with large \(\alpha/\beta\). That is the biological reason Coutard's fractionation worked. Jack Fowler and others made the model the standard way to compare schedules in the 1970s and 1980s.</p>
+        <p>Rodney Withers summarized the biology of fractionation in 1975 as the "four Rs": <em>repair</em> of sublethal damage in normal tissue between fractions; <em>repopulation</em> by surviving cells; <em>redistribution</em> of cells into more sensitive phases of the cell cycle; and <em>reoxygenation</em> of tumor cells. Oxygen matters because it makes radiation damage permanent. Gray and colleagues showed in 1953 that well-oxygenated cells are about three times more sensitive than cells starved of oxygen, and many tumors contain poorly oxygenated regions. As each fraction kills oxygenated cells, some of the hypoxic ones gain oxygen and become sensitive for the next.</p>
+      </div>
+
+      <figure class="bench" id="fig-lq">
+        <div class="bench-head"><span class="fig">Fig. 5.1</span><span class="label">Interactive</span><h4>Fraction size, tumor, and late effects</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="lq-d">Dose per fraction <output>2 Gy</output></label><input type="range" id="lq-d" min="1" max="8" step="0.5" value="2"></div>
+          <div class="ctl"><label for="lq-ab"><span>Tumor <span class="nocase">α/β</span></span> <output>10 Gy</output></label><input type="range" id="lq-ab" min="1" max="15" step="0.5" value="10"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Surviving fraction of tumor cells and late-responding tissue cells across a fractionated course, on a logarithmic scale"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The total dose is always chosen so that late-responding tissue (α/β = 3 Gy) receives the same biological effect as 60 Gy in 30 fractions of 2 Gy; each scallop is one fraction, with full repair between. The dashed line is how far the standard course drives the tumor down. Raise the dose per fraction and the tumor ends higher: big fractions cost tumor kill when tumor α/β is large. Then set tumor α/β to 1.5 Gy, the value estimated for prostate cancer, and watch large fractions win. The α values (0.3 per Gy for the tumor, 0.1 for late tissue) are illustrative; real cell counts in tumors are not known this precisely.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="window" data-year="TCP" data-short="The therapeutic window">
+      <div class="chapter-head">
+        <span class="year">TCP</span>
+        <span class="label kicker">Chapter 6 · Dose response</span>
+        <h2>Two sigmoid curves</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1936 the German radiologist Hermann Holthusen drew the picture that still frames radiation oncology: two S-shaped curves, one for the probability of controlling a tumor and one for the probability of a serious complication, both rising with dose. If the tumor curve lies well to the left of the complication curve, there is a dose that cures most patients and harms few. If the curves overlap, every gain in control costs complications.</p>
+        <h3>Tumor control probability</h3>
+        <p>A tumor is controlled only if every cell capable of regrowing it, every <em>clonogen</em>, is killed. If a tumor starts with \(N\) clonogens and each survives with probability \(S(D)\), the number left follows a Poisson distribution, and the chance that none remain is</p>
+        <div class="math-block">\[ \text{TCP} = \exp\!\big(-N\, S(D)\big). \]</div>
+        <p>With \(N\) around \(10^8\) to \(10^9\) clonogens in a tumor of a few cubic centimeters, TCP stays near zero until the expected number of survivors falls below one, then rises steeply. For a single patient the curve would be almost a step. Across patients, tumors differ in sensitivity, and averaging over that variation flattens the curve into the gentle slopes seen in clinical data.</p>
+        <h3>Normal tissue complication probability</h3>
+        <p>Complication data are usually fitted with an empirical sigmoid. The Lyman model, published in 1985 and extended by Kutcher and Burman, uses a cumulative normal distribution,</p>
+        <div class="math-block">\[ \text{NTCP} = \Phi\!\left(\frac{D - \text{TD}_{50}}{m\,\text{TD}_{50}}\right), \]</div>
+        <p>where \(\text{TD}_{50}\) is the dose that causes the complication in half of patients and \(m\) sets the slope. In 1991 Bernard Emami and colleagues compiled tolerance doses for 28 organs from clinical experience, and Burman and colleagues fitted the Lyman parameters to them. For late rectal injury they found \(\text{TD}_{50} = 80\) Gy and \(m = 0.15\). The QUANTEC reviews of 2010 updated these estimates with three-dimensional dose data.</p>
+        <p>The window between the curves is narrow for many cancers. Shifting the complication curve to the right by keeping dose out of the normal organ widens it, and that is what better beam technology does.</p>
+      </div>
+
+      <figure class="bench" id="fig-tcp">
+        <div class="bench-head"><span class="fig">Fig. 6.1</span><span class="label">Interactive</span><h4>The therapeutic window</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="tc-d">Prescribed dose <output>70 Gy</output></label><input type="range" id="tc-d" min="40" max="110" step="1" value="70"></div>
+          <div class="ctl"><label for="tc-n">Clonogens in the tumor <output>10⁸</output></label><input type="range" id="tc-n" min="6" max="10" step="1" value="8"></div>
+          <div class="ctl"><label for="tc-f">Organ dose as share of prescription <output>85%</output></label><input type="range" id="tc-f" min="50" max="100" step="5" value="85"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Tumor control probability and complication probability versus prescribed dose, with the probability of cure without complication"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Tumor control rises steeply where the expected number of surviving clonogens falls below one; complication follows the Lyman model with rectal parameters from Burman et al. The dashed curve is the chance of cure without complication, which peaks at the best compromise dose. Lower the organ's share of the dose, as a better plan would, and watch the window open and the best dose move up. A bigger tumor (more clonogens) moves the control curve right. The tumor model is illustrative: radiosensitivity varies between patients around a mean α of 0.25 per Gy, with 2 Gy fractions and α/β = 10 Gy.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PART III -->
+    <div class="part-head"><span class="label">Part III</span><h2>Planning and delivery</h2></div>
+
+    <section class="chapter" id="imrt" data-year="1988" data-short="Inverse planning">
+      <div class="chapter-head">
+        <span class="year">1988</span>
+        <span class="label kicker">Chapter 7 · Treatment planning</span>
+        <h2>Planning backward from the dose</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">For most of the twentieth century, a treatment plan was drawn by hand on a contour of the patient's outline traced with a strip of lead wire. Physicists added up isodose charts for two, three, or four beams and adjusted the beam weights by trial. Computed tomography changed that. From the late 1970s, CT scans gave planners the patient's anatomy slice by slice and the electron density they needed to calculate dose, and by the 1990s three-dimensional <em>conformal</em> radiotherapy shaped each beam to the outline of the tumor as seen from the beam's direction.</p>
+        <p>Planning begins with drawing volumes on the scan, using definitions standardized by the International Commission on Radiation Units and Measurements in Report 50 (1993). The <em>gross tumor volume</em> is what can be seen. The <em>clinical target volume</em> adds a margin for microscopic spread. The <em>planning target volume</em> adds a further margin for patient motion and setup error. Organs at risk are drawn as well. A plan is judged by its <em>dose-volume histogram</em>, which reports, for each structure, the fraction of its volume that receives at least each dose.</p>
+        <h3>Inverse planning</h3>
+        <p>Conformal beams have one serious limitation. Each beam delivers a roughly uniform intensity across its opening, so a target that wraps around a sensitive organ cannot be treated without irradiating that organ too. In 1988 Anders Brahme at the Karolinska Institute in Stockholm showed how to turn the problem around: specify the dose you want, then solve for the beam intensities that come closest. Divide each beam into small <em>beamlets</em> with weights \(w_j \ge 0\). The dose in voxel \(i\) is linear in the weights,</p>
+        <div class="math-block">\[ D_i = \sum_j A_{ij}\, w_j, \]</div>
+        <p>where \(A_{ij}\) is the dose that beamlet \(j\) delivers to voxel \(i\) at unit weight. The planner writes an objective that penalizes deviations from the goals, for example</p>
+        <div class="math-block">\[ F(\mathbf w) = \sum_{i \in \text{target}} (D_i - D_{\text{Rx}})^2 + \lambda \sum_{i \in \text{organ}} \max(0,\ D_i - D_{\text{lim}})^2, \]</div>
+        <p>and a computer minimizes it. The resulting beams have highly nonuniform intensity: each one is weak where it would cross the organ and strong elsewhere. This is <em>intensity-modulated radiation therapy</em> (IMRT). The first patients were treated with it in 1994, using the NOMOS Peacock system at Baylor College of Medicine in Houston. Within a decade multileaf collimators that move during the beam made IMRT routine, and since 2008 <em>volumetric modulated arc therapy</em> has delivered it while the gantry rotates continuously.</p>
+        <p>The figure uses a test geometry like the C-shape case of AAPM Task Group 119, a benchmark for IMRT planning: a horseshoe-shaped target prescribed 50 Gy, wrapped around a cylindrical core that should receive as little as possible.</p>
+      </div>
+
+      <figure class="bench" id="fig-imrt">
+        <div class="bench-head"><span class="fig">Fig. 7.1</span><span class="label">Interactive</span><h4>Inverse planning around a C-shaped target</h4></div>
+        <div class="controls">
+          <div class="ctl"><span class="label">Plan type</span><div class="chips"><button class="chip" type="button" data-mode="conf" aria-pressed="false">Conformal fields</button><button class="chip" type="button" data-mode="imrt" aria-pressed="true">Inverse planned</button></div></div>
+          <div class="ctl"><span class="label">Beams</span><div class="chips"><button class="chip" type="button" data-nb="1" aria-pressed="false">1</button><button class="chip" type="button" data-nb="3" aria-pressed="false">3</button><button class="chip" type="button" data-nb="5" aria-pressed="false">5</button><button class="chip" type="button" data-nb="7" aria-pressed="true">7</button><button class="chip" type="button" data-nb="9" aria-pressed="false">9</button></div></div>
+          <div class="ctl"><label for="im-pri">Priority on sparing the core <output>×1</output></label><input type="range" id="im-pri" min="-1" max="1.5" step="0.1" value="0"></div>
+        </div>
+        <div class="imrt-stage">
+          <canvas class="plot film" role="img" aria-label="Dose distribution on an elliptical phantom with a C-shaped target around a circular core"></canvas>
+          <div class="chart-wrap"><svg role="img" aria-label="Dose-volume histograms for the target, the core, and other tissue"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: dose on an axial slice, with the target outlined dashed and the core solid; marks on the outline show the beam directions. Right: dose-volume histograms. Switch to conformal fields and the core gets full dose, because every beam opening that covers the target also covers the core. Switch back and watch the optimizer carve the dose away from the core over its iterations. Add beams and raise the core's priority, and see the cost: the target's coverage (D95, the dose that 95% of the target receives) slips and hot spots (D2) grow. Pencil-beam model with parallel beams, homogeneous tissue, and a quadratic objective; real planning systems model far more.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="protons" data-year="p⁺" data-short="The Bragg peak">
+      <div class="chapter-head">
+        <span class="year">p⁺</span>
+        <span class="label kicker">Chapter 8 · Protons</span>
+        <h2>Stopping at the target</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1904 and 1905 William Henry Bragg and Richard Kleeman in Adelaide measured the ionization produced by alpha particles from radium along their paths through air. It was not constant. It rose toward the end of the track and peaked just before the particles stopped. A charged particle loses energy fastest when it is slow, because it spends longer near each electron it passes. Hans Bethe gave the quantum-mechanical theory in 1930. For protons in water, the stopping power is roughly</p>
+        <div class="math-block">\[ -\frac{dE}{dz} \propto \frac{1}{v^2}\ln\!\left(\frac{2 m_e v^2}{I}\right), \]</div>
+        <p>where \(v\) is the proton's speed and \(I \approx 75\) eV is the mean excitation energy of water. Integrated, it gives a range that depends on energy as a power law, the Bragg–Kleeman rule:</p>
+        <div class="math-block">\[ R \approx \alpha E^{p}, \qquad \alpha \approx 0.0022\ \text{cm MeV}^{-p},\ p \approx 1.77 \ \text{(water)}. \]</div>
+        <p>A 150 MeV proton travels about 16 cm in water and stops. Beyond that depth the dose falls to nearly zero.</p>
+        <p>In 1946 Robert Wilson, a physicist designing the Harvard cyclotron, pointed out in the journal <em>Radiology</em> that this peak could be placed inside a tumor. The first patients were treated with protons at the Lawrence Berkeley Laboratory in 1954. For decades proton therapy was done at physics laboratories, including the Harvard Cyclotron Laboratory, which treated thousands of patients with eye tumors and brain lesions. The first hospital-based proton center opened at Loma Linda University Medical Center in California in October 1990. There are now more than a hundred around the world.</p>
+        <h3>Spreading the peak</h3>
+        <p>A single "pristine" Bragg peak is a few millimeters wide, much narrower than a tumor. To cover a target, many peaks of decreasing energy are added with weights chosen to make the sum flat across the target's depth. The result is a <em>spread-out Bragg peak</em>. Older systems did this with spinning wheels of varying thickness; modern <em>pencil-beam scanning</em> steers a narrow proton beam magnetically and changes energy layer by layer.</p>
+        <p>The price of the sharp distal edge is sensitivity to range. A photon beam that is slightly off in depth delivers almost the same dose; a proton beam that stops 5 mm early leaves part of the tumor untreated, and one that goes 5 mm too far irradiates whatever lies behind it. Range is computed from CT numbers, which do not map perfectly onto proton stopping power, and from the patient's anatomy on the day, which changes. Planners add range margins of a few percent plus a millimeter or two, and they avoid aiming a beam's distal edge directly at a critical organ.</p>
+      </div>
+
+      <figure class="bench" id="fig-sobp">
+        <div class="bench-head"><span class="fig">Fig. 8.1</span><span class="label">Interactive</span><h4>Building a spread-out Bragg peak</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="sb-r">Deepest edge of target <output>16 cm</output></label><input type="range" id="sb-r" min="6" max="26" step="0.5" value="16"></div>
+          <div class="ctl"><label for="sb-w">Target thickness <output>6 cm</output></label><input type="range" id="sb-w" min="1" max="12" step="0.5" value="6"></div>
+          <div class="ctl"><label for="sb-e">Range error <output>0 mm</output></label><input type="range" id="sb-e" min="-8" max="8" step="1" value="0"></div>
+          <label class="check"><input type="checkbox" id="sb-ph" checked> Compare one photon beam</label>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Depth dose of a spread-out Bragg peak built from weighted pristine peaks, compared with a single photon beam"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Faint curves are the pristine peaks, each weighted; the thick curve is their sum. Notice that a thicker target raises the entrance dose, because every peak's plateau adds up in front of the target. The dashed photon beam, scaled to give the same dose mid-target, delivers more dose in front of the target and keeps going behind it. Add a range error to see the whole distribution shift: an overshoot of a few millimeters puts high dose where the plan had none. Pristine peaks from Bortfeld's analytic model of the Bragg curve with 1% energy spread; weights found by iterative fitting to a flat plateau.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="qa" data-year="QA" data-short="Checking the dose">
+      <div class="chapter-head">
+        <span class="year">QA</span>
+        <span class="label kicker">Chapter 9 · Medical physics</span>
+        <h2>Is the dose delivered the dose prescribed?</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A medical physicist's central job is to make sure that the number on the prescription is the dose in the patient. Clinical studies of dose response suggest that a 5% error in dose can change tumor control or complication rates noticeably, so the profession aims to deliver dose to within about 5%, which leaves only a percent or two for each link in the chain.</p>
+        <h3>The calibration chain</h3>
+        <p>National standards laboratories measure absorbed dose to water directly, with calorimeters or with ionization chambers whose response is known from first principles. Each clinic's reference ionization chamber is calibrated against such a standard, usually in a cobalt-60 beam. The clinic then measures the output of each treatment beam with that chamber in a water tank, correcting for the beam's energy, temperature, air pressure, and other factors. The protocols for doing this, AAPM Task Group 51 (1999) in North America and IAEA TRS-398 (2000) internationally, specify every correction. Independent audits, such as mailed dosimeters and anthropomorphic phantoms sent between clinics, check that the whole chain holds.</p>
+        <h3>When it fails</h3>
+        <p>Between 1985 and 1987 the Therac-25, a linear accelerator controlled by software, gave six patients massive overdoses, some of them roughly a hundred times the intended dose. Several of the patients died from their injuries. The machine had removed the hardware interlocks of earlier models and relied on software that contained a race condition: a fast operator editing the treatment setup could leave the machine delivering the high-current electron beam meant for X-ray production without the target in place. Nancy Leveson and Clark Turner's 1993 investigation became a standard case study in safety-critical software, and its lessons shaped how medical devices are designed and regulated.</p>
+        <h3>Checking each plan</h3>
+        <p>Because IMRT and VMAT plans depend on hundreds of moving leaf positions, each plan is usually checked before treatment by delivering it to a detector array and comparing measured and calculated dose. A simple dose difference fails badly in steep gradients, where a 1 mm shift changes dose by many percent, while distance-to-agreement fails in flat regions. In 1998 Daniel Low and colleagues combined the two into the <em>gamma index</em>. For each measured point \(\mathbf r_m\),</p>
+        <div class="math-block">\[ \gamma(\mathbf r_m) = \min_{\mathbf r_c} \sqrt{\frac{|\mathbf r_c - \mathbf r_m|^2}{\Delta d^2} + \frac{\big(D_m(\mathbf r_m) - D_c(\mathbf r_c)\big)^2}{\Delta D^2}}, \]</div>
+        <p>where \(\Delta d\) is the distance criterion and \(\Delta D\) the dose criterion. A point passes if \(\gamma \le 1\): somewhere within an ellipse of those dimensions, the calculation agrees with the measurement. AAPM Task Group 218 (2018) recommends 3% and 2 mm, ignoring points below 10% of the maximum dose, with at least 95% of points passing; below 90%, the plan should not be treated until the cause is found.</p>
+      </div>
+
+      <figure class="bench" id="fig-gamma">
+        <div class="bench-head"><span class="fig">Fig. 9.1</span><span class="label">Interactive</span><h4>Gamma analysis of a measured profile</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="gm-s">Position shift <output>1.5 mm</output></label><input type="range" id="gm-s" min="-4" max="4" step="0.5" value="1.5"></div>
+          <div class="ctl"><label for="gm-e">Output error <output>+1%</output></label><input type="range" id="gm-e" min="-6" max="6" step="0.5" value="1"></div>
+          <div class="ctl"><label for="gm-dd">Dose criterion <output>3%</output></label><input type="range" id="gm-dd" min="1" max="5" step="0.5" value="3"></div>
+          <div class="ctl"><label for="gm-dta">Distance criterion <output>2 mm</output></label><input type="range" id="gm-dta" min="1" max="4" step="0.5" value="2"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Planned and measured dose profiles across an intensity-modulated field, and the gamma value at each measured point"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Top: a planned profile across a modulated field and a "measured" one with a position shift, an output error, and a little detector noise. Bottom: gamma at each point, with failures highlighted. With a small shift, comparing dose alone fails every steep edge, while gamma passes them. Raise the output error and failures spread across the flat regions. Loosen the criteria to 3%/3 mm, the older convention, to see how much they hide. One-dimensional, global gamma with a 10% low-dose threshold; the profile is illustrative.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== NOW -->
+    <section class="chapter" id="now" data-year="Now" data-short="Where the field is going">
+      <div class="chapter-head">
+        <span class="label kicker">Chapter 10 · Today</span>
+        <h2>Fewer fractions, sharper aim</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The trend of the last two decades has been to give fewer, larger fractions, made safe by more precise aim. The linear-quadratic model says this should work when the tumor's \(\alpha/\beta\) is low or when the normal tissue around it receives little dose, and large randomized trials have confirmed it for common cancers.</p>
+        <ul>
+          <li><strong>Breast.</strong> The UK FAST-Forward trial, reported in 2020, randomized over 4,000 women after breast surgery. Five fractions of 5.2 Gy over one week (26 Gy) controlled the cancer as well as 15 fractions over three weeks (40 Gy), with similar side effects at five years.</li>
+          <li><strong>Prostate.</strong> Prostate cancer appears to have an \(\alpha/\beta\) of about 1.5 Gy, lower than the surrounding rectum. The CHHiP trial (2016) found 60 Gy in 20 fractions non-inferior to 74 Gy in 37, and five-fraction courses are now in routine use.</li>
+          <li><strong>Stereotactic body radiotherapy.</strong> Small lung, liver, and spinal tumors are treated in one to five very large fractions, extending Leksell's radiosurgery to the body. Tight margins depend on imaging the tumor at the time of treatment.</li>
+        </ul>
+        <h3>Imaging on the machine</h3>
+        <p>Modern linacs carry their own imaging: cone-beam CT built into the gantry, and in the newest systems a full MRI scanner. The ViewRay MRIdian treated its first patients in 2014, and the Elekta Unity, a 1.5 tesla MRI combined with a linac, was cleared by the US Food and Drug Administration in December 2018. With MRI, clinicians can see soft-tissue tumors during treatment and re-plan each day for that day's anatomy, a practice called <em>online adaptive radiotherapy</em>.</p>
+        <h3>FLASH</h3>
+        <p>In 2014 Vincent Favaudon, Marie-Catherine Vozenin, and colleagues at the Institut Curie reported that lung tissue in mice was spared from fibrosis when radiation was delivered in less than half a second, at dose rates of 40 Gy per second or more, while tumors responded as usual. The mechanism is still debated. In 2019 a team in Lausanne treated the first patient, a skin lymphoma given 15 Gy in 90 milliseconds, and in 2020 the FAST-01 trial in Cincinnati began the first clinical trial of FLASH with protons, for painful bone metastases. Whether the effect holds across tissues and clinical doses is one of the open questions in the field.</p>
+        <h3>Access</h3>
+        <p>The most important gap is not technical. Radiotherapy needs machines, shielded rooms, and trained physicists, oncologists, and therapists. The International Atomic Energy Agency's directory of radiotherapy centers shows several countries, most of them in Africa, with no radiotherapy machine at all, and many more with far fewer than their populations need.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="compare">
+          <thead><tr><th>Modality</th><th>Typical energy</th><th>Depth of maximum dose</th><th>Characteristic</th><th>Typical uses</th></tr></thead>
+          <tbody>
+            <tr><td>Orthovoltage X-rays</td><td>100–300 kV</td><td>Surface</td><td>High skin dose, rapid fall-off</td><td>Skin cancers, some palliation</td></tr>
+            <tr><td>Cobalt-60 gamma rays</td><td>1.17, 1.33 MeV</td><td>~0.5 cm</td><td>Simple, wide penumbra</td><td>General external beam, Gamma Knife</td></tr>
+            <tr><td>Linac photons</td><td>6–18 MV</td><td>1.5–3.5 cm</td><td>Skin sparing, deep penetration</td><td>Most external-beam treatment</td></tr>
+            <tr><td>Linac electrons</td><td>6–20 MeV</td><td>1–3 cm</td><td>Finite range, steep fall-off</td><td>Skin, superficial nodes, chest wall</td></tr>
+            <tr><td>Protons</td><td>70–230 MeV</td><td>At the end of range</td><td>Bragg peak, no exit dose</td><td>Children, tumors near critical organs</td></tr>
+            <tr><td>Carbon ions</td><td>Up to ~430 MeV per nucleon</td><td>At the end of range</td><td>Bragg peak, higher biological effect</td><td>Radioresistant tumors (few centers)</td></tr>
+            <tr><td>Brachytherapy</td><td>Ir-192 (~0.4 MeV avg), I-125, others</td><td>At the source</td><td>Inverse-square fall-off</td><td>Cervix, prostate, breast, eye</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose">
+        <p>Values are typical and vary with machine, field size, and technique.</p>
+        <div class="callout">
+          <span class="label">The common thread</span>
+          <p>Every advance in this volume concentrates dose. Radium rules evened it out over an implant, megavoltage beams moved it below the skin, fractionation exploited the difference between tumor and normal tissue, and IMRT and protons shaped it in three dimensions. Each step was paired with a way of measuring dose more accurately, because a beam shaped to the millimeter is useful only if the dose is known to the percent.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== glossary -->
+    <section class="chapter" id="glossary" data-year="Ref" data-short="Glossary & sources">
+      <div class="chapter-head">
+        <span class="label kicker">Reference</span>
+        <h2>Glossary</h2>
+      </div>
+      <dl class="glossary">
+        <dt>α/β ratio</dt><dd>The dose at which the linear and quadratic terms of the linear-quadratic model contribute equally; low for late-responding tissues.</dd>
+        <dt>Biologically effective dose (BED)</dt><dd>A dose adjusted for fraction size, used to compare schedules.</dd>
+        <dt>Brachytherapy</dt><dd>Treatment with radioactive sources placed inside or against the body.</dd>
+        <dt>Bragg peak</dt><dd>The sharp rise in dose near the end of a charged particle's range.</dd>
+        <dt>Build-up region</dt><dd>The first millimeters to centimeters of a megavoltage photon beam, where dose rises as secondary electrons accumulate.</dd>
+        <dt>Clonogen</dt><dd>A cell able to divide indefinitely and so regrow a tumor.</dd>
+        <dt>Dose-volume histogram (DVH)</dt><dd>A plot of the fraction of a structure receiving at least each dose.</dd>
+        <dt>EQD₂</dt><dd>The total dose in 2 Gy fractions with the same biological effect as a given schedule.</dd>
+        <dt>Gamma index</dt><dd>A combined dose-difference and distance-to-agreement measure for comparing measured and calculated dose.</dd>
+        <dt>Gray (Gy)</dt><dd>The SI unit of absorbed dose: one joule per kilogram.</dd>
+        <dt>IMRT</dt><dd>Intensity-modulated radiation therapy: beams with nonuniform intensity found by inverse planning.</dd>
+        <dt>Isocenter</dt><dd>The point about which the gantry rotates, usually placed in the target.</dd>
+        <dt>Linac</dt><dd>A linear accelerator that uses microwaves to accelerate electrons for treatment.</dd>
+        <dt>Multileaf collimator (MLC)</dt><dd>Motorized tungsten leaves that shape the beam.</dd>
+        <dt>Penumbra</dt><dd>The region at a beam's edge where dose falls from 80% to 20%.</dd>
+        <dt>Percentage depth dose (PDD)</dt><dd>Dose along a beam's central axis relative to its maximum.</dd>
+        <dt>Planning target volume (PTV)</dt><dd>The tumor plus margins for microscopic spread, motion, and setup error.</dd>
+        <dt>Spread-out Bragg peak (SOBP)</dt><dd>A sum of weighted proton peaks giving uniform dose over a target's depth.</dd>
+      </dl>
+
+      <div class="chapter-head" style="margin-top:32px"><h2>Sources</h2></div>
+      <ol class="sources">
+        <li>Delaney, G., Jacob, S., Featherstone, C. &amp; Barton, M. (2005). The role of radiotherapy in cancer treatment: estimating optimal utilization from a review of evidence-based clinical guidelines. <em>Cancer</em> 104.</li>
+        <li>Röntgen, W. C. (1895). Über eine neue Art von Strahlen. <em>Sitzungsberichte der Würzburger Physikalisch-Medicinischen Gesellschaft</em>.</li>
+        <li>Despeignes, V. (1896). Observation concernant un cas de cancer de l'estomac traité par les rayons Roentgen. <em>Lyon Médical</em> 82; Foray, N. (2013). Victor Despeignes (1866–1937): how a hygienist became the first radiation oncologist. <em>Cancer/Radiothérapie</em> 17.</li>
+        <li>Freund, L. (1897). Ein mit Röntgen-Strahlen behandelter Fall von Naevus pigmentosus piliferus. <em>Wiener Medizinische Wochenschrift</em> 47.</li>
+        <li>Hodges, P. C. (1964). <em>The Life and Times of Emil H. Grubbé</em>. University of Chicago Press; Health Physics Historical Instrumentation Museum, Oak Ridge Associated Universities, "The legend of Emil H. Grubbé."</li>
+        <li>Regaud, C. &amp; Ferroux, R. (1927). Discordance des effets des rayons X, d'une part dans le testicule, d'autre part dans la peau, par le fractionnement de la dose. <em>Comptes Rendus de la Société de Biologie</em> 97; Coutard, H. (1932). Roentgen therapy of epitheliomas of the tonsillar region, hypopharynx and larynx from 1920 to 1926. <em>American Journal of Roentgenology</em> 28.</li>
+        <li>Paterson, R. &amp; Parker, H. M. (1934). A dosage system for gamma ray therapy. <em>British Journal of Radiology</em> 7.</li>
+        <li>Compton, A. H. (1923). A quantum theory of the scattering of X-rays by light elements. <em>Physical Review</em> 21; Klein, O. &amp; Nishina, Y. (1929). Über die Streuung von Strahlung durch freie Elektronen nach der neuen relativistischen Quantendynamik von Dirac. <em>Zeitschrift für Physik</em> 52.</li>
+        <li>Gray, L. H. (1936). An ionization method for the absolute measurement of γ-ray energy. <em>Proceedings of the Royal Society A</em> 156; 15th General Conference on Weights and Measures (1975), Resolution 9 (the gray).</li>
+        <li>Johns, H. E. &amp; Cunningham, J. R. (1983). <em>The Physics of Radiology</em>, 4th ed. Charles C Thomas; Khan, F. M. &amp; Gibbons, J. P. (2014). <em>Khan's The Physics of Radiation Therapy</em>, 5th ed. Lippincott Williams &amp; Wilkins.</li>
+        <li>British Journal of Radiology Supplement 25 (1996). Central axis depth dose data for use in radiotherapy departments.</li>
+        <li>Johns, H. E., Bates, L. M. &amp; Watson, T. A. (1952). 1000 curie cobalt units for radiation therapy. I. The Saskatchewan cobalt 60 unit. <em>British Journal of Radiology</em> 25; London Health Sciences Centre, "From the cobalt bomb to theranostics" (first cobalt-60 treatment, 27 October 1951).</li>
+        <li>Thwaites, D. I. &amp; Tuohy, J. B. (2006). Back to the future: the history and development of the clinical linear accelerator. <em>Physics in Medicine and Biology</em> 51; Ginzton, E. L. &amp; Nunan, C. S. (1985). History of microwave electron linear accelerators for radiotherapy. <em>International Journal of Radiation Oncology Biology Physics</em> 11.</li>
+        <li>Leksell, L. (1951). The stereotaxic method and radiosurgery of the brain. <em>Acta Chirurgica Scandinavica</em> 102.</li>
+        <li>Puck, T. T. &amp; Marcus, P. I. (1956). Action of X-rays on mammalian cells. <em>Journal of Experimental Medicine</em> 103.</li>
+        <li>Gray, L. H. et al. (1953). The concentration of oxygen dissolved in tissues at the time of irradiation as a factor in radiotherapy. <em>British Journal of Radiology</em> 26.</li>
+        <li>Withers, H. R. (1975). The four R's of radiotherapy. <em>Advances in Radiation Biology</em> 5.</li>
+        <li>Fowler, J. F. (1989). The linear-quadratic formula and progress in fractionated radiotherapy. <em>British Journal of Radiology</em> 62.</li>
+        <li>Holthusen, H. (1936). Erfahrungen über die Verträglichkeitsgrenze für Röntgenstrahlen und deren Nutzanwendung zur Verhütung von Schäden. <em>Strahlentherapie</em> 57.</li>
+        <li>Lyman, J. T. (1985). Complication probability as assessed from dose-volume histograms. <em>Radiation Research</em> 104; Emami, B. et al. (1991). Tolerance of normal tissue to therapeutic irradiation. <em>International Journal of Radiation Oncology Biology Physics</em> 21; Burman, C. et al. (1991). Fitting of normal tissue tolerance data to an analytic function. Same issue.</li>
+        <li>Marks, L. B. et al. (2010). Use of normal tissue complication probability models in the clinic (QUANTEC). <em>International Journal of Radiation Oncology Biology Physics</em> 76.</li>
+        <li>ICRU Report 50 (1993). Prescribing, recording, and reporting photon beam therapy; ICRU Report 83 (2010). Prescribing, recording, and reporting intensity-modulated photon-beam therapy.</li>
+        <li>Brahme, A. (1988). Optimization of stationary and moving beam radiation therapy techniques. <em>Radiotherapy and Oncology</em> 12; Webb, S. (2003). The physical basis of IMRT and inverse planning. <em>British Journal of Radiology</em> 76.</li>
+        <li>Ezzell, G. A. et al. (2009). IMRT commissioning: multiple institution planning and dosimetry comparisons, a report from AAPM Task Group 119. <em>Medical Physics</em> 36.</li>
+        <li>Otto, K. (2008). Volumetric modulated arc therapy: IMRT in a single gantry arc. <em>Medical Physics</em> 35.</li>
+        <li>Bragg, W. H. &amp; Kleeman, R. (1905). On the α particles of radium, and their loss of range in passing through various atoms and molecules. <em>Philosophical Magazine</em> 10; Bethe, H. (1930). Zur Theorie des Durchgangs schneller Korpuskularstrahlen durch Materie. <em>Annalen der Physik</em> 397.</li>
+        <li>Wilson, R. R. (1946). Radiological use of fast protons. <em>Radiology</em> 47.</li>
+        <li>Bortfeld, T. (1997). An analytical approximation of the Bragg curve for therapeutic proton beams. <em>Medical Physics</em> 24.</li>
+        <li>Paganetti, H. (2012). Range uncertainties in proton therapy and the role of Monte Carlo simulations. <em>Physics in Medicine and Biology</em> 57; Slater, J. M. et al. (1992). The proton treatment center at Loma Linda University Medical Center. <em>International Journal of Radiation Oncology Biology Physics</em> 22.</li>
+        <li>Almond, P. R. et al. (1999). AAPM's TG-51 protocol for clinical reference dosimetry of high-energy photon and electron beams. <em>Medical Physics</em> 26; IAEA (2000). Absorbed dose determination in external beam radiotherapy. Technical Reports Series 398.</li>
+        <li>Leveson, N. G. &amp; Turner, C. S. (1993). An investigation of the Therac-25 accidents. <em>IEEE Computer</em> 26.</li>
+        <li>Low, D. A., Harms, W. B., Mutic, S. &amp; Purdy, J. A. (1998). A technique for the quantitative evaluation of dose distributions. <em>Medical Physics</em> 25; Miften, M. et al. (2018). Tolerance limits and methodologies for IMRT measurement-based verification QA: recommendations of AAPM Task Group 218. <em>Medical Physics</em> 45.</li>
+        <li>Murray Brunt, A. et al. (2020). Hypofractionated breast radiotherapy for 1 week versus 3 weeks (FAST-Forward). <em>The Lancet</em> 395; Dearnaley, D. et al. (2016). Conventional versus hypofractionated high-dose intensity-modulated radiotherapy for prostate cancer: 5-year outcomes of the CHHiP trial. <em>Lancet Oncology</em> 17.</li>
+        <li>Favaudon, V. et al. (2014). Ultrahigh dose-rate FLASH irradiation increases the differential response between normal and tumor tissue in mice. <em>Science Translational Medicine</em> 6; Bourhis, J. et al. (2019). Treatment of a first patient with FLASH-radiotherapy. <em>Radiotherapy and Oncology</em> 139; Mascia, A. E. et al. (2023). Proton FLASH radiotherapy for the treatment of symptomatic bone metastases: the FAST-01 nonrandomized trial. <em>JAMA Oncology</em> 9.</li>
+        <li>Elekta (2018). Elekta Unity receives FDA 510(k) clearance; Mutic, S. &amp; Dempsey, J. F. (2014). The ViewRay system: magnetic resonance-guided and controlled radiotherapy. <em>Seminars in Radiation Oncology</em> 24.</li>
+        <li>International Atomic Energy Agency. Directory of Radiotherapy Centres (DIRAC). dirac.iaea.org.</li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">LearnAnything · Volume 6 · Dose distributions and response curves are simulations from simplified models, not clinical tools.</footer>
+
+<script src="../../assets/js/lab.js"></script>
+<script src="js/rt.js"></script>
+<script src="js/hero.js"></script>
+<script src="js/physics.js"></script>
+<script src="js/biology.js"></script>
+<script src="js/planning.js"></script>
+<script>Lab.rail();</script>
+</body>
+</html>

@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pinhole</title>
+<meta name="description" content="Fluorescence, confocal, and high-content imaging: the optics of the diffraction limit, how a pinhole cuts optical sections, how cameras count photons, and how automated microscopes image millions of cells to screen for drugs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=Literata:ital,opsz,wght@0,7..72,300..700;1,7..72,300..700&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<style>
+/* Volume V identity: the fluorescence room. Dark-first, because fluorescence lives on black;
+   a stage-micrometer scale ruled across the ground every few inches; Bricolage Grotesque for
+   headings, Literata for reading, Spline Sans Mono for data. Image channels keep the
+   conventional fluorescence colors (DNA blue, actin green, mitochondria magenta) on black film. */
+:root {
+  color-scheme: dark;
+  --paper: #0E1110; --paper-2: #151A18; --paper-3: #1B211E;
+  --grid: #26302B; --rule: #303B36;
+  --ink: #E4EAE6; --ink-2: #AAB6AF; --ink-3: #7C8982;
+  --accent: #5BD88F; --signal: #E8B04A; --tertiary: #6E8BEA;
+  --s1: #3BA866; --s2: #D85AA8; --s3: #6E8BEA;
+  --accent-wash: rgba(91, 216, 143, .1); --signal-wash: rgba(232, 176, 74, .14);
+  --film: #050608; --film-ink: #DDE5E0; --film-ink-2: #8D9A93;
+  --ch-dna: #4F7DFF; --ch-actin: #3FD37A; --ch-mito: #FF4FC3;
+  --f-display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Literata", Georgia, "Times New Roman", serif;
+  --f-mono: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --rail: 196px;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --paper: #F2F4F1; --paper-2: #E6EAE5; --paper-3: #FAFBF9;
+    --grid: #D2DAD3; --rule: #C2CCC4;
+    --ink: #111613; --ink-2: #39443E; --ink-3: #5E6A63;
+    --accent: #1A7340; --signal: #8A5A00; --tertiary: #2F5BC8;
+    --s1: #1E7B45; --s2: #B0287F; --s3: #2F5BC8;
+    --accent-wash: rgba(26, 115, 64, .08); --signal-wash: rgba(138, 90, 0, .12);
+  }
+}
+/* site.css's own dark blocks outrank a bare :root, so the dark palette is restated for them. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #0E1110; --paper-2: #151A18; --paper-3: #1B211E;
+    --grid: #26302B; --rule: #303B36;
+    --ink: #E4EAE6; --ink-2: #AAB6AF; --ink-3: #7C8982;
+    --accent: #5BD88F; --signal: #E8B04A; --tertiary: #6E8BEA;
+    --s1: #3BA866; --s2: #D85AA8; --s3: #6E8BEA;
+    --accent-wash: rgba(91, 216, 143, .1); --signal-wash: rgba(232, 176, 74, .14);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #0E1110; --paper-2: #151A18; --paper-3: #1B211E;
+  --grid: #26302B; --rule: #303B36;
+  --ink: #E4EAE6; --ink-2: #AAB6AF; --ink-3: #7C8982;
+  --accent: #5BD88F; --signal: #E8B04A; --tertiary: #6E8BEA;
+  --s1: #3BA866; --s2: #D85AA8; --s3: #6E8BEA;
+  --accent-wash: rgba(91, 216, 143, .1); --signal-wash: rgba(232, 176, 74, .14);
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --paper: #F2F4F1; --paper-2: #E6EAE5; --paper-3: #FAFBF9;
+  --grid: #D2DAD3; --rule: #C2CCC4;
+  --ink: #111613; --ink-2: #39443E; --ink-3: #5E6A63;
+  --accent: #1A7340; --signal: #8A5A00; --tertiary: #2F5BC8;
+  --s1: #1E7B45; --s2: #B0287F; --s3: #2F5BC8;
+  --accent-wash: rgba(26, 115, 64, .08); --signal-wash: rgba(138, 90, 0, .12);
+}
+body {
+  background-color: var(--paper);
+  /* a stage micrometer: a ruled line with fine ticks every 160px down the page */
+  background-image:
+    linear-gradient(to bottom, var(--grid) 0 1px, transparent 1px),
+    linear-gradient(to bottom, transparent 0 1px, var(--paper) 1px 152px, transparent 152px),
+    repeating-linear-gradient(90deg, var(--grid) 0 1px, transparent 1px 10px);
+  background-size: 100% 160px, 100% 160px, 100% 160px;
+  font-size: 1.06rem;
+}
+.hero { grid-template-columns: 1fr; gap: 26px; }
+.hero h1 { font: 800 clamp(3.6rem, 10vw, 7.6rem)/.86 var(--f-display); font-stretch: 78%; letter-spacing: -.03em; font-variation-settings: "opsz" 96; }
+.hero h1 i { font-style: normal; color: var(--accent); }
+.hero .dek { max-width: 50ch; }
+.chapter-head .year { font: 800 clamp(2.8rem, 7.4vw, 4.8rem)/.88 var(--f-display); font-stretch: 78%; letter-spacing: -.02em; }
+.chapter-head h2 { font: 700 clamp(2rem, 4.6vw, 3.2rem)/1.02 var(--f-display); font-stretch: 85%; letter-spacing: -.025em; }
+.prose h3 { font: 700 var(--t-lg)/1.25 var(--f-display); font-stretch: 90%; }
+.prose blockquote { font-family: var(--f-body); }
+.bench-head h4, .volume h2 { font-family: var(--f-display); }
+.rail a { grid-template-columns: 50px 1fr; }
+.rail a .yr { font-size: 11px; }
+.part-head { max-width: var(--measure); padding-top: 64px; display: grid; gap: 4px; }
+.part-head .label { color: var(--accent); }
+.part-head h2 { font: 800 var(--t-xl)/1 var(--f-display); font-stretch: 78%; }
+
+.hero-plate { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+@media (max-width: 640px) { .hero-plate { grid-template-columns: 1fr; } }
+.hero-plate canvas { width: 100%; aspect-ratio: 1; display: block; border-radius: var(--radius); background: var(--film); }
+.hero-well { font: 400 var(--t-xs)/1.4 var(--f-mono); color: var(--ink-2); }
+.chart-wrap svg { width: 100%; display: block; }
+.bench canvas.plain { background: transparent; border: 0; }
+b.warn, .warn { color: var(--s2); }
+.legend i.sq { border-radius: 1px; }
+.callout { max-width: var(--measure); border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; display: grid; gap: 6px; }
+.callout .label { color: var(--accent); }
+.stat-row { display: flex; flex-wrap: wrap; gap: 12px 40px; max-width: var(--measure); padding-block: 8px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.stat-row div { display: grid; gap: 2px; }
+.stat-row b { font: 800 var(--t-xl)/1 var(--f-display); font-stretch: 78%; }
+.stat-row span { font: 400 var(--t-xs)/1.3 var(--f-mono); color: var(--ink-3); }
+.table-wrap { overflow-x: auto; max-width: var(--bench); }
+table.compare { border-collapse: collapse; font-size: var(--t-sm); min-width: 620px; width: 100%; }
+table.compare th { font: 500 var(--t-xs)/1.3 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px; border-bottom: 1px solid var(--ink-3); vertical-align: bottom; }
+table.compare td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+table.compare td:first-child { font-weight: 600; color: var(--ink); white-space: nowrap; }
+</style>
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg', 'canvas'] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="brand" href="../../index.html">Learn<b>Anything</b></a>
+  <span class="where">Vol. 5 · Fluorescence and high-content imaging</span>
+  <span class="progress" aria-hidden="true"></span>
+</header>
+
+<div class="module">
+  <nav class="rail" aria-label="Chapters"><ol></ol></nav>
+
+  <main class="content">
+
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="label">Volume 5 · Microscopy at scale</p>
+        <h1 id="title">Pin<i>hole</i></h1>
+        <p class="dek">How a microscope's resolution is fixed by the wavelength of light, how a pinhole cuts a sharp slice out of a thick sample, how cameras count photons, and how robots image millions of cells a day to find new drugs.</p>
+        <div class="meta">
+          <span class="label">10 chapters</span>
+          <span class="label">9 interactive figures</span>
+          <span class="label">1873 → today</span>
+        </div>
+      </div>
+      <figure class="hero-figure" id="hero-plate" style="margin:0">
+        <div class="hero-plate">
+          <div class="chart-wrap"><svg role="img" aria-label="A 384-well plate colored by phenotype score; controls in the outer columns"></svg></div>
+          <canvas role="img" aria-label="Simulated three-channel fluorescence image of the cells in the selected well"></canvas>
+        </div>
+        <div class="readout"><span class="hero-well"></span><span>Illustrative screen. Click a well to see its cells.</span></div>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PROLOGUE -->
+    <section class="chapter" id="prologue" data-year="Pro" data-short="Seeing cells at scale">
+      <div class="chapter-head">
+        <span class="label kicker">Prologue</span>
+        <h2>From one cell under glass to millions on a plate</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The figure above is a screen. Each circle is a well in a plastic plate the size of a hand, holding a few thousand human cells and a different chemical compound. A robot photographed every well under a fluorescence microscope, software found each cell and measured hundreds of features, and the color of each well summarizes how much its cells changed. The bright wells in the middle are candidate drugs.</p>
+        <p>Getting there took a century and a half of optics. Part I follows the physics: why a light microscope cannot resolve detail finer than about a quarter of a micron, how fluorescence makes specific molecules glow, how the confocal microscope's pinhole rejects out-of-focus light, how cameras turn photons into numbers, and how computation recovers detail the optics blurred. Part II follows the scale-up: plates and robots, the image analysis that turns pictures into measurements, the statistics that decide whether a screen worked, and the "profiling" approach that treats a cell's appearance as a readout of its biology.</p>
+      </div>
+      <div class="stat-row">
+        <div><b>~200 nm</b><span>best lateral resolution of conventional light microscopy</span></div>
+        <div><b>384</b><span>wells in the most common screening plate</span></div>
+        <div><b>Z′ ≥ 0.5</b><span>the conventional bar for a robust screening assay</span></div>
+      </div>
+      <dl class="defn">
+        <dt>Fluorophore</dt><dd>A molecule that absorbs light of one color and emits light of a longer wavelength.</dd>
+        <dt>High-content screening</dt><dd>Automated microscopy and image analysis of cells treated with many perturbations, measuring many features per cell.</dd>
+        <dt>Numerical aperture</dt><dd>\(\text{NA} = n \sin\alpha\): how wide a cone of light an objective collects, set by its half-angle \(\alpha\) and the refractive index \(n\) of the medium.</dd>
+      </dl>
+    </section>
+
+    <!-- ===================================================== PART I -->
+    <div class="part-head"><span class="label">Part I</span><h2>Optics and detection</h2></div>
+
+    <section class="chapter" id="abbe" data-year="1873" data-short="The diffraction limit">
+      <div class="chapter-head">
+        <span class="year">1873</span>
+        <span class="label kicker">Chapter 1 · Resolution</span>
+        <h2>Why light can only see so small</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Robert Hooke's <em>Micrographia</em> (1665) named the "cell," and Antonie van Leeuwenhoek's single-lens instruments revealed bacteria and sperm in the 1670s. For two more centuries, microscope makers improved lenses by trial and error. In the 1860s Carl Zeiss hired the physicist Ernst Abbe in Jena to put lens design on a scientific footing.</p>
+        <p>In 1873 Abbe published the result that still defines light microscopy. A lens forms an image by collecting light diffracted by the specimen. Fine detail diffracts light at steep angles, and a lens that cannot collect those angles cannot reproduce the detail. The smallest resolvable period is</p>
+        <div class="math-block">\[ d = \frac{\lambda}{2\,n \sin\alpha} = \frac{\lambda}{2\,\text{NA}}. \]</div>
+        <p>For green light (\(\lambda \approx 520\) nm) and the best oil-immersion objectives (\(\text{NA} \approx 1.4\)), that is about 190 nm. No improvement in glass can beat it, only shorter wavelengths or larger apertures.</p>
+        <h3>The Airy pattern</h3>
+        <p>A point of light, such as a single fluorescent molecule, is imaged not as a point but as a blur called the <em>point spread function</em>. For a circular aperture it is the Airy pattern, described by George Airy in 1835:</p>
+        <div class="math-block">\[ I(r) = I_0 \left[ \frac{2 J_1(v)}{v} \right]^2, \qquad v = \frac{2\pi\,\text{NA}}{\lambda}\,r, \]</div>
+        <p>where \(J_1\) is a Bessel function. The first dark ring falls at \(r = 0.61\lambda/\text{NA}\). In 1879 Lord Rayleigh proposed that two points are just resolved when the center of one falls on the first dark ring of the other, which leaves a dip of about 26% between them. Every image a microscope makes is the true distribution of light convolved with this blur.</p>
+      </div>
+
+      <figure class="bench" id="fig-airy">
+        <div class="bench-head"><span class="fig">Fig. 1.1</span><span class="label">Interactive</span><h4>Two points of light</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="ai-l">Wavelength <output>520 nm</output></label><input type="range" id="ai-l" min="400" max="700" step="5" value="520"></div>
+          <div class="ctl"><label for="ai-na">Numerical aperture <output>0.75</output></label><input type="range" id="ai-na" min="0.1" max="1.45" step="0.05" value="0.75"></div>
+          <div class="ctl"><label for="ai-d">Separation <output>450 nm</output></label><input type="range" id="ai-d" min="50" max="1200" step="10" value="450"></div>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="Image of two point sources blurred by diffraction, with an intensity profile through both"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: two point sources as an ideal microscope images them, in the color of the chosen wavelength. Right: intensity along the line through both points; dashed curves are each point alone, and the vertical lines mark the Rayleigh separation. Shrink the separation until the dip disappears, then raise the numerical aperture or shorten the wavelength to pull the points apart again. Computed from the Airy formula for an aberration-free lens.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="fluor" data-year="1911" data-short="Fluorescence">
+      <div class="chapter-head">
+        <span class="year">1911</span>
+        <span class="label kicker">Chapter 2 · Fluorescence</span>
+        <h2>Making the molecules you care about glow</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1852 George Stokes described how quinine absorbs invisible ultraviolet light and emits blue light, and named the effect fluorescence. Emitted light always has a longer wavelength than the absorbed light, because the molecule loses some energy to vibration before it emits. This <em>Stokes shift</em> is what makes fluorescence microscopy work: a filter can block the bright excitation light and pass only the faint emission, so labeled structures glow against a black background.</p>
+        <p>The first fluorescence microscopes were built around 1910 by Oskar Heimstädt in Vienna and Heinrich Lehmann in Jena, and demonstrated in 1911. Three later advances made the method central to biology:</p>
+        <ul>
+          <li><strong>Antibodies (1941).</strong> Albert Coons and colleagues attached a fluorescent dye to an antibody, so it would light up one specific protein. Immunofluorescence is still a routine way to see where a protein sits in a cell.</li>
+          <li><strong>Epi-illumination (1967).</strong> Johan Ploem's design sends excitation light down through the objective and separates the returning emission with a <em>dichroic mirror</em>, which reflects short wavelengths and transmits long ones. Nearly every fluorescence microscope, including confocal and screening instruments, uses this layout.</li>
+          <li><strong>Fluorescent proteins (1994).</strong> Osamu Shimomura isolated green fluorescent protein (GFP) from the jellyfish <em>Aequorea victoria</em> in 1962. In 1994 Martin Chalfie showed that its gene works in other organisms, so living cells can make their own label fused to any protein of interest. Roger Tsien's lab engineered brighter variants and new colors; mCherry, a red protein, was described in 2004. The three shared the 2008 Nobel Prize in Chemistry.</li>
+        </ul>
+        <h3>Channels and bleed-through</h3>
+        <p>Imaging several labels at once means choosing excitation wavelengths and emission filters so that each channel records mostly one dye. Emission spectra are broad and overlap, so some of one dye's light leaks into another's channel. Narrower filters reduce this <em>bleed-through</em> but also discard signal. When it cannot be avoided, it can be measured with single-labeled controls and subtracted, a process called spectral unmixing.</p>
+      </div>
+
+      <figure class="bench" id="fig-filters">
+        <div class="bench-head"><span class="fig">Fig. 2.1</span><span class="label">Interactive</span><h4>Choosing filters for two dyes</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="fl-c1">Green filter center <output>525 nm</output></label><input type="range" id="fl-c1" min="495" max="575" step="5" value="525"></div>
+          <div class="ctl"><label for="fl-w1">Green filter width <output>50 nm</output></label><input type="range" id="fl-w1" min="10" max="100" step="5" value="50"></div>
+          <div class="ctl"><label for="fl-c2">Red filter center <output>630 nm</output></label><input type="range" id="fl-c2" min="580" max="690" step="5" value="630"></div>
+          <div class="ctl"><label for="fl-w2">Red filter width <output>60 nm</output></label><input type="range" id="fl-w2" min="10" max="100" step="5" value="60"></div>
+          <label class="check"><input type="checkbox" id="fl-488" checked> 488 nm laser</label>
+          <label class="check"><input type="checkbox" id="fl-561" checked> 561 nm laser</label>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Excitation and emission spectra of a green and a red fluorescent protein with two emission filter bands and two laser lines"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Dashed lines are excitation spectra; filled curves are emission. Gray bands are the two emission filters, and black lines are the lasers. GFP's long emission tail reaches into the red channel. Turn off the 488 nm laser to see how sequential excitation removes most of that bleed-through, at the cost of a second exposure. Spectra are smooth approximations with the published peaks of EGFP (excitation 488, emission 507 nm) and mCherry (587, 610 nm).</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="confocal" data-year="1957" data-short="The confocal pinhole">
+      <div class="chapter-head">
+        <span class="year">1957</span>
+        <span class="label kicker">Chapter 3 · Confocal microscopy</span>
+        <h2>A pinhole that throws away the blur</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A conventional widefield microscope illuminates the whole thickness of the sample at once. Fluorescence from above and below the focal plane arrives at the camera as haze, and in a tissue slice tens of microns thick it can swamp the in-focus detail.</p>
+        <p>In 1955 Marvin Minsky, then a junior fellow at Harvard studying the brain, built a microscope that illuminated only one point at a time and placed a pinhole in front of the detector, at a plane conjugate to the focus. Light from the focal point passes through the pinhole; light from other depths arrives defocused and is mostly blocked. He filed the patent in 1957 (granted 1961), and the instrument scanned the specimen stage under a fixed beam. It attracted little attention.</p>
+        <p>The idea returned with lasers and computers. Mojmír Petráň and Milan Hadravský in Czechoslovakia built a spinning-disk version with thousands of pinholes in 1968. In the 1970s and 1980s, Colin Sheppard and Tony Wilson in Oxford and G. J. Brakenhoff in Amsterdam developed laser scanning confocal microscopes. In 1987 John White, Brad Amos, and Michael Fordham in Cambridge showed striking fluorescence images of cells, and Bio-Rad commercialized their design as the MRC-500. Within a few years the confocal microscope was standard equipment in cell biology. Spinning-disk systems with microlens arrays, developed by Yokogawa in the 1990s, became the fast option for live cells and for screening.</p>
+        <h3>How the pinhole works</h3>
+        <p>In a confocal microscope the image of a point is the product of two blurs: the focused illumination spot and the detection spot seen through the pinhole,</p>
+        <div class="math-block">\[ h_{\text{conf}}(\mathbf r) = h_{\text{ill}}(\mathbf r)\,\big[h_{\text{det}} * p\big](\mathbf r), \]</div>
+        <p>where \(p\) is the pinhole's aperture. The product is narrower than either factor, so a confocal image is slightly sharper laterally. The larger gain is in depth. A widefield microscope collects the same total light from every plane of a uniformly fluorescent sample, so it cannot distinguish depth at all. With a pinhole, the signal from a plane falls off as it moves away from focus, roughly as \(1/z^2\), and the microscope records an <em>optical section</em>. Pinholes are sized in <em>Airy units</em> (AU), the diameter of the Airy disk projected onto the pinhole. One AU is the usual compromise: smaller pinholes section a little better but discard most of the light.</p>
+      </div>
+
+      <figure class="bench" id="fig-pinhole">
+        <div class="bench-head"><span class="fig">Fig. 3.1</span><span class="label">Interactive</span><h4>The pinhole and the optical section</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="ph-au">Pinhole diameter <output>1.00 AU</output></label><input type="range" id="ph-au" min="0.25" max="6" step="0.25" value="1"></div>
+          <div class="ctl"><label for="ph-na">Numerical aperture <output>1.20</output></label><input type="range" id="ph-na" min="0.4" max="1.3" step="0.05" value="1.2"></div>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="Side views of the widefield and confocal point spread functions, and the signal from a fluorescent plane versus depth"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: a side view (x across, z down) of how a point is imaged in widefield and in confocal, emission at 520 nm in water. The confocal response is confined in depth. Right: the signal recorded from a thin, uniform fluorescent sheet as it moves through focus. Widefield is flat; confocal falls off, and its width is the optical section. Open the pinhole to 6 AU and the confocal curve flattens toward widefield; close it to 0.25 AU and the section barely improves while the collected light drops sharply. Computed with a Gaussian-beam approximation of the focused spot, so absolute values are approximate.</figcaption>
+      </figure>
+
+      <figure class="bench" id="fig-section">
+        <div class="bench-head"><span class="fig">Fig. 3.2</span><span class="label">Interactive</span><h4>Focusing through a thick sample</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="sc-z">Focal plane <output>0 µm</output></label><input type="range" id="sc-z" min="-20" max="20" step="1" value="0"></div>
+          <div class="ctl"><label for="sc-au">Pinhole <output>1.0 AU</output></label><input type="range" id="sc-au" min="0.5" max="8" step="0.5" value="1"></div>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="Widefield and confocal images of beads distributed through a 40 micron thick sample"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">Seventy fluorescent beads scattered through a 40 µm thick sample, imaged at NA 0.75. The widefield image shows every bead, in focus or not, as a halo that raises the background. The confocal image shows mostly the beads near the focal plane. Step the focus through the sample to collect a z-stack. Simulated from the same Gaussian-beam model as Figure 3.1.</figcaption>
+      </figure>
+      <div class="prose">
+        <p>Point scanning is slow: the beam must visit every pixel, and each pixel gets microseconds of signal. Spinning disks scan thousands of points in parallel onto a camera and are much faster and gentler, which is why most confocal screening instruments use them. In 1990 Winfried Denk, James Strickler, and Watt Webb introduced <em>two-photon</em> microscopy, in which a pulsed infrared laser excites fluorescence only at the focus, where the intensity is high enough for a molecule to absorb two photons at once. It sections without a pinhole and reaches several hundred microns into living tissue.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="detect" data-year="1969" data-short="Counting photons">
+      <div class="chapter-head">
+        <span class="year">1969</span>
+        <span class="label kicker">Chapter 4 · Detectors</span>
+        <h2>Counting photons, and the noise you cannot avoid</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1969 Willard Boyle and George Smith at Bell Labs invented the charge-coupled device (CCD), an array of pixels that collect photoelectrons and shift them out one row at a time to be measured. Cooled scientific CCDs replaced film in microscopy in the 1990s. Boyle and Smith shared the 2009 Nobel Prize in Physics.</p>
+        <p>Point-scanning confocals use photomultiplier tubes or newer hybrid and avalanche detectors, which count single photons quickly. Widefield and spinning-disk instruments use cameras. Two camera types followed the CCD. Electron-multiplying CCDs (EMCCDs), introduced around 2000, amplify the signal on the chip before readout so that single photons stand above the read noise. Scientific CMOS (sCMOS) sensors, introduced in 2009, read every column in parallel with very low noise, giving large, fast sensors that now dominate screening.</p>
+        <h3>Where noise comes from</h3>
+        <p>Light arrives as discrete photons at random times, so even a perfect detector sees <em>shot noise</em>: if \(N\) photons are expected, the count varies by \(\sqrt N\). A detector converts a fraction QE (its quantum efficiency) of photons to electrons, adds background and dark current, then adds <em>read noise</em> \(\sigma_r\) when it measures the charge. The signal-to-noise ratio of one pixel is</p>
+        <div class="math-block">\[ \text{SNR} = \frac{\text{QE}\cdot N}{\sqrt{F^2\,\text{QE}\,(N + B) + \sigma_r^2}}, \]</div>
+        <p>where \(B\) is background photons and \(F\) is an excess noise factor, about \(\sqrt 2\) for an EMCCD because the random gain process doubles the variance of the shot noise. At high light levels shot noise dominates, every camera approaches \(\sqrt{\text{QE}\cdot N}\), and the one with higher quantum efficiency wins. At a few photons per pixel, read noise dominates and EMCCDs win.</p>
+        <p>Light is not free. Every excitation risks destroying the fluorophore (<em>photobleaching</em>) and creating reactive oxygen that damages the cell (<em>phototoxicity</em>). Live-cell and screening experiments are designed around a photon budget: how few photons per cell still give a usable measurement.</p>
+      </div>
+
+      <figure class="bench" id="fig-camera">
+        <div class="bench-head"><span class="fig">Fig. 4.1</span><span class="label">Interactive</span><h4>The same cells at different light levels</h4></div>
+        <div class="controls">
+          <div class="btns" role="group" aria-label="Camera">
+            <button type="button" data-cam="ccd" aria-pressed="false">CCD</button>
+            <button type="button" data-cam="emccd" aria-pressed="false">EMCCD</button>
+            <button type="button" data-cam="scmos" aria-pressed="true">sCMOS</button>
+          </div>
+          <div class="ctl"><label for="cm-n">Photons at brightest pixel <output>50</output></label><input type="range" id="cm-n" min="0" max="4" step="0.05" value="1.7"></div>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="A simulated noisy fluorescence image and signal-to-noise curves for three camera types"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: simulated cells imaged with Poisson photon noise, camera read noise, and 0.3 photons of background per pixel. Right: signal-to-noise against photons per pixel for each camera, with representative quantum efficiency and read noise (cooled CCD 65% and 6 e⁻; EMCCD 95%, effectively no read noise, excess noise √2; sCMOS 82% and 1.4 e⁻). Drop to 1 or 2 photons and switch cameras: the CCD image dissolves into read noise, and the EMCCD edges out the sCMOS. Above a few photons per pixel the sCMOS pulls ahead, and at 1,000 the EMCCD trails both because of its excess noise.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="deconv" data-year="1983" data-short="Deconvolution & beyond">
+      <div class="chapter-head">
+        <span class="year">1983</span>
+        <span class="label kicker">Chapter 5 · Computation and the limit</span>
+        <h2>Undoing the blur, and breaking the limit</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">If an image is the object convolved with a known point spread function, perhaps the blur can be computed away. In 1983 David Agard and John Sedat at UCSF used deconvolution of widefield z-stacks to map the three-dimensional architecture of fly chromosomes, and computational deconvolution became an alternative to confocal optics.</p>
+        <p>The difficulty is noise. Inverting the blur exactly amplifies high spatial frequencies, where the signal is weakest and the noise is relatively strongest. Practical methods are iterative and stop early. The most widely used, derived independently by William Richardson in 1972 and Leon Lucy in 1974 for astronomy, assumes Poisson noise and updates an estimate \(u\) of the object from the recorded image \(d\):</p>
+        <div class="math-block">\[ u_{k+1} = u_k \cdot \left( \frac{d}{u_k * h} * h^{\top} \right), \]</div>
+        <p>where \(h\) is the PSF and \(h^\top\) its mirror image. Each iteration sharpens the estimate. After enough iterations it begins to fit the noise, turning random fluctuations into false bright points. Deciding when to stop is part of the art.</p>
+        <h3>Beyond the diffraction limit</h3>
+        <p>Deconvolution cannot recover detail finer than the diffraction limit, because the optics transmit no information about it. Super-resolution methods get around the limit by controlling which molecules emit light, not by better lenses:</p>
+        <ul>
+          <li><strong>STED</strong> (stimulated emission depletion), proposed by Stefan Hell and Jan Wichmann in 1994, surrounds the excitation spot with a ring of light that switches fluorophores off, shrinking the region that can glow to tens of nanometers.</li>
+          <li><strong>Structured illumination</strong> (Mats Gustafsson, 2000) illuminates with striped patterns whose interference with sample detail shifts unresolvable frequencies into the passband, roughly doubling resolution.</li>
+          <li><strong>Single-molecule localization</strong> (PALM, by Eric Betzig and colleagues, and STORM, by Xiaowei Zhuang's group, both 2006) switches on only a sparse few molecules at a time. Each appears as an isolated Airy pattern whose center can be located to within a few nanometers, and thousands of frames build up the image.</li>
+        </ul>
+        <p>Betzig, Hell, and W. E. Moerner, who first detected single fluorescent molecules, shared the 2014 Nobel Prize in Chemistry.</p>
+      </div>
+
+      <figure class="bench" id="fig-deconv">
+        <div class="bench-head"><span class="fig">Fig. 5.1</span><span class="label">Interactive</span><h4>Richardson–Lucy deconvolution</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="dc-it">Iterations <output>15</output></label><input type="range" id="dc-it" min="0" max="120" step="1" value="15"></div>
+          <div class="ctl"><label for="dc-s">Blur (PSF σ) <output>2.4 px</output></label><input type="range" id="dc-s" min="1" max="4" step="0.2" value="2.4"></div>
+          <div class="ctl"><label for="dc-n">Photons per bright pixel <output>100</output></label><input type="range" id="dc-n" min="1" max="4" step="0.1" value="2"></div>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="A blurred noisy image, its deconvolution, and the true object, with error versus iterations"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">A synthetic object of thin filaments and puncta, blurred by a Gaussian PSF and recorded with Poisson noise. The error curve compares each estimate with the true object softened to one-pixel resolution. Drag the iterations: filaments sharpen, then, past the minimum of the error curve, noise grows into speckle. Lower the photon count and the best stopping point arrives earlier. The PSF is known exactly here; in practice it must be measured or modeled, and errors in it limit the result.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PART II -->
+    <div class="part-head"><span class="label">Part II</span><h2>Screening at scale</h2></div>
+
+    <section class="chapter" id="hcs" data-year="1997" data-short="Plates & robots">
+      <div class="chapter-head">
+        <span class="year">1997</span>
+        <span class="label kicker">Chapter 6 · High-content screening</span>
+        <h2>Plates, robots, and a picture of every well</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Drug discovery in the 1990s ran on high-throughput screening: testing hundreds of thousands of compounds against a purified target, with a plate reader measuring one number per well. In 1997 Kenneth Giuliano, D. Lansing Taylor, and colleagues at Cellomics described a different approach, <em>high-content screening</em>: automated fluorescence microscopy of whole cells in every well, extracting many measurements per cell.</p>
+        <p>The appeal was biology in context. A target-based assay asks whether a compound binds one protein. An image asks what the compound does to a living cell: whether a protein moves to the nucleus, whether the cell divides, whether its mitochondria change. In 1999 Thomas Mayer, Timothy Mitchison, and colleagues screened compounds by imaging dividing cells and discovered monastrol, which arrests cells in mitosis with a single star-shaped spindle, a phenotype no biochemical assay had been designed to find. Its target, the motor protein Eg5, was identified from the image. Image-based RNA interference screens followed; the MitoCheck project imaged the effect of silencing each of about 21,000 human genes on cell division in time-lapse movies (2010).</p>
+        <h3>The plate</h3>
+        <p>The microtiter plate traces to Gyula Takátsy in Hungary, who, short of test tubes during a 1951 influenza epidemic, machined six rows of twelve small wells into a block of acrylic. Its dimensions were standardized in 2004 by the Society for Biomolecular Screening (now SLAS) with ANSI: a footprint of 127.76 by 85.48 mm and well positions at fixed pitches, 9 mm for 96 wells, 4.5 mm for 384, and 2.25 mm for 1,536. Standard dimensions let one robot handle plates from any manufacturer. Imaging plates have thin, flat, optically clear bottoms, glass or polymer about 170 µm thick, to match the objectives.</p>
+        <h3>The instrument</h3>
+        <p>A screening microscope is an inverted fluorescence microscope with a motorized stage, an autofocus system, a filter or laser set for four or five channels, a large sCMOS camera, and a robot arm feeding it plates from an incubator. Autofocus is the most underestimated step. Plastic plate bottoms are not flat to within a depth of field, so the instrument must find focus at every well or site, usually by reflecting an infrared laser off the plate bottom and offsetting into the cells; image-based autofocus, which takes a stack and scores sharpness, is more robust and much slower.</p>
+      </div>
+
+      <figure class="bench" id="fig-plate">
+        <div class="bench-head"><span class="fig">Fig. 6.1</span><span class="label">Interactive</span><h4>How long does a plate take?</h4></div>
+        <div class="controls">
+          <div class="btns" role="group" aria-label="Plate format">
+            <button type="button" data-fmt="96" aria-pressed="false">96</button>
+            <button type="button" data-fmt="384" aria-pressed="true">384</button>
+            <button type="button" data-fmt="1536" aria-pressed="false">1,536</button>
+          </div>
+          <div class="ctl"><label for="pl-s">Fields per well <output>4</output></label><input type="range" id="pl-s" min="1" max="25" step="1" value="4"></div>
+          <div class="ctl"><label for="pl-c">Channels <output>4</output></label><input type="range" id="pl-c" min="1" max="5" step="1" value="4"></div>
+          <div class="ctl"><label for="pl-e">Exposure per channel <output>100 ms</output></label><input type="range" id="pl-e" min="10" max="1000" step="10" value="100"></div>
+          <div class="ctl"><label for="pl-af">Autofocus</label><select id="pl-af"><option value="laser">Laser, every field</option><option value="laserWell">Laser, once per well</option><option value="image">Image-based, every field</option></select></div>
+          <div class="ctl"><label for="pl-m">Objective</label><select id="pl-m"><option value="10">10×</option><option value="20" selected>20×</option><option value="40">40×</option></select></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="A microplate drawn to scale with one well enlarged to show the imaged fields"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The plate and one well are drawn to scale, with the camera's fields of view in the enlarged well. Timing assumes a 2048 × 2048 sCMOS camera with 6.5 µm pixels, 30 ms per channel for readout and filter changes, 120 ms per field move, 250 ms per well move, 60 ms per laser autofocus, and 1.5 s per image-based autofocus. Real instruments differ. Try image-based autofocus at 25 fields per well, then count how many plates a day that leaves.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="segment" data-year="Seg" data-short="Finding cells">
+      <div class="chapter-head">
+        <span class="year">Seg</span>
+        <span class="label kicker">Chapter 7 · Image analysis</span>
+        <h2>Finding every nucleus</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A screen produces millions of images, and every measurement starts with <em>segmentation</em>: deciding which pixels belong to which cell. Most pipelines begin with nuclei, because a DNA stain gives bright, compact, well-separated objects, then grow outward to find each cell's boundary in another channel.</p>
+        <p>The classic recipe has three steps. Correct uneven illumination. Pick an intensity threshold that separates objects from background; Nobuyuki Otsu's 1979 method chooses the threshold that maximizes the variance between the two classes of pixels. Then split objects that touch, usually with the <em>watershed</em> transform introduced for image analysis by Serge Beucher and Christian Lantuéjoul in 1979: treat the distance from the background as a landscape, put a seed at each peak, and flood outward until neighboring basins meet. The boundaries are drawn where they meet.</p>
+        <p>CellProfiler, released by Anne Carpenter, Thouis Jones, and colleagues at the Broad and Whitehead Institutes in 2006, packaged these steps into free software that biologists could assemble into pipelines without programming. Since 2015, neural networks have taken over the hardest cases. U-Net (2015), StarDist (2018), and Cellpose (2021) learn segmentation from labeled examples and handle crowded, irregular cells that thresholds and watersheds split or merge incorrectly.</p>
+      </div>
+
+      <figure class="bench" id="fig-seg">
+        <div class="bench-head"><span class="fig">Fig. 7.1</span><span class="label">Interactive</span><h4>Threshold, then split</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="sg-t">Threshold <output></output></label><input type="range" id="sg-t" min="0.05" max="0.8" step="0.005" value="0.3"></div>
+          <button type="button" id="sg-otsu">Use Otsu's threshold</button>
+          <div class="ctl"><label for="sg-min">Smallest object <output>20 px</output></label><input type="range" id="sg-min" min="0" max="120" step="5" value="20"></div>
+          <label class="check"><input type="checkbox" id="sg-split"> Split touching nuclei (watershed)</label>
+        </div>
+        <canvas class="plot plain" role="img" aria-label="Simulated nuclei with segmentation outlines and an intensity histogram with the threshold"></canvas>
+        <div class="readouts"></div>
+        <figcaption class="caption">A simulated DNA-stained field with 36 nuclei, uneven illumination, and noise, several in touching pairs. Outlines show the objects found; small dots mark true nucleus centers, enlarged where a nucleus was missed or merged with a neighbor. Start at Otsu's threshold, which merges every touching pair, then turn on the watershed. Raise the threshold and dim nuclei vanish; lower it and neighbors fuse.</figcaption>
+      </figure>
+      <div class="prose">
+        <p>After segmentation comes <em>feature extraction</em>: for each cell, measure areas and shapes, intensities in each channel, textures, and the spatial relationships between compartments. A typical pipeline measures hundreds to thousands of features per cell, for millions of cells per screen.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="stats" data-year="Z′" data-short="Did the screen work?">
+      <div class="chapter-head">
+        <span class="year">Z′</span>
+        <span class="label kicker">Chapter 8 · Statistics</span>
+        <h2>Did the screen work?</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A screen tests each compound once or twice. Whether a well's result means anything depends on how well the assay separates a known effect from no effect, measured on control wells on every plate.</p>
+        <p>In 1999 Ji-Hu Zhang, Thomas Chung, and Kevin Oldenburg defined the Z′ factor, now the standard measure of assay quality. With means \(\mu\) and standard deviations \(\sigma\) of positive and negative controls,</p>
+        <div class="math-block">\[ Z' = 1 - \frac{3\,(\sigma_p + \sigma_n)}{|\mu_p - \mu_n|}. \]</div>
+        <p>It compares the gap between the control distributions with their spread. \(Z' = 1\) is a perfect assay. Above 0.5 the controls are separated by more than three standard deviations on each side, and the assay is considered excellent. Below zero the distributions overlap. A typical hit threshold is three standard deviations beyond the negative controls.</p>
+        <h3>Plate effects</h3>
+        <p>Plates are not uniform. Wells at the edges evaporate faster and warm differently, cells settle unevenly, and dispensers drift along rows. These systematic patterns create false hits along the edges and hide real ones elsewhere. Screens counter them with randomized layouts, replicate plates, and normalization: for example, subtracting row and column medians computed from the sample wells, which assumes most compounds have no effect. The B-score (Brideau and colleagues, 2003) is a robust version of this idea.</p>
+      </div>
+
+      <figure class="bench" id="fig-zprime">
+        <div class="bench-head"><span class="fig">Fig. 8.1</span><span class="label">Interactive</span><h4>Controls, Z′, and hits</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="zp-w">Assay window <output>200%</output></label><input type="range" id="zp-w" min="0.1" max="4" step="0.05" value="2"></div>
+          <div class="ctl"><label for="zp-cv">Well-to-well variation (CV) <output>6%</output></label><input type="range" id="zp-cv" min="2" max="40" step="1" value="6"></div>
+          <label class="check"><input type="checkbox" id="zp-edge"> Edge effect</label>
+          <label class="check"><input type="checkbox" id="zp-fix"> Correct row and column trends</label>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="A 384-well plate heat map of activity and a histogram of activity for controls and compounds"></svg></div>
+        <div class="legend"><span><i class="sq" style="background:var(--ink-3)"></i>negative controls (columns 1–2)</span><span><i class="sq" style="background:var(--s1)"></i>compounds</span><span><i class="sq" style="background:var(--s2)"></i>positive controls (columns 23–24)</span></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">A simulated 384-well plate. About 3% of compounds are truly active, with effects from 40% to 100% of the positive control. Wells outlined in the heat map are called hits. Raise the variation until Z′ drops below 0.5 and watch false positives appear and weak actives disappear. Turn on the edge effect: the outer ring brightens and floods the hit list. Then correct for it. Hover a well for its value.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="painting" data-year="2016" data-short="Cell Painting">
+      <div class="chapter-head">
+        <span class="year">2016</span>
+        <span class="label kicker">Chapter 9 · Profiling</span>
+        <h2>Cell Painting: measure everything, ask later</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Classic screens measure one designed readout. Image-based <em>profiling</em> turns this around: stain as many cell components as possible, measure everything, and compare compounds by the overall pattern of changes. Two compounds that produce similar profiles probably act through related mechanisms, even if nobody knows what that mechanism is.</p>
+        <p>The Cell Painting assay, described by Sigrun Gustafsdottir and colleagues in 2013 and published as a detailed protocol by Mark-Anthony Bray, Anne Carpenter, and colleagues in 2016, uses six inexpensive dyes imaged in five channels to label eight cellular components:</p>
+        <ul>
+          <li>Hoechst 33342 for DNA in the nucleus;</li>
+          <li>concanavalin A for the endoplasmic reticulum;</li>
+          <li>SYTO 14 for nucleoli and cytoplasmic RNA;</li>
+          <li>phalloidin for the actin cytoskeleton and wheat germ agglutinin for the Golgi apparatus and plasma membrane, imaged together;</li>
+          <li>MitoTracker Deep Red for mitochondria.</li>
+        </ul>
+        <p>Software then measures about 1,500 features per cell, including size, shape, intensity, texture, and correlations between channels, and aggregates them into a profile per well. Profiles are compared after normalization against control wells, often with correlation or with embeddings learned by neural networks.</p>
+        <p>Profiling has been used to group compounds by mechanism, flag toxicity early, characterize the effects of genetic variants, and predict assay results from images. The JUMP Cell Painting Consortium, a partnership of pharmaceutical companies and the Broad Institute, released in 2023 a public dataset covering more than 116,000 chemical compounds and more than 15,000 genetic perturbations, the largest of its kind.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="now" data-year="Now" data-short="Light sheets & learning">
+      <div class="chapter-head">
+        <span class="year">Now</span>
+        <span class="label kicker">Chapter 10 · Frontier</span>
+        <h2>Light sheets, learned models, and petabytes</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Confocal microscopes reject out-of-focus light after creating it, so they still expose the whole sample cone to excitation. <em>Light-sheet</em> microscopy illuminates only the plane being imaged, from the side, with a thin sheet of light. The idea goes back to Henry Siedentopf and Richard Zsigmondy's ultramicroscope of 1903; Jan Huisken, Ernst Stelzer, and colleagues revived it in 2004 to image whole living fish and fly embryos for hours with little damage. Lattice light-sheet microscopy (2014) extended it to single cells at high speed.</p>
+        <p>Image analysis is shifting from hand-chosen features to learned representations. Networks trained on millions of cell images can segment, denoise, predict fluorescent labels from unlabeled transmitted-light images, and produce profiles that capture more than engineered features do. The open questions are the ones from Chapter 5 in another form: how to know when a model has invented structure that is not there.</p>
+        <p>Data volume has become a design constraint. A single screen can produce hundreds of terabytes. Open formats such as OME-Zarr, and public archives such as the Image Data Resource, aim to make large image datasets shareable and reusable, as sequence databases did for genomics.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="compare">
+          <thead><tr><th>Method</th><th>How it sections</th><th>Typical resolution (xy / z)</th><th>Speed</th><th>Main use</th></tr></thead>
+          <tbody>
+            <tr><td>Widefield</td><td>Does not; deconvolution can help</td><td>~250 nm / none</td><td>Fast</td><td>Thin samples, most screening</td></tr>
+            <tr><td>Point-scanning confocal</td><td>Pinhole</td><td>~200 nm / ~600 nm</td><td>Slow</td><td>Fixed tissue, detailed 3-D imaging</td></tr>
+            <tr><td>Spinning-disk confocal</td><td>Array of pinholes</td><td>~250 nm / ~800 nm</td><td>Fast</td><td>Live cells, 3-D screening</td></tr>
+            <tr><td>Two-photon</td><td>Excitation only at focus</td><td>~350 nm / ~1–2 µm</td><td>Slow</td><td>Deep tissue, living brains</td></tr>
+            <tr><td>Light-sheet</td><td>Illuminates one plane</td><td>~300 nm / ~0.5–5 µm</td><td>Very fast</td><td>Embryos, organoids, cleared tissue</td></tr>
+            <tr><td>Super-resolution (STED, SIM, SMLM)</td><td>Varies</td><td>~20–120 nm</td><td>Slow</td><td>Nanoscale structure</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose">
+        <p>Values are typical for high-NA objectives and vary widely with the instrument and sample.</p>
+        <div class="callout">
+          <span class="label">The common thread</span>
+          <p>Every method in this volume manages a trade between light and information. The diffraction limit sets how much detail a photon can carry; the pinhole buys depth by discarding photons; cameras and statistics decide how many photons a measurement needs; and screening multiplies all of it by a million wells. Progress has come from spending photons more wisely, then from computation that extracts more from each one.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== glossary -->
+    <section class="chapter" id="glossary" data-year="Ref" data-short="Glossary & sources">
+      <div class="chapter-head">
+        <span class="label kicker">Reference</span>
+        <h2>Glossary</h2>
+      </div>
+      <dl class="glossary">
+        <dt>Airy unit (AU)</dt><dd>The diameter of the Airy disk, 1.22λ/NA, projected onto the pinhole; the unit for confocal pinhole size.</dd>
+        <dt>Bleed-through</dt><dd>Signal from one fluorophore detected in another fluorophore's channel.</dd>
+        <dt>Confocal</dt><dd>Imaging in which illumination and detection are focused on the same point, with a pinhole rejecting out-of-focus light.</dd>
+        <dt>Deconvolution</dt><dd>Computational reversal of the blur caused by the point spread function.</dd>
+        <dt>Dichroic mirror</dt><dd>A mirror that reflects light below a cutoff wavelength and transmits light above it.</dd>
+        <dt>Feature extraction</dt><dd>Measuring size, shape, intensity, and texture for each segmented object.</dd>
+        <dt>Optical section</dt><dd>An image that records light mainly from a thin layer around the focal plane.</dd>
+        <dt>Photobleaching</dt><dd>Irreversible loss of fluorescence caused by light exposure.</dd>
+        <dt>Point spread function (PSF)</dt><dd>The image a microscope forms of a single point of light.</dd>
+        <dt>Profiling</dt><dd>Characterizing a perturbation by its pattern across many measured features.</dd>
+        <dt>Quantum efficiency</dt><dd>The fraction of incident photons that a detector converts to signal.</dd>
+        <dt>Read noise</dt><dd>Noise added each time a detector measures its collected charge.</dd>
+        <dt>Segmentation</dt><dd>Dividing an image into objects, such as nuclei or cells, and background.</dd>
+        <dt>Shot noise</dt><dd>The random variation in photon counts, equal to the square root of the expected count.</dd>
+        <dt>Stokes shift</dt><dd>The difference between the excitation and emission wavelengths of a fluorophore.</dd>
+        <dt>Watershed</dt><dd>A segmentation method that floods an intensity or distance landscape from seeds to find boundaries between touching objects.</dd>
+        <dt>Z′ factor</dt><dd>A measure of assay quality comparing the separation of control means with their variability.</dd>
+      </dl>
+
+      <div class="chapter-head" style="margin-top:32px"><h2>Sources</h2></div>
+      <ol class="sources">
+        <li>Abbe, E. (1873). Beiträge zur Theorie des Mikroskops und der mikroskopischen Wahrnehmung. <em>Archiv für mikroskopische Anatomie</em> 9.</li>
+        <li>Airy, G. B. (1835). On the diffraction of an object-glass with circular aperture. <em>Transactions of the Cambridge Philosophical Society</em> 5; Rayleigh, Lord (1879). Investigations in optics, with special reference to the spectroscope. <em>Philosophical Magazine</em> 8.</li>
+        <li>Stokes, G. G. (1852). On the change of refrangibility of light. <em>Philosophical Transactions of the Royal Society</em> 142.</li>
+        <li>Coons, A. H., Creech, H. J. &amp; Jones, R. N. (1941). Immunological properties of an antibody containing a fluorescent group. <em>Proceedings of the Society for Experimental Biology and Medicine</em> 47.</li>
+        <li>Ploem, J. S. (1967). The use of a vertical illuminator with interchangeable dichroic mirrors for fluorescence microscopy with incident light. <em>Zeitschrift für wissenschaftliche Mikroskopie</em> 68.</li>
+        <li>Shimomura, O., Johnson, F. H. &amp; Saiga, Y. (1962). Extraction, purification and properties of aequorin. <em>Journal of Cellular and Comparative Physiology</em> 59; Chalfie, M. et al. (1994). Green fluorescent protein as a marker for gene expression. <em>Science</em> 263.</li>
+        <li>Shaner, N. C. et al. (2004). Improved monomeric red, orange and yellow fluorescent proteins derived from <em>Discosoma</em> sp. red fluorescent protein. <em>Nature Biotechnology</em> 22.</li>
+        <li>Minsky, M. (1961). Microscopy apparatus. US Patent 3,013,467 (filed 1957); Minsky, M. (1988). Memoir on inventing the confocal scanning microscope. <em>Scanning</em> 10.</li>
+        <li>Petráň, M., Hadravský, M., Egger, M. D. &amp; Galambos, R. (1968). Tandem-scanning reflected-light microscope. <em>Journal of the Optical Society of America</em> 58.</li>
+        <li>White, J. G., Amos, W. B. &amp; Fordham, M. (1987). An evaluation of confocal versus conventional imaging of biological structures by fluorescence light microscopy. <em>Journal of Cell Biology</em> 105.</li>
+        <li>Denk, W., Strickler, J. H. &amp; Webb, W. W. (1990). Two-photon laser scanning fluorescence microscopy. <em>Science</em> 248.</li>
+        <li>Pawley, J. B., ed. (2006). <em>Handbook of Biological Confocal Microscopy</em>, 3rd ed. Springer.</li>
+        <li>Boyle, W. S. &amp; Smith, G. E. (1970). Charge coupled semiconductor devices. <em>Bell System Technical Journal</em> 49.</li>
+        <li>Agard, D. A. &amp; Sedat, J. W. (1983). Three-dimensional architecture of a polytene nucleus. <em>Nature</em> 302.</li>
+        <li>Richardson, W. H. (1972). Bayesian-based iterative method of image restoration. <em>Journal of the Optical Society of America</em> 62; Lucy, L. B. (1974). An iterative technique for the rectification of observed distributions. <em>Astronomical Journal</em> 79.</li>
+        <li>Hell, S. W. &amp; Wichmann, J. (1994). Breaking the diffraction resolution limit by stimulated emission. <em>Optics Letters</em> 19; Gustafsson, M. G. L. (2000). Surpassing the lateral resolution limit by a factor of two using structured illumination microscopy. <em>Journal of Microscopy</em> 198.</li>
+        <li>Betzig, E. et al. (2006). Imaging intracellular fluorescent proteins at nanometer resolution. <em>Science</em> 313; Rust, M. J., Bates, M. &amp; Zhuang, X. (2006). Sub-diffraction-limit imaging by stochastic optical reconstruction microscopy (STORM). <em>Nature Methods</em> 3.</li>
+        <li>Giuliano, K. A. et al. (1997). High-content screening: a new approach to easing key bottlenecks in the drug discovery process. <em>Journal of Biomolecular Screening</em> 2.</li>
+        <li>Mayer, T. U. et al. (1999). Small molecule inhibitor of mitotic spindle bipolarity identified in a phenotype-based screen. <em>Science</em> 286.</li>
+        <li>Neumann, B. et al. (2010). Phenotypic profiling of the human genome by time-lapse microscopy reveals cell division genes. <em>Nature</em> 464.</li>
+        <li>ANSI/SLAS 1-2004 through 4-2004, Microplate standards (footprint dimensions, height, bottom outside flange, well positions).</li>
+        <li>Otsu, N. (1979). A threshold selection method from gray-level histograms. <em>IEEE Transactions on Systems, Man, and Cybernetics</em> 9; Beucher, S. &amp; Lantuéjoul, C. (1979). Use of watersheds in contour detection. International Workshop on Image Processing, Rennes.</li>
+        <li>Carpenter, A. E. et al. (2006). CellProfiler: image analysis software for identifying and quantifying cell phenotypes. <em>Genome Biology</em> 7.</li>
+        <li>Ronneberger, O., Fischer, P. &amp; Brox, T. (2015). U-Net: convolutional networks for biomedical image segmentation. MICCAI; Schmidt, U. et al. (2018). Cell detection with star-convex polygons. MICCAI; Stringer, C. et al. (2021). Cellpose: a generalist algorithm for cellular segmentation. <em>Nature Methods</em> 18.</li>
+        <li>Zhang, J.-H., Chung, T. D. Y. &amp; Oldenburg, K. R. (1999). A simple statistical parameter for use in evaluation and validation of high throughput screening assays. <em>Journal of Biomolecular Screening</em> 4.</li>
+        <li>Brideau, C. et al. (2003). Improved statistical methods for hit selection in high-throughput screening. <em>Journal of Biomolecular Screening</em> 8.</li>
+        <li>Gustafsdottir, S. M. et al. (2013). Multiplex cytological profiling assay to measure diverse cellular states. <em>PLoS ONE</em> 8; Bray, M.-A. et al. (2016). Cell Painting, a high-content image-based assay for morphological profiling using multiplexed fluorescent dyes. <em>Nature Protocols</em> 11.</li>
+        <li>Chandrasekaran, S. N. et al. (2023). JUMP Cell Painting dataset: morphological impact of 136,000 chemical and genetic perturbations. bioRxiv 2023.03.23.534023.</li>
+        <li>Huisken, J. et al. (2004). Optical sectioning deep inside live embryos by selective plane illumination microscopy. <em>Science</em> 305; Chen, B.-C. et al. (2014). Lattice light-sheet microscopy. <em>Science</em> 346.</li>
+        <li>Moore, J. et al. (2021). OME-NGFF: a next-generation file format for expanding bioimaging data-access strategies. <em>Nature Methods</em> 18; Williams, E. et al. (2017). Image Data Resource. <em>Nature Methods</em> 14.</li>
+        <li>The Nobel Prize: Chemistry 2008 (Shimomura, Chalfie, Tsien) and 2014 (Betzig, Hell, Moerner); Physics 2009 (Boyle, Smith; Kao). nobelprize.org.</li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">LearnAnything · Volume 5 · Images and screens are simulations from simplified models.</footer>
+
+<script src="../../assets/js/lab.js"></script>
+<script src="js/micro.js"></script>
+<script src="js/optics.js"></script>
+<script src="js/detect.js"></script>
+<script src="js/screen.js"></script>
+<script>Lab.rail();</script>
+</body>
+</html>
