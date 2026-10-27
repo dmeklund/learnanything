@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Loops</title>
+<meta name="description" content="Quantum field theory and QED: how the electromagnetic field becomes a set of oscillators, how Dirac's electron acquires a magnetic moment correction, how the infinities of perturbation theory are absorbed into measured constants, and how the electron and muon magnetic moments became the most precise tests in physics.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Petrona:ital,wght@0,400..700;1,400..600&family=Karla:ital,wght@0,400..700;1,400..600&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<style>
+/* Volume XIV identity: a mid-century physics journal. Cool rag paper, an ultramarine accent and an iron-red
+   signal, the two inks a letterpress shop would have on the bed at once. Petrona for headings, Karla for
+   reading, Space Mono for numbers. */
+:root {
+  --paper: #F3F3F0; --paper-2: #E9E9E4; --paper-3: #FBFBF9;
+  --grid: #E1E1DB; --rule: #CBCBC3;
+  --ink: #15171A; --ink-2: #3F444A; --ink-3: #6D737B;
+  --accent: #3A3391; --signal: #B0463A; --tertiary: #2E9C82;
+  --s1: #1D4A9E; --s2: #C64A1C; --s3: #2E9C82;
+  --vac: #C9C7DA;
+  --accent-wash: rgba(58, 51, 145, .07); --signal-wash: rgba(176, 70, 58, .08);
+  --f-display: "Petrona", Georgia, "Times New Roman", serif;
+  --f-body: "Karla", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "Space Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --rail: 178px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #101218; --paper-2: #171A21; --paper-3: #1D2028;
+    --grid: #252932; --rule: #363B46;
+    --ink: #ECEEF2; --ink-2: #BDC2CB; --ink-3: #8B919C;
+    --accent: #A3A0F5; --signal: #F09080; --tertiary: #35A386;
+    --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+    --vac: #3A3A52;
+    --accent-wash: rgba(163, 160, 245, .1); --signal-wash: rgba(240, 144, 128, .1);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #101218; --paper-2: #171A21; --paper-3: #1D2028;
+  --grid: #252932; --rule: #363B46;
+  --ink: #ECEEF2; --ink-2: #BDC2CB; --ink-3: #8B919C;
+  --accent: #A3A0F5; --signal: #F09080; --tertiary: #35A386;
+  --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+  --vac: #3A3A52;
+  --accent-wash: rgba(163, 160, 245, .1); --signal-wash: rgba(240, 144, 128, .1);
+}
+body { background: var(--paper); font-size: 1.07rem; }
+.hero { grid-template-columns: 1fr; gap: 22px; }
+.hero h1, .chapter-head .year, .chapter-head h2, .part-head h2, .prose h3, .bench-head h4 { font-family: var(--f-display); }
+.hero h1 { font-size: clamp(3.6rem, 12vw, 8.4rem); font-weight: 600; line-height: .86; letter-spacing: -.035em; margin-top: 10px; }
+.hero h1 i { font-style: italic; font-weight: 400; color: var(--accent); }
+.hero .dek { max-width: 56ch; }
+.chapter-head .year { font-size: clamp(2.6rem, 7vw, 4.4rem); font-weight: 600; line-height: .9; letter-spacing: -.025em; color: var(--accent); }
+.chapter-head h2 { font-size: clamp(1.8rem, 4.2vw, 2.7rem); font-weight: 500; line-height: 1.06; letter-spacing: -.015em; }
+.prose h3 { font-size: var(--t-lg); font-weight: 600; line-height: 1.25; }
+.bench-head h4 { font-weight: 600; font-size: 1.2rem; }
+.rail a { grid-template-columns: 46px 1fr; }
+.rail a .yr { font-size: 11px; }
+.part-head { max-width: var(--measure); padding-top: 64px; display: grid; gap: 4px; }
+.part-head .label { color: var(--accent); }
+.part-head h2 { font-size: var(--t-xl); font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+.hero-vac canvas { width: 100%; display: block; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper-3); }
+.bench canvas.sim { width: 100%; display: block; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper-3); }
+.chart-wrap svg { width: 100%; display: block; }
+b.warn, .warn { color: var(--s2); }
+.callout { max-width: var(--measure); border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; display: grid; gap: 6px; }
+.callout .label { color: var(--accent); }
+.ctl select { font: 400 var(--t-sm)/1.3 var(--f-mono); color: var(--ink); background: var(--paper-3); border: 1px solid var(--rule); border-radius: 4px; padding: 6px 8px; width: 100%; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.table-wrap { overflow-x: auto; max-width: var(--bench); }
+table.compare { border-collapse: collapse; font-size: var(--t-sm); min-width: 640px; width: 100%; }
+table.compare th { font: 500 var(--t-xs)/1.3 var(--f-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px; border-bottom: 1px solid var(--ink-3); vertical-align: bottom; }
+table.compare td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+table.compare td:first-child { font-weight: 600; color: var(--ink); }
+table.compare td.num { font-family: var(--f-mono); font-size: var(--t-xs); white-space: nowrap; }
+.nocase { text-transform: none; letter-spacing: 0; }
+.ctl label.chk { justify-content: flex-start; gap: 10px; }
+/* digit comparison panel used in the twelve-digits figure */
+.digits { font: 400 var(--t-sm)/1.7 var(--f-mono); overflow-x: auto; }
+.digits div { white-space: pre; }
+.digits .lbl { color: var(--ink-3); }
+.digits .ok { color: var(--accent); }
+.digits .no { color: var(--signal); }
+</style>
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg', 'canvas'] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="brand" href="../../index.html">Learn<b>Anything</b></a>
+  <span class="where">Vol. 14 · Quantum field theory and QED</span>
+  <span class="progress" aria-hidden="true"></span>
+</header>
+
+<div class="module">
+  <nav class="rail" aria-label="Chapters"><ol></ol></nav>
+
+  <main class="content">
+
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="label">Volume 14 · Quantum electrodynamics</p>
+        <h1 id="title">Lo<i>ops</i></h1>
+        <p class="dek">The electron's magnetism has been measured to thirteen digits and calculated to twelve. This is how a theory that gives infinity for almost every quantity you ask it about became the most accurate description of nature we have.</p>
+        <div class="meta">
+          <span class="label">9 chapters</span>
+          <span class="label">10 interactive figures</span>
+          <span class="label">1927 → today</span>
+        </div>
+      </div>
+      <figure class="hero-vac" id="hero-vac" style="margin:0">
+        <canvas role="img" aria-label="An electron surrounded by a flickering cloud of virtual photon and electron-positron loops, beside a running comparison of the measured and calculated digits of the electron magnetic moment"></canvas>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PROLOGUE -->
+    <section class="chapter" id="prologue" data-year="Pro" data-short="Thirteen digits">
+      <div class="chapter-head">
+        <span class="label kicker">Prologue</span>
+        <h2>Thirteen digits of one number</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 2023 a group at Northwestern University reported the magnetic moment of a single electron held in a trap one millimetre across. Expressed as a multiple of the natural unit \(e\hbar/2m_e\), half the \(g\)-factor is</p>
+        \[ g/2 = 1.001\,159\,652\,180\,59\,(13). \]
+        <p>The digits in parentheses are the uncertainty on the last two places: thirteen parts in a hundred trillion. No other property of an elementary particle is known so well.</p>
+        <p>Dirac's equation of 1928 predicted \(g = 2\) exactly, and for twenty years that looked right. It is wrong in the fourth decimal place. The deviation is not a defect of the equation but a consequence of the field the electron sits in: an electron is never alone. It emits and reabsorbs photons, those photons briefly become electron–positron pairs, and the pairs emit photons of their own. Each of these processes contributes to what a magnetometer reads. Adding them up is what quantum electrodynamics does.</p>
+        <p>The sum does not converge in any ordinary sense, and taken naively nearly every term in it is infinite. The story of this volume is how those infinities were tamed between 1947 and 1950, what the resulting series actually computes, and how far the agreement between the calculation and the laboratory now extends. It extends very far. The calculation of \(g/2\) now runs to five loops, twelve thousand diagrams, and twelve digits, and the thing that limits the comparison is not the theory or the trap but how well anyone knows the strength of the electromagnetic interaction itself.</p>
+        <p>Along the way the same machinery gives the force between two uncharged metal plates in a vacuum, the energy levels of hydrogen to eight digits, the cross section for a gamma ray to bounce off an electron, and a measurement of the muon that spent twenty years looking like a crack in the Standard Model before closing in 2025.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== PART I -->
+    <div class="part-head"><span class="label">Part I</span><h2>The vacuum and the electron</h2></div>
+
+    <section class="chapter" id="field" data-year="1927" data-short="The field as oscillators">
+      <div class="chapter-head">
+        <span class="year">1927</span>
+        <span class="label kicker">Chapter 1 · Quantizing the field</span>
+        <h2>A field is a room full of oscillators</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In February 1927 Paul Dirac published <em>The Quantum Theory of the Emission and Absorption of Radiation</em>. Planck and Einstein had already treated light as coming in quanta, but nobody had derived the rate at which an atom spontaneously emits one. Dirac's move was to take Maxwell's field in a box, write it as a sum over standing-wave modes, notice that each mode obeys exactly the equation of a harmonic oscillator, and then quantize each oscillator.</p>
+        <p>Inside a cubical cavity of side \(L\) the allowed modes have wave vectors \(\mathbf{k}\) with components that are integer multiples of \(\pi/L\), and each has two polarizations. Writing the field energy in terms of mode amplitudes gives</p>
+        \[ H = \sum_{\mathbf{k},\lambda} \hbar\omega_k\left(n_{\mathbf{k}\lambda} + \tfrac{1}{2}\right), \qquad \omega_k = c|\mathbf{k}|, \]
+        <p>where \(n_{\mathbf{k}\lambda}\) counts photons in that mode. Photon number is the excitation level of an oscillator. Emission and absorption are the raising and lowering operators, and their matrix elements give the Einstein coefficients without having to assume them.</p>
+        <p>The \(\tfrac{1}{2}\) is the awkward part. A harmonic oscillator cannot sit still: its ground state has energy \(\tfrac{1}{2}\hbar\omega\), because an amplitude and a momentum cannot both be exactly zero. So the ground state of the electromagnetic field, with no photons anywhere, has energy</p>
+        \[ E_0 = \tfrac{1}{2}\sum_{\mathbf{k},\lambda} \hbar\omega_k, \]
+        <p>and this sum diverges. There is no largest \(k\): modes exist at every wavelength down to zero. The vacuum energy of any region of space comes out infinite, and the energy density goes as the fourth power of whatever shortest wavelength you decide to admit.</p>
+        <p>The usual response, then and now, is that only energy <em>differences</em> are measurable, so one may subtract a constant and move on. The response has a price, and the price is the cosmological constant problem, which is not solved. But it has a reward too, and the reward is that differences of divergent zero-point sums can be finite, and can be measured.</p>
+
+        <h3>The Casimir force</h3>
+        <p>In 1948 Hendrik Casimir, working at Philips in Eindhoven on why colloidal suspensions of quartz powder behaved the way they did, considered two parallel perfectly conducting plates a distance \(a\) apart in vacuum. Between the plates the field must vanish at both surfaces, so only modes with \(k_z = n\pi/a\) are allowed. Outside, all \(k_z\) are allowed. The total zero-point energy is infinite in both cases, but their difference per unit area is not. Regularizing the sum, the result is</p>
+        \[ \frac{E(a)}{A} = -\frac{\pi^2 \hbar c}{720\, a^3}, \qquad \frac{F(a)}{A} = -\frac{\pi^2 \hbar c}{240\, a^4}. \]
+        <p>Two neutral mirrors attract, with a force that depends on nothing but \(\hbar\), \(c\), and the gap. At one micrometre the pressure is 1.3 millipascals. At ten nanometres, a gap achievable between a polished sphere and a plate, it is 130 kilopascals: more than atmospheric pressure, from nothing but the restriction of the modes.</p>
+      </div>
+
+      <figure class="bench" id="fig-casimir">
+        <div class="bench-head"><span class="fig">Fig. 1.1</span><span class="label">Interactive</span><h4>Zero-point modes between two mirrors</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="ca-a">Plate separation <output></output></label><input type="range" id="ca-a" min="1" max="4" step="0.01" value="2.3"></div>
+          <div class="ctl"><label for="ca-area"><span>Plate area, <span class="nocase">cm²</span></span> <output></output></label><input type="range" id="ca-area" min="0.01" max="4" step="0.01" value="1"></div>
+          <div class="ctl"><label for="ca-t">Temperature <output></output></label><input type="range" id="ca-t" min="0" max="600" step="5" value="300"></div>
+        </div>
+        <div class="stage">
+          <canvas class="sim ca-cv" role="img" aria-label="Two mirrors with the allowed standing-wave modes drawn between them, and the unrestricted continuum of modes outside"></canvas>
+          <div class="chart-wrap"><svg class="ca-chart" role="img" aria-label="Casimir pressure against plate separation, with the ranges covered by the 1997 and 1998 measurements marked"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The ideal Casimir result for perfect conductors at zero temperature, \(P = -\pi^2\hbar c/240a^4\), with the plate separation on a logarithmic slider from 10 nm to 10 µm. The drawing on the left shows the first few allowed half-wavelengths between the plates: shrink the gap and the lowest allowed mode climbs in frequency, while outside nothing changes. The chart compares the pressure with one atmosphere and marks the separations probed by Lamoreaux's torsion pendulum in 1997 (0.6–6 µm, agreement to about 5%) and by Mohideen and Roy's atomic force microscope in 1998 (0.1–0.9 µm, agreement to about 1%). Thermal photons matter when \(k_BT\) exceeds \(\hbar c/a\); the readout gives that crossover, which at room temperature falls at 7.6 µm. Real mirrors are not perfect conductors, and finite conductivity and surface roughness reduce the force by tens of percent at the shortest gaps, so the curve is the ideal limit rather than a prediction for a particular experiment.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>The Casimir force is a good thing to hold on to through the rest of this volume, because it is the cleanest case of a pattern that will recur: a quantity that is formally infinite, a physically meaningful difference that is finite, and a laboratory measurement that agrees with the difference. Nothing about the procedure is comfortable. It works.</p>
+        <p>One caution about interpretation. It is common to describe the Casimir effect as proof that the vacuum is full of real fluctuating fields pushing on things. That reading is optional. The same force can be derived as a retarded van der Waals interaction between the charges in the two plates, with no reference to vacuum energy at all, and the two derivations agree. What is not optional is the arithmetic.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="dirac" data-year="1928" data-short="Dirac's electron">
+      <div class="chapter-head">
+        <span class="year">1928</span>
+        <span class="label kicker">Chapter 2 · The Dirac equation</span>
+        <h2>An equation that knows about spin</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Schrödinger's equation is first order in time and second order in space, which makes it incompatible with relativity. The obvious relativistic fix, \(( \Box + m^2)\psi = 0\), is second order in time and gives negative probabilities. In late 1927 Dirac found a first-order equation by insisting that the operator square to the relativistic energy relation,</p>
+        \[ \left(i\gamma^\mu\partial_\mu - m\right)\psi = 0, \]
+        <p>which requires the four \(\gamma^\mu\) to be matrices satisfying \(\gamma^\mu\gamma^\nu + \gamma^\nu\gamma^\mu = 2g^{\mu\nu}\). The smallest such matrices are four by four, so \(\psi\) has four components. Dirac had not set out to describe spin, but two of those components turn out to be the two spin states of the electron, and the other two describe a particle of the same mass and opposite charge. Antimatter arrives as a bookkeeping requirement. Carl Anderson photographed a positron track in a cloud chamber in 1932.</p>
+        <p>Coupling the equation to an external electromagnetic field and taking the non-relativistic limit produces, in addition to the Schrödinger terms, a magnetic interaction</p>
+        \[ H_{\rm mag} = -g\,\frac{e}{2m}\,\mathbf{S}\cdot\mathbf{B}, \qquad g = 2. \]
+        <p>Classically a spinning charge distribution has \(g = 1\). The factor of two had been fitted to spectra by Goudsmit and Uhlenbeck in 1925 with no explanation. Dirac's equation gives it, and gives it exactly, with no free parameter. This was the single most convincing thing about the theory.</p>
+
+        <h3>Hydrogen, solved exactly</h3>
+        <p>For an electron bound to a point charge \(Ze\) the Dirac equation can be solved in closed form. The energy depends on the principal quantum number \(n\) and on the total angular momentum \(j\), but not on the orbital angular momentum \(\ell\):</p>
+        \[ E_{nj} = mc^2\left[1 + \left(\frac{Z\alpha}{\,n - j - \tfrac{1}{2} + \sqrt{(j+\tfrac{1}{2})^2 - (Z\alpha)^2}\,}\right)^{\!2}\right]^{-1/2}. \]
+        <p>Expanding in powers of \(Z\alpha\) reproduces the Bohr levels, then the fine structure, then a cascade of smaller terms. The prediction that mattered later is the one hiding in the \(\ell\)-independence: the \(2S_{1/2}\) and \(2P_{1/2}\) states of hydrogen have the same \(n\) and the same \(j\), so the Dirac equation says they have exactly the same energy, to all orders in \(Z\alpha\). They do not.</p>
+      </div>
+
+      <figure class="bench" id="fig-levels">
+        <div class="bench-head"><span class="fig">Fig. 2.1</span><span class="label">Interactive</span><h4>The n = 2 levels of a hydrogen-like ion</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="lv-z">Nuclear charge <span class="nocase">Z</span> <output></output></label><input type="range" id="lv-z" min="1" max="92" step="1" value="1"></div>
+          <div class="ctl"><label for="lv-mode">Compare with</label><select id="lv-mode"><option value="fs">Fine-structure expansion</option><option value="bohr">Bohr energies</option></select></div>
+        </div>
+        <div class="stage">
+          <canvas class="sim lv-cv" role="img" aria-label="Level diagram of the n equals 2 states, showing the Dirac prediction with 2S and 2P one-half degenerate beside the measured positions"></canvas>
+          <div class="chart-wrap"><svg class="lv-chart" role="img" aria-label="Fine-structure and Lamb-shift splittings against nuclear charge"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The exact Dirac energies for a point nucleus of charge \(Z\), evaluated for the \(n=2\) states and drawn relative to \(2P_{1/2}\). At \(Z = 1\) the fine-structure splitting \(2P_{3/2}-2P_{1/2}\) is 10.95 GHz and the \(2S_{1/2}-2P_{1/2}\) splitting is zero by construction. The dashed level marks the measured position of \(2S_{1/2}\) in hydrogen, 1057.8 MHz above \(2P_{1/2}\), which no solution of the Dirac equation can produce. Raise \(Z\) and watch the two splittings grow at different rates: fine structure scales as \((Z\alpha)^4\) while the leading radiative shift scales as \(Z^4\alpha^5\ln(Z\alpha)^{-2}\), so the Lamb shift is a 10% effect on the fine structure in hydrogen and a far larger one in heavy ions. The Lamb-shift curve uses the leading-order Bethe expression of Chapter 4, which is a crude approximation at large \(Z\) where the expansion in \(Z\alpha\) fails, and which stops having any meaning above \(Z = 47\), where the average atomic excitation energy exceeds the photon cutoff; the figure then reports nothing rather than a negative shift. The point of the comparison is the scaling, not the value. Finite nuclear size, which also grows quickly with \(Z\), is not included.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>Two more things about the Dirac equation are worth stating before leaving it, because both become essential later.</p>
+        <p>First, the negative-energy solutions. Dirac's own interpretation was that all negative-energy states are filled, and that a hole in this sea appears as a positron. The modern reading, after Jordan, Wigner and Pauli, is that \(\psi\) is not a wave function at all but a quantum field, whose excitations are electrons and positrons. Once the electron field is quantized on the same footing as the photon field, the number of particles is not fixed: an electron can emit a photon, a photon can turn into a pair, and processes with different particle content interfere. That is the content of the phrase <em>quantum field theory</em>, and it is what makes perturbation theory in this subject look the way it does.</p>
+        <p>Second, \(g = 2\) is a statement about the <em>free</em> Dirac particle. A real electron is coupled to the photon field, which it cannot be separated from, and the coupled theory does not predict \(g = 2\). It predicts something close to it, which is lucky, because measuring the difference turned out to be easier than anyone expected.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="compton" data-year="1929" data-short="The first cross section">
+      <div class="chapter-head">
+        <span class="year">1929</span>
+        <span class="label kicker">Chapter 3 · Klein–Nishina</span>
+        <h2>The first real cross section</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The first quantitative success of relativistic quantum theory applied to light and matter together was not a precision measurement of anything. It was a formula for how often a gamma ray bounces off an electron, and at what angle.</p>
+        <p>Classically, a free electron in an electromagnetic wave oscillates and radiates. J. J. Thomson worked out the resulting scattering cross section in 1906:</p>
+        \[ \frac{d\sigma}{d\Omega} = \frac{r_e^2}{2}\left(1 + \cos^2\theta\right), \qquad \sigma_{\rm T} = \frac{8\pi}{3}r_e^2 = 0.665\ \text{barn}, \]
+        <p>with \(r_e = \alpha\hbar/m_ec = 2.818\) fm the classical electron radius. The result is independent of wavelength and symmetric between forward and backward scattering. It describes visible light and soft X-rays well. For hard X-rays it fails badly: the measured cross section falls with energy and the scattering swings forward.</p>
+        <p>Arthur Compton's 1923 experiment had already shown why. The photon carries momentum, the electron recoils, and the scattered photon loses energy:</p>
+        \[ \frac{E'}{E} = \frac{1}{1 + \kappa(1-\cos\theta)}, \qquad \kappa = \frac{E}{m_ec^2}. \]
+        <p>In 1929 Oskar Klein and Yoshio Nishina computed the cross section from Dirac's theory, treating the photon's interaction with the electron to lowest order. Their result is</p>
+        \[ \frac{d\sigma}{d\Omega} = \frac{r_e^2}{2}\,P^2\left(P + \frac{1}{P} - \sin^2\theta\right), \qquad P = \frac{E'}{E}, \]
+        <p>which reduces to Thomson's formula as \(\kappa \to 0\) and falls roughly as \((\ln\kappa)/\kappa\) at high energy. It was the first calculation in what we would now call quantum electrodynamics to be checked against experiment and found correct across a wide range, and it is still the formula every radiation transport code uses.</p>
+      </div>
+
+      <figure class="bench" id="fig-kn">
+        <div class="bench-head"><span class="fig">Fig. 3.1</span><span class="label">Interactive</span><h4>Klein–Nishina scattering</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="kn-e">Photon energy <output></output></label><input type="range" id="kn-e" min="0" max="5" step="0.01" value="2.08"></div>
+          <div class="ctl"><label for="kn-th">Marked angle <output></output></label><input type="range" id="kn-th" min="0" max="180" step="1" value="90"></div>
+        </div>
+        <div class="stage">
+          <canvas class="sim kn-cv" role="img" aria-label="Polar plot of the Klein-Nishina differential cross section with the Thomson result overlaid"></canvas>
+          <div class="chart-wrap"><svg class="kn-chart" role="img" aria-label="Total Compton cross section against photon energy, compared with the Thomson cross section"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The polar plot shows \(d\sigma/d\Omega\) for unpolarized photons on a free electron, with the energy-independent Thomson result drawn as a dashed outline at the same scale. The total cross section is obtained by integrating the differential cross section numerically over solid angle, not from a fitted formula, and reproduces the closed-form Klein–Nishina total to better than one part in \(10^4\). The energy slider runs from 1 keV to 100 MeV; the default, 120 keV, is typical of a diagnostic X-ray beam, where the cross section has already fallen to 0.71 of Thomson's value and scattering is noticeably forward-peaked. The readouts give the backscattered photon energy, which saturates at \(m_ec^2/2 = 256\) keV, and the Compton edge, the maximum energy the electron can take, which is what sets the shape of a gamma spectrum in a scintillator. Binding to an atom is ignored, which is a good approximation above a few tens of keV for light elements.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>Klein–Nishina is a lowest-order calculation, and it is accurate to about a percent for the total cross section at energies where it matters, because the corrections come in with an extra factor of \(\alpha\). This is the ordinary situation in quantum electrodynamics: the leading term is usually enough, and the whole subject of this volume is the handful of quantities measured well enough that it is not.</p>
+        <p>It is also, in retrospect, a warning. Push the same methods to the next order and the answers stop being numbers. The second-order correction to the electron's energy, or to its charge, or to the photon's propagation, comes out infinite in every case. By the mid-1930s this was well known and widely regarded as fatal. Oppenheimer, Weisskopf, Heisenberg and Pauli all wrote about it. The usual expectation was that the theory would have to be replaced at short distances by something else.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== PART II -->
+    <div class="part-head"><span class="label">Part II</span><h2>Making the infinities finite</h2></div>
+
+    <section class="chapter" id="lamb" data-year="1947" data-short="Shelter Island">
+      <div class="chapter-head">
+        <span class="year">1947</span>
+        <span class="label kicker">Chapter 4 · The Lamb shift</span>
+        <h2>Two numbers that broke the theory open</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">On 2 June 1947, twenty-four physicists met at the Ram's Head Inn on Shelter Island, off the eastern end of Long Island, for a three-day conference on the foundations of quantum mechanics. It was the first such meeting after the war, and most of the participants had spent the previous five years building radar and weapons. They arrived with instruments nobody had in 1939: microwave sources, waveguides, and the habit of measuring frequencies rather than wavelengths.</p>
+        <p>Willis Lamb reported first. Working with his student Robert Retherford at Columbia, he had sent a beam of hydrogen atoms in the metastable \(2S_{1/2}\) state through a microwave field and looked for the frequency that drove them into \(2P\) states, which decay immediately. Dirac's equation says \(2S_{1/2}\) and \(2P_{1/2}\) are exactly degenerate, so the resonance should have sat at zero. Lamb found it near 1000 megacycles per second. The modern value is 1057.845(9) MHz.</p>
+        <p>Then Polykarp Kusch reported, with Henry Foley, on hyperfine measurements in sodium, gallium and indium. The ratios of their observed splittings could only be reconciled if the electron's \(g\)-factor was not 2 but larger by</p>
+        \[ a_e \equiv \frac{g-2}{2} = 0.00119 \pm 0.00005, \]
+        <p>a 5% measurement of a deviation Dirac's theory said was exactly zero. Two experiments, two small discrepancies, both in quantities the theory claimed to predict with no freedom at all.</p>
+
+        <h3>Bethe on the train</h3>
+        <p>Hans Bethe took the train back to Schenectady, where he was consulting for General Electric, and by the time he arrived he had the Lamb shift to within a few percent. His calculation is three pages long and completely non-relativistic.</p>
+        <p>The idea: an electron coupled to the quantized electromagnetic field can emit a virtual photon and reabsorb it. In second-order perturbation theory this shifts its energy by</p>
+        \[ \Delta E = -\sum_{\rm states} \frac{|\langle \text{excited}| H_{\rm int} |\text{state}\rangle|^2}{E_{\rm excited} - E_{\rm state}}, \]
+        <p>summed over all intermediate states and all photon momenta. For a free electron this sum diverges linearly in the photon momentum cutoff. Bethe's insight was that the free-electron self-energy is not observable: it is already contained in the measured mass of the electron. What is observable is the <em>difference</em> between the self-energy of a bound electron and that of a free one. Subtracting, the linear divergence cancels and a logarithm is left:</p>
+        \[ \Delta E_{nS} = \frac{4 m c^2\alpha^5}{3\pi n^3}\,\ln\!\frac{K}{\langle E\rangle}, \]
+        <p>where \(K\) is the photon energy cutoff and \(\langle E\rangle\) is a weighted average excitation energy of the atom, which Bethe estimated numerically as \(17.8\,\mathrm{Ry}\) for the \(2S\) state. Taking \(K = mc^2\), on the grounds that above that energy a non-relativistic treatment is meaningless and a relativistic one should supply its own cutoff, he got 1040 MHz against Lamb's 1000.</p>
+        <p>This is the first renormalized calculation in the history of physics. The infinity was not removed; it was moved into a quantity that had already been measured. The prefactor above is 136 MHz, so the answer depends on the cutoff only logarithmically: getting \(K\) wrong by a factor of two costs 94 MHz, and getting it wrong by a factor of ten costs 312 MHz. A crude argument about the cutoff therefore suffices for a 5% answer, which is why Bethe could do it on a train and why everyone immediately believed the result.</p>
+      </div>
+
+      <figure class="bench" id="fig-bethe">
+        <div class="bench-head"><span class="fig">Fig. 4.1</span><span class="label">Interactive</span><h4>Bethe's calculation, 1947</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="be-k">Photon cutoff <span class="nocase">K</span> <output></output></label><input type="range" id="be-k" min="3" max="7" step="0.01" value="5.7085"></div>
+          <div class="ctl"><label for="be-e"><span>Average excitation <span class="nocase">⟨E⟩</span>, Ry</span> <output></output></label><input type="range" id="be-e" min="8" max="32" step="0.1" value="17.8"></div>
+          <div class="ctl"><label for="be-n">Principal quantum number <output></output></label><input type="range" id="be-n" min="2" max="6" step="1" value="2"></div>
+        </div>
+        <div class="stage">
+          <canvas class="sim be-cv" role="img" aria-label="The shifted 2S level drawn against the measured position, with the self-energy subtraction illustrated"></canvas>
+          <div class="chart-wrap"><svg class="be-chart" role="img" aria-label="Predicted Lamb shift against the photon cutoff on a logarithmic axis, with the measured value and the electron rest energy marked"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Bethe's non-relativistic self-energy formula evaluated directly. The cutoff slider runs from 1 keV to 10 GeV; the marker sits at \(K = m_ec^2 = 511\) keV, which is where Bethe put it and where the relativistic calculation of Feynman, Schwinger and French later showed it belongs. The horizontal line is the measured hydrogen shift, 1057.845 MHz. With Bethe's own estimate \(\langle E\rangle = 17.8\,\mathrm{Ry}\) the formula gives 1038 MHz; with the exact Bethe logarithm for \(2S\), equivalent to \(\langle E\rangle = 16.64\,\mathrm{Ry}\), it gives 1047 MHz. The remaining 11 MHz comes from terms this calculation cannot see: a relativistic correction to the self-energy, the \(-27\) MHz pull from vacuum polarization (Chapter 6), two-loop terms, nuclear recoil, and about \(+0.14\) MHz from the finite size of the proton. The \(n\) slider shows the \(1/n^3\) scaling, which the figure applies to the prefactor only; the Bethe logarithm itself also depends weakly on \(n\) and is held fixed, so values away from \(n=2\) are indicative.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>Bethe's calculation also made the problem sharper. A non-relativistic subtraction is not a theory. To get the Lamb shift right to better than a few percent, and to get Kusch's magnetic moment at all, somebody had to show that the subtraction could be done consistently, in a relativistically invariant way, to any order in \(\alpha\). Three people did it independently within eighteen months.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="amplitudes" data-year="1949" data-short="Amplitudes and diagrams">
+      <div class="chapter-head">
+        <span class="year">1949</span>
+        <span class="label kicker">Chapter 5 · Schwinger, Feynman, Tomonaga, Dyson</span>
+        <h2>Add an arrow for everything that can happen</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Julian Schwinger, at Harvard, rebuilt the theory in manifestly covariant operator form and in late 1947 computed the electron's anomalous magnetic moment. Sin-Itiro Tomonaga, in Tokyo, had published the same covariant formalism in 1943 in a Japanese journal nobody outside Japan had read during the war. Richard Feynman, at Cornell, had a set of rules he could not derive, expressed as pictures, that gave the same answers much faster. Freeman Dyson, a 24-year-old graduate student, spent 1948 proving that Feynman's rules follow from Tomonaga's and Schwinger's formalism and that the subtractions work at every order. Schwinger, Feynman and Tomonaga shared the 1965 Nobel Prize. Dyson did not.</p>
+        <p>Feynman's formulation is the one used today, and the one worth stating carefully, because it is simple and it is not a metaphor. To compute the probability of a process:</p>
+        <ol>
+          <li>List every way the process could happen, including ways involving particles that are not present at the start or the end.</li>
+          <li>Assign each way a complex number, an <em>amplitude</em>, computed from a fixed set of rules: a factor for each propagating particle, a factor \(\sqrt{\alpha}\) for each vertex where a photon meets an electron line, and an integral over every undetermined internal momentum.</li>
+          <li>Add the amplitudes.</li>
+          <li>The probability is the squared magnitude of the sum.</li>
+        </ol>
+        <p>Nothing in this prescription is probabilistic until the last step. The amplitudes are added like vectors in a plane, which is why Feynman drew them as arrows. Interference, in this language, is just the fact that two arrows pointing in opposite directions sum to nothing.</p>
+        <p>The clearest place to see it, and the example Feynman used in his 1983 Auckland lectures, is partial reflection from a sheet of glass. Light hitting a single glass surface reflects with probability about 4%. Light hitting a sheet with two surfaces should then reflect with probability about 8%. In fact the answer depends on the thickness of the sheet, and oscillates between 0% and about 15%. There are two arrows, one for reflection off the front surface and one for reflection off the back, and their relative angle is set by the extra optical path:</p>
+        \[ \phi = \frac{4\pi n d\cos\theta_t}{\lambda}, \qquad A = r\left(1 - e^{i\phi}\right) + \ldots, \qquad r = \frac{n-1}{n+1}. \]
+        <p>Summing the full series of internal reflections gives the exact reflectance of a thin film,</p>
+        \[ R = \frac{2r^2(1-\cos\phi)}{1 + r^4 - 2r^2\cos\phi}, \]
+        <p>and the two-arrow approximation is already good to a fraction of a percent because \(r^2 = 0.04\) is small. This is ordinary optics, derivable from Maxwell's equations, and that is the point: the quantum rule reproduces the classical interference result for a beam of many photons, while also telling you what happens to one photon at a time.</p>
+      </div>
+
+      <figure class="bench" id="fig-arrows">
+        <div class="bench-head"><span class="fig">Fig. 5.1</span><span class="label">Interactive</span><h4>Adding amplitudes: reflection from a sheet of glass</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="ar-d">Glass thickness <output></output></label><input type="range" id="ar-d" min="0" max="800" step="1" value="210"></div>
+          <div class="ctl"><label for="ar-l">Wavelength <output></output></label><input type="range" id="ar-l" min="400" max="700" step="1" value="550"></div>
+          <div class="ctl"><label for="ar-n">Refractive index <output></output></label><input type="range" id="ar-n" min="1.2" max="2.4" step="0.01" value="1.5"></div>
+          <div class="ctl"><label for="ar-k">Reflections included <output></output></label><input type="range" id="ar-k" min="2" max="12" step="1" value="2"></div>
+        </div>
+        <div class="stage">
+          <canvas class="sim ar-cv" role="img" aria-label="Amplitude arrows for reflection off the front and back surfaces of a glass sheet, added head to tail, with the resultant drawn"></canvas>
+          <div class="chart-wrap"><svg class="ar-chart" role="img" aria-label="Reflectance against glass thickness, showing fringes between zero and about fifteen percent"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Each arrow is the amplitude for one path: reflection off the front surface, reflection off the back surface, then paths with two, three and more internal bounces. They are drawn head to tail at normal incidence, and the resultant's squared length is the reflection probability. Slide the thickness and watch the second arrow rotate: the probability passes through exact zero whenever the extra path is a whole number of wavelengths, which is how an anti-reflection coating works, and through its maximum \(4r^2/(1+r^2)^2\) halfway between. With the default index 1.5 that maximum is 14.8%. Raising the number of included reflections from 2 to 12 changes the answer by at most 0.6 percentage points, because each further bounce costs another factor \(r^2 = 0.04\); this is a visual stand-in for the way higher orders in \(\alpha\) behave in quantum electrodynamics, where the suppression factor is \(\alpha/\pi \approx 0.0023\) instead. The chart's dashed line marks what you would get by adding probabilities instead of amplitudes, which is wrong by up to a factor of two in either direction.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>What the rules give, and what goes wrong</h3>
+        <p>Applied to the electron's magnetic moment, the rules give an orderly expansion. At lowest order there is one diagram, the electron absorbing the external field, and it gives \(g = 2\). At the next order there are three diagrams, of which one contributes to the magnetic moment: the electron emits a photon, interacts with the field, and reabsorbs the photon. Schwinger evaluated it and found</p>
+        \[ a_e = \frac{\alpha}{2\pi} = 0.001\,161\,4, \]
+        <p>against Kusch and Foley's \(0.00119 \pm 0.00005\). He had the number in hand by December 1947 and announced it at the January 1948 American Physical Society meeting. It is carved, in the form \(\alpha/2\pi\), on his gravestone.</p>
+        <p>The orderliness is superficial. Of the three second-order diagrams, the other two diverge: the electron self-energy diagram diverges logarithmically, and so does the vacuum polarization diagram in which a photon briefly becomes an electron–positron pair. A third divergence sits in the vertex itself. Dyson's contribution was to classify them. In quantum electrodynamics there are exactly three primitively divergent structures, and each can be absorbed into one of three measured quantities: the electron mass, the electron charge, and the normalization of the fields. Having fixed those three numbers against experiment, every other quantity the theory computes is finite, at every order. This property has a name, <em>renormalizability</em>, and it is rare: most interactions one can write down do not have it.</p>
+        <p>The modern view, due to Wilson, Weinberg and others in the 1970s, is gentler. A quantum field theory is an effective description valid below some energy scale, and the divergences are an artefact of pretending it holds up to infinite energy. Renormalization is then not a trick for cancelling infinities but a statement that low-energy physics does not care what happens at very short distances, except through a few parameters. The arithmetic is the same arithmetic. The embarrassment is gone.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="running" data-year="1956" data-short="A charge that runs">
+      <div class="chapter-head">
+        <span class="year">1956</span>
+        <span class="label kicker">Chapter 6 · Vacuum polarization</span>
+        <h2>The charge of the electron depends on how close you get</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Of the three divergences, the one with the most observable consequences is vacuum polarization. A photon travelling between two charges can convert into a virtual electron–positron pair and back. The pair is polarizable, so the vacuum behaves like a dielectric: it screens charge. Unlike a dielectric, it has no outer boundary, so what gets screened is the charge you would measure from far away.</p>
+        <p>Compute the one-loop correction to the photon propagator and the result can be packaged as a distance-dependent, or momentum-dependent, coupling. In terms of the spacelike momentum transfer \(Q\),</p>
+        \[ \alpha(Q^2) = \frac{\alpha}{1 - \Delta\alpha(Q^2)}, \qquad \Delta\alpha_\ell(Q^2) = \frac{\alpha}{\pi}\int_0^1\!\!dx\;2x(1-x)\,\ln\!\left(1 + \frac{x(1-x)Q^2}{m_\ell^2}\right), \]
+        <p>summed over every charged particle light enough to be pair-produced at that momentum. For \(Q \gg m_\ell\) the integral becomes \(\tfrac{1}{3}[\ln(Q^2/m_\ell^2) - \tfrac{5}{3}]\), so each species contributes a logarithm that switches on as its threshold is passed. The familiar \(\alpha = 1/137.036\) is the value at \(Q \to 0\), measured from the deflection of charges at large separation. At the mass of the \(Z\) boson, 91.2 GeV, the effective coupling has grown to about \(1/128.9\): a 6% increase, and one of the inputs to every electroweak precision fit.</p>
+        <p>In position space the same calculation gives the Uehling potential. The electrostatic potential of a point charge is not exactly \(1/r\); it is steeper inside roughly one electron Compton wavelength, \(\hbar/m_ec = 386\) fm, where the screening cloud sits:</p>
+        \[ V(r) = -\frac{Z\alpha}{r}\left[1 + \frac{2\alpha}{3\pi}\int_1^\infty\!\!dt\; e^{-2m_ert}\left(1 + \frac{1}{2t^2}\right)\frac{\sqrt{t^2-1}}{t^2}\right]. \]
+        <p>An \(S\)-state electron has some probability of being inside that radius, so it feels a slightly stronger attraction and its energy drops. In hydrogen this moves \(2S_{1/2}\) down by about 27 MHz, which is why the Lamb shift comes out below the self-energy estimate alone. In muonic hydrogen the muon's orbit is 200 times smaller and sits well inside the cloud, so vacuum polarization becomes the dominant radiative correction: it is the largest single term in the 2010 muonic hydrogen measurement that touched off the proton radius puzzle.</p>
+      </div>
+
+      <figure class="bench" id="fig-running">
+        <div class="bench-head"><span class="fig">Fig. 6.1</span><span class="label">Interactive</span><h4>Screening, near and far</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="ru-q">Momentum transfer <span class="nocase">Q</span> <output></output></label><input type="range" id="ru-q" min="-4" max="3" step="0.01" value="1.96"></div>
+          <div class="ctl"><label for="ru-mode">Loops included</label><select id="ru-mode"><option value="lep">Leptons only</option><option value="all" selected>Leptons and quarks</option></select></div>
+        </div>
+        <div class="stage">
+          <canvas class="sim ru-cv" role="img" aria-label="The effective charge enclosed within a radius, rising as the radius falls below the electron Compton wavelength"></canvas>
+          <div class="chart-wrap"><svg class="ru-chart" role="img" aria-label="Inverse fine-structure constant against momentum transfer, falling in steps as each charged particle threshold is passed"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The chart evaluates the one-loop vacuum polarization integral numerically for the electron, muon and tau, and marks the thresholds where each turns on. With quarks included the figure adds one loop per flavour with effective masses chosen so that the total hadronic contribution matches the measured \(\Delta\alpha^{(5)}_{\rm had}(M_Z) = 0.02766\); real hadronic screening is not a sum of free quark loops and must be extracted from \(e^+e^-\) annihilation data, so treat that curve as an interpolation anchored at the two ends rather than a calculation. The left panel is the position-space version: the charge enclosed within radius \(r\), from the Uehling potential, rising above its asymptotic value inside the electron Compton wavelength. The default \(Q\) is 91.2 GeV, the \(Z\) mass, where the figure returns \(\alpha^{-1} = 128.9\) against the accepted 128.95. The one-loop expression ignored higher-order running, worth about 0.1 in \(\alpha^{-1}\) at this scale.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>Where it ends</h3>
+        <p>Extrapolate the running upward and \(\Delta\alpha\) eventually reaches 1, at which point \(\alpha(Q^2)\) is infinite. This is the Landau pole, found by Landau, Abrikosov and Khalatnikov in 1954 and used by Landau for the next decade as an argument that quantum field theory was fundamentally inconsistent. Taking the one-loop electron contribution literally, the pole sits near \(10^{277}\) GeV; adding the muon and tau loops pulls it down to about \(10^{92}\) GeV, still \(10^{73}\) times the Planck energy. No sensible person expects quantum electrodynamics to apply there; above a few hundred GeV it is already not the right theory, because the photon and the \(Z\) mix and the electroweak description takes over. The pole is a statement about the limits of the approximation, not about nature. The figure's readout gives it for whichever set of loops is included, which is itself instructive: adding the quark loops moves the pole down by fifty-five orders of magnitude.</p>
+        <p>It does, however, matter for the opposite reason. Because the coupling grows with energy, perturbation theory in quantum electrodynamics works better the longer the distance, and at atomic scales \(\alpha/\pi = 0.0023\) is a genuinely small number. This is why twelve digits are attainable here and nowhere else.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== PART III -->
+    <div class="part-head"><span class="label">Part III</span><h2>Twelve digits</h2></div>
+
+    <section class="chapter" id="digits" data-year="1987" data-short="Twelve digits">
+      <div class="chapter-head">
+        <span class="year">1987</span>
+        <span class="label kicker">Chapter 7 · The electron anomaly</span>
+        <h2>One electron, one magnet, five loops</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Kusch and Foley measured the electron's magnetic moment to 5%. Getting to parts per trillion took forty years and a change of method: instead of many electrons in a beam, one electron, held indefinitely.</p>
+        <p>In a Penning trap a static magnetic field confines an electron radially and an electrostatic quadrupole confines it axially. The electron circles the field at the cyclotron frequency \(\omega_c = eB/m\) and its spin precesses at \(\omega_s = g\,eB/2m\). What the experiment measures is not either frequency but their difference,</p>
+        \[ \frac{g}{2} = \frac{\omega_s}{\omega_c} = 1 + \frac{\omega_s - \omega_c}{\omega_c} = 1 + \frac{\omega_a}{\omega_c}, \]
+        <p>so a 0.1 part-per-trillion measurement of \(g/2\) needs only a part-per-billion measurement of a frequency ratio, and the magnetic field cancels. Hans Dehmelt's group at Washington reduced the system to a single trapped electron and in 1987 reached 4 parts in \(10^9\); Gerald Gabrielse's group, first at Harvard and then at Northwestern, used a cylindrical trap cooled to 100 mK in which the cyclotron motion is a single quantum state, and reached 0.28 parts per trillion in 2008 and 0.13 in 2023.</p>
+        <p>In the trap the electron is a one-electron atom whose levels are spin and cyclotron quanta, and the measurement is spectroscopy on those levels. The cavity the electron sits in modifies its own radiation field, which shifts the cyclotron frequency; accounting for that shift is one of the dominant systematics.</p>
+
+        <h3>The series</h3>
+        <p>On the theory side the quantity to compute is</p>
+        \[ a_e = \sum_{n\ge1} C_n \left(\frac{\alpha}{\pi}\right)^{\!n} + a_e^{\rm had} + a_e^{\rm weak}, \]
+        <p>where \(C_n\) is a pure number obtained by evaluating all diagrams with \(n\) photon-like loops. The universal coefficients, the parts independent of any lepton mass, are now known as</p>
+        <div class="table-wrap">
+          <table class="compare">
+            <thead><tr><th>Order</th><th>Diagrams</th><th>Coefficient</th><th>Contribution to \(a_e\)</th><th>Who</th></tr></thead>
+            <tbody>
+              <tr><td>\(\alpha^1\)</td><td class="num">1</td><td class="num">0.5</td><td class="num">1 161 409 732 × 10⁻¹⁸</td><td>Schwinger, 1948</td></tr>
+              <tr><td>\(\alpha^2\)</td><td class="num">7</td><td class="num">−0.328 478 965 579</td><td class="num">−1 772 305 × 10⁻¹⁸</td><td>Petermann; Sommerfield, 1957</td></tr>
+              <tr><td>\(\alpha^3\)</td><td class="num">72</td><td class="num">1.181 241 456 587</td><td class="num">14 804 × 10⁻¹⁸</td><td>Laporta &amp; Remiddi, 1996</td></tr>
+              <tr><td>\(\alpha^4\)</td><td class="num">891</td><td class="num">−1.912 245 764 926</td><td class="num">−55.7 × 10⁻¹⁸</td><td>Laporta, 2017 (analytic)</td></tr>
+              <tr><td>\(\alpha^5\)</td><td class="num">12 672</td><td class="num">5.887 (55)</td><td class="num">0.40 × 10⁻¹⁸</td><td>Aoyama, Hayakawa, Kinoshita &amp; Nio; Volkov</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The fourth-order coefficient was obtained numerically in 1996 and only in 2017 did Stefano Laporta produce it analytically, in terms of a basis of constants including elliptic integrals, to 1100 digits. The fifth-order coefficient required two decades of Monte Carlo integration over 12 672 vertex diagrams, and for several years the two groups computing it disagreed by about 5 standard deviations. In 2024 the disagreement was traced to 98 particular integrals in the hardest subset, recomputed with more statistics, and resolved; the two calculations now agree.</p>
+        <p>Three further contributions matter at the present precision. Loops containing a muon or tau rather than an electron add \(+2.75 \times 10^{-12}\). Loops containing hadrons, which cannot be computed perturbatively and are taken from \(e^+e^-\) annihilation data, add \(+1.69 \times 10^{-12}\). Weak-interaction diagrams, with a \(W\) or \(Z\), add \(+0.03 \times 10^{-12}\). Together these are a thousand times larger than the fifth-order QED term, which is why the Standard Model and not quantum electrodynamics alone is what gets tested.</p>
+      </div>
+
+      <figure class="bench" id="fig-series">
+        <div class="bench-head"><span class="fig">Fig. 7.1</span><span class="label">Interactive</span><h4>How twelve digits accumulate</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="se-n">Orders of <span class="nocase">α</span> included <output></output></label><input type="range" id="se-n" min="0" max="5" step="1" value="5"></div>
+          <div class="ctl"><label for="se-alpha">Value of <span class="nocase">α</span> used</label><select id="se-alpha"><option value="rb">Rubidium recoil, 81 ppt</option><option value="cs">Caesium recoil, 200 ppt</option></select></div>
+          <div class="ctl"><label class="chk" for="se-extra"><input type="checkbox" id="se-extra" checked> <span class="nocase">Include muon, tau, hadron and weak loops</span></label></div>
+        </div>
+        <div class="stage">
+          <div class="digits" id="se-digits" aria-live="polite"></div>
+          <div class="chart-wrap"><svg class="se-chart" role="img" aria-label="Distance between the calculated and measured electron anomaly against the number of orders included, on a logarithmic axis"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Each step adds one order in \(\alpha\) to the calculated \(g/2\), using the coefficients in the table above. The digit panel aligns the calculation with the measurement and colours the digits that agree; the chart plots \(|a_e^{\rm calc} - a_e^{\rm exp}|\) on a logarithmic axis, together with the band set by the experimental uncertainty and the band set by the uncertainty in \(\alpha\) itself. The latter is the point of the figure. Beyond the fourth order the comparison is no longer limited by the trap or by the diagrams: it is limited by how well the fine-structure constant is known from an independent measurement, because \(a_e\) is proportional to \(\alpha\) at leading order. The two available values of \(\alpha\), from caesium and from rubidium atom interferometry, disagree with each other by 5.5 standard deviations, and they put the prediction on opposite sides of the measurement. Switching the selector shows the effect: the figure's own combination of uncertainties gives \(+2.5\sigma\) with rubidium and \(-3.6\sigma\) with caesium, against the published \(+2.2\sigma\) and \(-3.7\sigma\), which treat the theoretical error slightly differently.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>So the most precise comparison in physics is currently stuck, and not for want of theory or of trapped electrons. Somebody needs to settle the fine-structure constant. Both of the competing measurements work the same way: an atom absorbs and re-emits photons in an interferometer, its recoil velocity is measured, and that gives \(h/m_{\rm atom}\), which combines with the atomic mass and the Rydberg constant to give \(\alpha\). Caesium and rubidium experiments, in Berkeley and Paris, differ by much more than either group's stated error, so at least one has an unidentified systematic. Several groups are now working on third determinations.</p>
+        <p>Turned around, the agreement can be read as a measurement of \(\alpha\) rather than a test of the theory, in which case the trap gives the most accurate value of the fine-structure constant available, 81 parts per trillion, and the interferometers are the test.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="muon" data-year="2025" data-short="The muon">
+      <div class="chapter-head">
+        <span class="year">2025</span>
+        <span class="label kicker">Chapter 8 · The muon anomaly</span>
+        <h2>The muon, and the anomaly that closed</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The muon is the same particle as the electron with 207 times the mass and a 2.2 microsecond lifetime. Its anomalous magnetic moment is interesting for one reason: a heavy virtual particle of mass \(\Lambda\) contributes to a lepton's anomaly roughly in proportion to \((m_\ell/\Lambda)^2\), so the muon is about 43 000 times more sensitive to new physics than the electron is, at equal fractional precision.</p>
+        <p>The experimental method is the same ratio of frequencies as in the trap, applied to a bunch of muons circling a storage ring. Polarized muons from pion decay are injected into a 7-metre-radius ring with a 1.45 T field. Their spins precess relative to their momenta at</p>
+        \[ \omega_a = a_\mu \frac{eB}{m_\mu}, \]
+        <p>which for \(a_\mu \approx 1.166\times10^{-3}\) works out to 229 kHz, a period of 4.4 µs. Muons decay to positrons, and the positron's energy in the laboratory is correlated with the muon's spin direction, so counting positrons above an energy threshold as a function of time gives an exponential decay with a 64 µs dilated lifetime, modulated at \(\omega_a\). The whole measurement is a fit of a cosine to that modulation.</p>
+        <p>Two details make it work. The muons are injected at the "magic momentum" of 3.094 GeV/c, \(\gamma = 29.3\), at which the electrostatic focusing fields do not disturb the precession. And the magnetic field is measured in the same units as the precession frequency, by proton nuclear magnetic resonance, so what the experiment reports is a ratio of two frequencies and the ratio of muon to proton magnetic moments.</p>
+      </div>
+
+      <figure class="bench" id="fig-wiggle">
+        <div class="bench-head"><span class="fig">Fig. 8.1</span><span class="label">Interactive</span><h4>The wiggle plot, and how precision is bought</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="wg-n">Positrons counted <output></output></label><input type="range" id="wg-n" min="4" max="11" step="0.1" value="7"></div>
+          <div class="ctl"><label for="wg-a">Decay asymmetry <output></output></label><input type="range" id="wg-a" min="0.05" max="0.5" step="0.01" value="0.4"></div>
+          <div class="ctl"><label for="wg-b">Storage field <output></output></label><input type="range" id="wg-b" min="0.5" max="3" step="0.01" value="1.45"></div>
+          <div class="ctl"><label for="wg-t">Fit window <output></output></label><input type="range" id="wg-t" min="50" max="700" step="10" value="650"></div>
+        </div>
+        <div class="stage">
+          <div class="chart-wrap"><svg class="wg-chart" role="img" aria-label="Simulated positron counts against time, falling exponentially and modulated by the anomalous precession"></svg></div>
+          <div class="chart-wrap"><svg class="wg-chi" role="img" aria-label="Chi-squared against the trial precession frequency, with the fitted minimum and its uncertainty"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">A simulated run. Positron counts are generated in 150 ns bins from \(N(t) = N_0 e^{-t/\gamma\tau}\,[1 + A\cos(\omega_a t + \phi)]\) with Poisson noise and a fixed seed, using the true \(a_\mu = 1.16592\times10^{-3}\), and then \(\omega_a\) is recovered by scanning \(\chi^2\) over trial frequencies and fitting a parabola to the minimum. The recovered value and its statistical error are the readouts; they are a real fit to the simulated data, not a formula. The error falls as \(1/A\sqrt{N}\), so the three ways to improve the measurement are more muons, a larger asymmetry (a higher energy threshold, which costs statistics), and a longer fit window (which also costs statistics, because the muons have decayed). Push the statistics slider to \(10^{11}\) positrons, roughly what Fermilab collected across six years, and the statistical error reaches about 100 parts per billion, which is where the real experiment ended up. At \(10^4\) positrons, about seven per bin, the fit still finds the frequency, but only to a few parts in ten thousand. Detector pileup, muon losses, beam dynamics and the field measurement are all omitted; in the real experiment systematics contribute about 60 ppb.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>Twenty years of a 4σ discrepancy</h3>
+        <p>Brookhaven's E821 experiment finished in 2004 with \(a_\mu = 116\,592\,089(63) \times 10^{-11}\), 0.54 parts per million. The Standard Model prediction at the time sat about 3 standard deviations below it. Fermilab's E989 moved the Brookhaven magnet 5 000 km by barge and truck, rebuilt the shimming and the detectors, and published Run-1 in 2021, Run-2/3 in 2023, and the final six-run result in June 2025:</p>
+        \[ a_\mu^{\rm exp} = 116\,592\,070.5\,(14.8)\times 10^{-11} \quad (127\ \text{ppb}), \]
+        <p>a four-fold improvement on Brookhaven and in excellent agreement with it. The discrepancy with theory grew to above 5 standard deviations in the 2021 comparison, and was for a while the most discussed number in particle physics.</p>
+        <p>It then went away, and not because the experiment changed. The Standard Model prediction for \(a_\mu\) has a part that cannot be computed in perturbation theory: hadronic vacuum polarization, where the photon becomes a cloud of quarks and gluons. It is numerically small, 7 132 parts in \(10^{11}\) out of 116 592 033, but it carries essentially the entire theoretical uncertainty. Two methods exist. The data-driven method uses measured \(e^+e^- \to \text{hadrons}\) cross sections and a dispersion relation; it was the basis of the 2020 Theory Initiative white paper, which gave \(116\,591\,810(43)\times10^{-11}\). The lattice method computes the same quantity from first principles on a space-time grid. In 2020 the Budapest–Marseille–Wuppertal collaboration published a lattice value substantially larger than the data-driven one, which would remove the discrepancy; at the time it was one calculation against decades of data.</p>
+        <p>By 2025 several independent lattice groups had confirmed it, and the CMD-3 experiment in Novosibirsk had remeasured the dominant \(e^+e^- \to \pi^+\pi^-\) channel and found a cross section a few percent higher than the older data, moving the data-driven answer toward the lattice. The 2025 white paper adopted the lattice average, giving</p>
+        \[ a_\mu^{\rm SM} = 116\,592\,033(62)\times10^{-11}, \qquad a_\mu^{\rm exp} - a_\mu^{\rm SM} = 38(63)\times10^{-11}. \]
+        <p>Agreement. The tension that survived twenty years was not in nature but in a hadronic integral, and the disagreement among the ways of computing it is not fully understood even now.</p>
+      </div>
+
+      <figure class="bench" id="fig-hist">
+        <div class="bench-head"><span class="fig">Fig. 8.2</span><span class="label">Interactive</span><h4>Experiment and theory, 1979 to 2025</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="hi-ref">Reference line</label><select id="hi-ref"><option value="wp25">2025 white paper (lattice HVP)</option><option value="wp20">2020 white paper (e⁺e⁻ data)</option><option value="exp">Experimental average</option></select></div>
+          <div class="ctl"><label class="chk" for="hi-zoom"><input type="checkbox" id="hi-zoom" checked> <span class="nocase">Hide the 1979 CERN point</span></label></div>
+        </div>
+        <div class="stage">
+          <div class="chart-wrap"><svg class="hi-chart" role="img" aria-label="Measurements and predictions of the muon anomaly with error bars, against a reference line"></svg></div>
+          <div class="chart-wrap"><svg class="hi-budget" role="img" aria-label="The Standard Model budget for the muon anomaly, with each contribution's size and uncertainty"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Published values of \(a_\mu\) with their total uncertainties, shown as deviations from whichever reference the selector picks. Experiments: CERN III (1979), whose error bar is twelve times the width of the rest of the chart and is therefore hidden by default, Brookhaven E821 (2006), Fermilab Run-1 (2021), Run-2/3 (2023), the final six-run result (2025), and the world average. Predictions: the 2020 white paper, which used \(e^+e^-\) data for hadronic vacuum polarization, and the 2025 white paper, which uses the lattice average. The second panel is the 2025 budget: the bar lengths are the contributions on a logarithmic scale and the numbers beside them are the uncertainties, which is where the asymmetry of the problem shows. Quantum electrodynamics supplies 99.994% of the value with an uncertainty of 2 parts in \(10^{11}\); hadronic vacuum polarization supplies 0.006% of the value with an uncertainty of 61.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="limits" data-year="Now" data-short="Where QED ends">
+      <div class="chapter-head">
+        <span class="year">Now</span>
+        <span class="label kicker">Chapter 9 · Reach</span>
+        <h2>What a magnetic moment can rule out</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A precision measurement that agrees with theory is a constraint. If some new particle of mass \(\Lambda\) couples to leptons, it contributes to the anomaly through a loop, and the contribution is suppressed by the ratio of scales. For a generic coupling of order one the estimate is</p>
+        \[ \delta a_\ell \sim C\,\frac{m_\ell^2}{\Lambda^2}, \]
+        <p>with \(C\) of order \(\alpha/4\pi\) to 1 depending on the model. The \(m_\ell^2\) is the whole story of why the muon gets the attention. Setting \(C = 1\) and demanding \(\delta a_\ell\) smaller than the combined experimental and theoretical uncertainty gives a reach \(\Lambda \lesssim m_\ell/\sqrt{\delta a_\ell}\): about 1 TeV from the electron, about 4 TeV from the muon, from table-top experiments rather than colliders.</p>
+      </div>
+
+      <figure class="bench" id="fig-reach">
+        <div class="bench-head"><span class="fig">Fig. 9.1</span><span class="label">Interactive</span><h4>What the anomalies exclude</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="re-c">Coupling strength <span class="nocase">C</span> <output></output></label><input type="range" id="re-c" min="-3" max="0.3" step="0.01" value="0"></div>
+          <div class="ctl"><label for="re-e">Future electron sensitivity <output></output></label><input type="range" id="re-e" min="-14" max="-11.5" step="0.01" value="-12.638"></div>
+          <div class="ctl"><label for="re-m">Future muon sensitivity <output></output></label><input type="range" id="re-m" min="-11" max="-8.5" step="0.05" value="-9.2"></div>
+        </div>
+        <div class="stage">
+          <div class="chart-wrap"><svg class="re-chart" role="img" aria-label="Contribution to the lepton anomaly against the mass of a hypothetical new particle, for electron, muon and tau, with the current sensitivities marked"></svg></div>
+          <canvas class="sim re-cv" role="img" aria-label="Bars comparing the mass scale reached by each lepton's anomaly"></canvas>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The dimensional estimate \(\delta a_\ell = C\,m_\ell^2/\Lambda^2\), plotted against \(\Lambda\) for the three charged leptons, with each lepton's present sensitivity drawn as a horizontal line: \(2.3\times10^{-13}\) for the electron (dominated by the disagreement between the two values of \(\alpha\)), \(6.3\times10^{-10}\) for the muon (experiment and theory in quadrature), and \(3\times10^{-2}\) for the tau, whose anomaly has never been bounded better than a few percent because it lives for 0.29 picoseconds. The tau's larger mass therefore buys nothing: its reach is 10 GeV, a thousand times worse than the electron's. Where a curve crosses its line is the mass scale excluded. This is an order-of-magnitude argument and nothing more: a real model supplies \(C\), which can easily be \(\alpha/4\pi \approx 6\times10^{-4}\) for a loop-level coupling, moving the reach down by a factor of 40, or can carry an extra factor of a heavy fermion mass over the lepton mass, moving it up. Slide \(C\) to see the span. The sensitivity sliders show what the proposed next generation of experiments would buy.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>The state of the account</h3>
+        <div class="table-wrap">
+          <table class="compare">
+            <thead><tr><th>Quantity</th><th>Measured</th><th>Standard Model</th><th>Agreement</th><th>Limited by</th></tr></thead>
+            <tbody>
+              <tr><td>Electron \(g/2\)</td><td class="num">1.001 159 652 180 59 (13)</td><td class="num">1.001 159 652 180 20 (10)</td><td>2.2σ (Rb α)<br>−3.7σ (Cs α)</td><td>The fine-structure constant</td></tr>
+              <tr><td>Muon \(a_\mu \times 10^{11}\)</td><td class="num">116 592 071.5 (14.5)</td><td class="num">116 592 033 (62)</td><td>0.6σ</td><td>Hadronic vacuum polarization</td></tr>
+              <tr><td>Hydrogen \(2S_{1/2}\!-\!2P_{1/2}\)</td><td class="num">1 057.845 (9) MHz</td><td class="num">1 057.84 (2) MHz</td><td>Agrees</td><td>The proton charge radius</td></tr>
+              <tr><td>\(\alpha^{-1}\) from Rb recoil</td><td class="num">137.035 999 206 (11)</td><td>—</td><td>5.5σ from the Cs value</td><td>Unidentified systematics</td></tr>
+              <tr><td>Casimir pressure</td><td>~1%</td><td>—</td><td>Agrees</td><td>Surface roughness and conductivity</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Three different limits, and none of them is quantum electrodynamics. The electron comparison is limited by an atom-interferometry disagreement; the muon comparison is limited by a strong-interaction integral; the hydrogen comparison is limited by the size of the proton. The perturbative QED series, the thing that looked broken in 1935 and was patched in 1948, is the most reliable part of each calculation.</p>
+        <div class="callout">
+          <span class="label">What is actually being tested</span>
+          <p>It is worth being precise about what twelve digits of agreement establishes. It does not establish that quantum electrodynamics is a complete or final theory; we know it is not, because the photon mixes with the \(Z\) above 100 GeV and because the theory says nothing about gravity. It establishes something narrower and stranger: that a particular divergent asymptotic series, truncated after five terms and with three parameters fixed by experiment, predicts the behaviour of a single electron in a magnetic field to one part in \(10^{12}\). Nobody has an argument from first principles for why that should work as well as it does.</p>
+        </div>
+        <p>What would change the picture. A third independent measurement of \(\alpha\) would make the electron anomaly a sharp test again, and quantum-logic spectroscopy of single electrons and positrons in a trap has been proposed to push the moment measurement further and to compare electron and positron directly, which tests charge–parity–time symmetry. On the muon side, the J-PARC experiment will measure \(a_\mu\) with ultra-cold muons and a completely different systematic budget, and the lattice calculations are heading for sub-0.5% on hadronic vacuum polarization, which would make the muon comparison a 20 parts-per-billion test. The sixth-order coefficient of the electron series, 9 million diagrams, is not currently in anyone's plans.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== REFERENCE -->
+    <section class="chapter" id="reference" data-year="Ref" data-short="Glossary &amp; sources">
+      <div class="chapter-head">
+        <span class="label kicker">Reference</span>
+        <h2>Glossary and sources</h2>
+      </div>
+      <div class="prose">
+        <p>Quantities, in the units used throughout: \(\alpha = e^2/4\pi\varepsilon_0\hbar c = 1/137.035\,999\,177(21)\) at zero momentum transfer, \(m_ec^2 = 510\,998.95\) eV, \(m_\mu c^2 = 105.658\) MeV, \(r_e = 2.8179\) fm, \(\hbar/m_ec = 386.16\) fm, 1 Ry \(= 13.6057\) eV, and 1 eV \(= 241.799\) THz.</p>
+      </div>
+      <dl class="glossary">
+        <dt>Amplitude</dt><dd>The complex number assigned to one way a process can happen; probabilities are squared magnitudes of sums of amplitudes.</dd>
+        <dt>Anomalous magnetic moment</dt><dd>\(a_\ell = (g-2)/2\), the fractional excess of a lepton's magnetic moment over the Dirac value.</dd>
+        <dt>Bethe logarithm</dt><dd>A weighted average over atomic excitation energies that appears in the leading Lamb shift; equal to \(\ln(16.64\,\mathrm{Ry})\) for the \(2S\) state of hydrogen.</dd>
+        <dt>Casimir effect</dt><dd>The attraction between two neutral conducting plates caused by the restriction of field modes between them.</dd>
+        <dt>Cyclotron frequency</dt><dd>\(\omega_c = eB/m\), the rate at which a charge circles a magnetic field.</dd>
+        <dt>Hadronic vacuum polarization</dt><dd>The contribution to a lepton anomaly from a photon turning briefly into quarks and gluons; the dominant uncertainty in the muon prediction.</dd>
+        <dt>Landau pole</dt><dd>The energy at which a one-loop running coupling formally becomes infinite.</dd>
+        <dt>Magic momentum</dt><dd>The muon momentum, 3.094 GeV/c, at which electrostatic focusing fields do not affect the anomalous precession.</dd>
+        <dt>Penning trap</dt><dd>A device confining a single charged particle with a static magnetic field and an electrostatic quadrupole.</dd>
+        <dt>Renormalization</dt><dd>Absorbing the divergences of perturbation theory into a finite number of measured parameters, after which all predictions are finite.</dd>
+        <dt>Running coupling</dt><dd>The dependence of an effective interaction strength on the momentum transfer, caused by vacuum polarization.</dd>
+        <dt>Self-energy</dt><dd>The shift in a particle's energy caused by emitting and reabsorbing its own field quanta.</dd>
+        <dt>Uehling potential</dt><dd>The one-loop vacuum-polarization correction to the Coulomb potential, significant within an electron Compton wavelength.</dd>
+        <dt>Vacuum polarization</dt><dd>A photon converting briefly into a charged pair, which screens charge and makes the coupling momentum-dependent.</dd>
+        <dt>Zero-point energy</dt><dd>The \(\tfrac12\hbar\omega\) that each field mode retains in its ground state.</dd>
+      </dl>
+
+      <div class="chapter-head" style="margin-top:32px"><h2>Sources</h2></div>
+      <ol class="sources">
+        <li>Dirac, P. A. M. (1927). The quantum theory of the emission and absorption of radiation. <em>Proceedings of the Royal Society A</em> 114; Dirac, P. A. M. (1928). The quantum theory of the electron. <em>Proceedings of the Royal Society A</em> 117.</li>
+        <li>Casimir, H. B. G. (1948). On the attraction between two perfectly conducting plates. <em>Proceedings of the Koninklijke Nederlandse Akademie van Wetenschappen</em> 51.</li>
+        <li>Lamoreaux, S. K. (1997). Demonstration of the Casimir force in the 0.6 to 6 µm range. <em>Physical Review Letters</em> 78; Mohideen, U. &amp; Roy, A. (1998). Precision measurement of the Casimir force from 0.1 to 0.9 µm. <em>Physical Review Letters</em> 81; Bordag, M., Mohideen, U. &amp; Mostepanenko, V. M. (2001). New developments in the Casimir effect. <em>Physics Reports</em> 353.</li>
+        <li>Anderson, C. D. (1933). The positive electron. <em>Physical Review</em> 43.</li>
+        <li>Klein, O. &amp; Nishina, Y. (1929). Über die Streuung von Strahlung durch freie Elektronen nach der neuen relativistischen Quantendynamik von Dirac. <em>Zeitschrift für Physik</em> 52.</li>
+        <li>Lamb, W. E. &amp; Retherford, R. C. (1947). Fine structure of the hydrogen atom by a microwave method. <em>Physical Review</em> 72.</li>
+        <li>Kusch, P. &amp; Foley, H. M. (1948). The magnetic moment of the electron. <em>Physical Review</em> 74.</li>
+        <li>Bethe, H. A. (1947). The electromagnetic shift of energy levels. <em>Physical Review</em> 72.</li>
+        <li>Schwinger, J. (1948). On quantum-electrodynamics and the magnetic moment of the electron. <em>Physical Review</em> 73; Tomonaga, S. (1946). On a relativistically invariant formulation of the quantum theory of wave fields. <em>Progress of Theoretical Physics</em> 1; Feynman, R. P. (1949). Space-time approach to quantum electrodynamics. <em>Physical Review</em> 76; Dyson, F. J. (1949). The radiation theories of Tomonaga, Schwinger, and Feynman. <em>Physical Review</em> 75.</li>
+        <li>Feynman, R. P. (1985). <em>QED: The Strange Theory of Light and Matter</em>. Princeton University Press.</li>
+        <li>Schweber, S. S. (1994). <em>QED and the Men Who Made It</em>. Princeton University Press.</li>
+        <li>Landau, L. D., Abrikosov, A. A. &amp; Khalatnikov, I. M. (1954). An asymptotic expression for the photon Green function in quantum electrodynamics. <em>Doklady Akademii Nauk SSSR</em> 95.</li>
+        <li>Uehling, E. A. (1935). Polarization effects in the positron theory. <em>Physical Review</em> 48; Pohl, R. et al. (2010). The size of the proton. <em>Nature</em> 466.</li>
+        <li>Van Dyck, R. S., Schwinberg, P. B. &amp; Dehmelt, H. G. (1987). New high-precision comparison of electron and positron g factors. <em>Physical Review Letters</em> 59; Hanneke, D., Fogwell, S. &amp; Gabrielse, G. (2008). New measurement of the electron magnetic moment and the fine structure constant. <em>Physical Review Letters</em> 100.</li>
+        <li>Fan, X., Myers, T. G., Sukra, B. A. D. &amp; Gabrielse, G. (2023). Measurement of the electron magnetic moment. <em>Physical Review Letters</em> 130, 071801.</li>
+        <li>Sommerfield, C. M. (1957). <em>Physical Review</em> 107; Petermann, A. (1957). <em>Helvetica Physica Acta</em> 30; Laporta, S. &amp; Remiddi, E. (1996). The analytical value of the electron (g−2) at order α³ in QED. <em>Physics Letters B</em> 379; Laporta, S. (2017). High-precision calculation of the 4-loop contribution to the electron g−2 in QED. <em>Physics Letters B</em> 772.</li>
+        <li>Aoyama, T., Hayakawa, M., Kinoshita, T. &amp; Nio, M. (2018). Revised and improved value of the QED tenth-order electron anomalous magnetic moment. <em>Physical Review D</em> 97; Volkov, S. (2019). Calculating the five-loop QED contribution to the electron anomalous magnetic moment. <em>Physical Review D</em> 100; Aoyama, T., Kinoshita, T. &amp; Nio, M. (2025). Verification of the tenth-order QED contribution to the anomalous magnetic moment of the electron from diagrams without fermion loops. <em>Physical Review D</em> 111, L031902.</li>
+        <li>Aoyama, T., Kinoshita, T. &amp; Nio, M. (2019). Theory of the anomalous magnetic moment of the electron. <em>Atoms</em> 7, 28.</li>
+        <li>Parker, R. H. et al. (2018). Measurement of the fine-structure constant as a test of the Standard Model. <em>Science</em> 360; Morel, L., Yao, Z., Cladé, P. &amp; Guellati-Khélifa, S. (2020). Determination of the fine-structure constant with an accuracy of 81 parts per trillion. <em>Nature</em> 588.</li>
+        <li>Bennett, G. W. et al. (Muon g−2 Collaboration) (2006). Final report of the E821 muon anomalous magnetic moment measurement at BNL. <em>Physical Review D</em> 73; Bailey, J. et al. (1979). Final report on the CERN muon storage ring. <em>Nuclear Physics B</em> 150.</li>
+        <li>Aguillard, D. P. et al. (Muon g−2 Collaboration) (2025). Final report on the measurement of the positive muon anomalous magnetic moment at Fermilab to 127 ppb. <em>Physical Review Letters</em>; earlier results: <em>Physical Review Letters</em> 126, 141801 (2021) and 131, 161802 (2023).</li>
+        <li>Aoyama, T. et al. (2020). The anomalous magnetic moment of the muon in the Standard Model. <em>Physics Reports</em> 887; Muon g−2 Theory Initiative (2025). The anomalous magnetic moment of the muon in the Standard Model: an update. White Paper 2025.</li>
+        <li>Borsanyi, S. et al. (BMW Collaboration) (2021). Leading hadronic contribution to the muon magnetic moment from lattice QCD. <em>Nature</em> 593; Ignatov, F. V. et al. (CMD-3 Collaboration) (2024). Measurement of the \(e^+e^-\to\pi^+\pi^-\) cross section from threshold to 1.2 GeV. <em>Physical Review D</em> 109.</li>
+        <li>Giudice, G. F., Paradisi, P. &amp; Passera, M. (2012). Testing new physics with the electron g−2. <em>Journal of High Energy Physics</em> 2012, 113.</li>
+        <li>Mohr, P. J., Newell, D. B., Taylor, B. N. &amp; Tiesinga, E. (2024). CODATA recommended values of the fundamental physical constants: 2022. <em>Reviews of Modern Physics</em> 97.</li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">LearnAnything · Volume 14 · Figures compute real formulas from published constants, as each caption states.</footer>
+
+<script src="../../assets/js/lab.js"></script>
+<script src="js/qd.js"></script>
+<script src="js/hero.js"></script>
+<script src="js/vacuum.js"></script>
+<script src="js/scatter.js"></script>
+<script src="js/renorm.js"></script>
+<script src="js/anomaly.js"></script>
+<script src="js/muon.js"></script>
+<script>Lab.rail();</script>
+</body>
+</html>

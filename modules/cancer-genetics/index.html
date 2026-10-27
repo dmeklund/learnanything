@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Two Hits</title>
+<meta name="description" content="Cancer genetics: Knudson's two hits, oncogenes and tumour suppressors, the multistage model read off real incidence curves, mutational signatures, telling drivers from passengers, clonal architecture, and why targeted drugs stop working.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<style>
+/* Volume XV identity: a cytogenetics bench. Paper a cool grey with a faint lavender cast, like the
+   mounting card under a karyotype; hematoxylin violet for the accent, eosin rose for the signal.
+   Newsreader for display, Figtree for reading, IBM Plex Mono for data. */
+:root {
+  --paper: #F2F2F5; --paper-2: #E7E7ED; --paper-3: #FAFAFC;
+  --grid: #DEDEE6; --rule: #C6C6D2;
+  --ink: #15151C; --ink-2: #3C3C49; --ink-3: #6A6A7A;
+  --accent: #4B2E83; --signal: #B03052; --tertiary: #2E9C82;
+  --s1: #1D4A9E; --s2: #C64A1C; --s3: #2E9C82;
+  --band: #8E8EA8; --loss: #1D4A9E; --gain: #B03052;
+  --accent-wash: rgba(75, 46, 131, .07); --signal-wash: rgba(176, 48, 82, .08);
+  --f-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --f-body: "Figtree", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --rail: 182px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #111116; --paper-2: #18181F; --paper-3: #1F1F28;
+    --grid: #26262F; --rule: #393945;
+    --ink: #ECECF2; --ink-2: #BABAC6; --ink-3: #8A8A98;
+    --accent: #B4A2F2; --signal: #F2899F; --tertiary: #35A386;
+    --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+    --band: #6F6F88; --loss: #9CB9F7; --gain: #F2899F;
+    --accent-wash: rgba(180, 162, 242, .1); --signal-wash: rgba(242, 137, 159, .1);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #111116; --paper-2: #18181F; --paper-3: #1F1F28;
+  --grid: #26262F; --rule: #393945;
+  --ink: #ECECF2; --ink-2: #BABAC6; --ink-3: #8A8A98;
+  --accent: #B4A2F2; --signal: #F2899F; --tertiary: #35A386;
+  --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+  --band: #6F6F88; --loss: #9CB9F7; --gain: #F2899F;
+  --accent-wash: rgba(180, 162, 242, .1); --signal-wash: rgba(242, 137, 159, .1);
+}
+body { background: var(--paper); font-size: 1.07rem; }
+.hero { grid-template-columns: 1fr; gap: 22px; }
+.hero h1, .chapter-head .year, .chapter-head h2, .part-head h2, .prose h3, .bench-head h4 { font-family: var(--f-display); }
+.hero h1 { font-size: clamp(3.3rem, 11vw, 7.4rem); font-weight: 600; line-height: .9; letter-spacing: -.035em; margin-top: 10px; }
+.hero h1 i { font-style: italic; font-weight: 400; color: var(--accent); }
+.hero .dek { max-width: 58ch; }
+.chapter-head .year { font-size: clamp(2.5rem, 7vw, 4.2rem); font-weight: 600; line-height: .92; letter-spacing: -.03em; color: var(--accent); }
+.chapter-head h2 { font-size: clamp(1.8rem, 4.2vw, 2.7rem); font-weight: 500; line-height: 1.07; letter-spacing: -.02em; }
+.prose h3 { font-size: var(--t-lg); font-weight: 600; line-height: 1.25; }
+.bench-head h4 { font-weight: 600; font-size: 1.2rem; }
+.rail a { grid-template-columns: 48px 1fr; }
+.rail a .yr { font-size: 11px; }
+.part-head { max-width: var(--measure); padding-top: 64px; display: grid; gap: 4px; }
+.part-head .label { color: var(--accent); }
+.part-head h2 { font-size: var(--t-xl); font-weight: 600; line-height: 1; letter-spacing: -.02em; }
+.hero-clone canvas { width: 100%; display: block; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper-3); }
+.bench canvas.sim { width: 100%; display: block; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper-3); }
+.chart-wrap svg { width: 100%; display: block; }
+.bench .stage.one { grid-template-columns: 1fr; }
+b.warn, .warn { color: var(--s2); }
+.callout { max-width: var(--measure); border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; display: grid; gap: 6px; }
+.callout .label { color: var(--accent); }
+.ctl select { font: 400 var(--t-sm)/1.3 var(--f-mono); color: var(--ink); background: var(--paper-3); border: 1px solid var(--rule); border-radius: 4px; padding: 6px 8px; width: 100%; }
+.ctl label.chk { justify-content: flex-start; gap: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.table-wrap { overflow-x: auto; max-width: var(--bench); }
+table.compare { border-collapse: collapse; font-size: var(--t-sm); min-width: 620px; width: 100%; }
+table.compare th { font: 500 var(--t-xs)/1.3 var(--f-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px; border-bottom: 1px solid var(--ink-3); vertical-align: bottom; }
+table.compare td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+table.compare td:first-child { font-weight: 600; color: var(--ink); }
+table.compare td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nocase { text-transform: none; letter-spacing: 0; }
+</style>
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg', 'canvas'] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="brand" href="../../index.html">Learn<b>Anything</b></a>
+  <span class="where">Vol. 15 · Cancer genetics</span>
+  <span class="progress" aria-hidden="true"></span>
+</header>
+
+<div class="module">
+  <nav class="rail" aria-label="Chapters"><ol></ol></nav>
+
+  <main class="content">
+
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="label">Volume 15 · The genetics of cancer</p>
+        <h1 id="title">Two <i>Hits</i></h1>
+        <p class="dek">A tumour is a clone of cells carrying a few mutations that mattered and a great many that did not. This volume follows how that sentence was established: counting tumours in children's eyes, reading the slope of an incidence curve, pulling mutational processes apart by their fingerprints, and calculating why a drug that works for a year stops working.</p>
+        <div class="meta">
+          <span class="label">10 chapters</span>
+          <span class="label">11 interactive figures</span>
+          <span class="label">1960 → today</span>
+        </div>
+      </div>
+      <figure class="hero-clone" id="hero-clone" style="margin:0">
+        <canvas role="img" aria-label="A population of cells grows from one cell; each division adds passenger mutations, and occasionally a driver mutation appears whose descendants take over the population"></canvas>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PROLOGUE -->
+    <section class="chapter" id="prologue" data-year="Pro" data-short="A small chromosome">
+      <div class="chapter-head">
+        <span class="label kicker">Prologue</span>
+        <h2>A chromosome that was too small</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1960 Peter Nowell, a pathologist, and David Hungerford, a graduate student, were looking at chromosomes from the blood of patients with chronic myeloid leukaemia at the University of Pennsylvania and the Institute for Cancer Research in Philadelphia. In two patients, and then in seven, they found the same thing: one chromosome of the smallest pair was shorter than it should be. They reported it in the <em>Journal of the National Cancer Institute</em> that year, and the abnormality took the name of the city.</p>
+        <p>This was the first consistent chromosomal change tied to a specific human cancer. It was also, for a while, a puzzle rather than an explanation. Nobody knew whether the small chromosome caused the leukaemia or was a consequence of it, and chromosome staining in 1960 was too crude to say what had been lost. In 1973 Janet Rowley, using the new quinacrine and Giemsa banding methods in Chicago, showed that nothing had been lost. The missing piece of chromosome 22 was stuck onto chromosome 9, and a piece of 9 onto 22: a reciprocal translocation, written \(t(9;22)\). By the early 1980s the breakpoint was mapped and the thing it created had a name, the fusion gene <em>BCR-ABL1</em>, and in 2001 a drug designed against the protein that fusion makes was approved.</p>
+        <p>Forty-one years from a small chromosome to a pill. That arc is the subject of this volume, and it is worth stating at the start what the arc did and did not settle. Cancer is a genetic disease of somatic cells: a tumour is the descendants of one cell that acquired changes in its DNA, and those changes are what make its descendants grow when they should not. But a typical tumour genome carries thousands of mutations and only a handful of them are doing anything. Most of the intellectual work of cancer genetics, and most of this volume, is about telling those apart.</p>
+      </div>
+      <dl class="defn">
+        <dt>Somatic mutation</dt><dd>A change in the DNA of a body cell, present in that cell's descendants and in no one else. Distinguished from a germline variant, which is inherited and present in every cell.</dd>
+        <dt>Driver</dt><dd>A mutation that gives the cell carrying it a growth advantage, and so is enriched by natural selection within the tissue.</dd>
+        <dt>Passenger</dt><dd>A mutation that does nothing, carried along because it happened to be in a cell that was already on its way. The great majority.</dd>
+        <dt>Clone</dt><dd>A set of cells descended from one ancestor, sharing the mutations that ancestor had.</dd>
+      </dl>
+    </section>
+
+    <!-- ===================================================== PART I -->
+    <div class="part-head"><span class="label">Part I</span><h2>Counting the hits</h2></div>
+
+    <section class="chapter" id="knudson" data-year="1971" data-short="Two hits">
+      <div class="chapter-head">
+        <span class="year">1971</span>
+        <span class="label kicker">Chapter 1 · Knudson's argument</span>
+        <h2>Two hits, inferred from children's eyes</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Retinoblastoma is a tumour of the developing retina, diagnosed in roughly one child in 16,000 to 18,000. It comes in two forms. Some children have tumours in both eyes, often several in each, diagnosed at a median age of about 15 months, and they pass the disease to their children as a dominant trait. Others have a single tumour in one eye, diagnosed later, at a median of about two years, with no family history. Alfred Knudson, at the M. D. Anderson Hospital in Houston, had 48 cases of retinoblastoma and the published literature, and he asked what one model could produce both patterns.</p>
+        <p>His answer, published in the <em>Proceedings of the National Academy of Sciences</em> in 1971, was that two mutational events are needed in one retinal cell. In the hereditary form the first is already present in every cell of the body, inherited from a parent, so only one more event is required and it can happen independently in many cells. In the non-hereditary form both events must occur in the same cell, which is far less likely and happens at most once.</p>
+        <h3>Why the ages differ</h3>
+        <p>The argument is about kinetics. Suppose a cell suffers the required event at a constant rate. If only one event is needed, the fraction of eventual cases that have not yet appeared by age \(t\) falls exponentially:</p>
+        <div class="math-block">\[ S_1(t) = e^{-t/\tau}, \]</div>
+        <p>a straight line on a logarithmic plot. If two events are needed in the same cell, the probability of being affected by \(t\) grows as \(t^2\) rather than \(t\), and the corresponding curve bends. Knudson plotted the fraction of cases not yet diagnosed against age for bilateral and unilateral retinoblastoma and found exactly that: the bilateral cases fell on a straight line, the unilateral cases on a curve. One hit for the carriers, two for everyone else.</p>
+        <h3>Why three tumours</h3>
+        <p>The second half of the argument is about counting. If a carrier's retinal cells each acquire the second event independently and rarely, the number of tumours in a carrier is Poisson distributed with some mean \(m\):</p>
+        <div class="math-block">\[ P(k \text{ tumours}) = \frac{m^k e^{-m}}{k!}. \]</div>
+        <p>Knudson found \(m \approx 3\) fitted the observed tumour counts. That one number then predicts the rest of the clinical picture without further adjustment. Split the \(m\) tumours between two eyes and an eye is spared with probability \(e^{-m/2}\), so a carrier has no tumour at all with probability \(e^{-m} = 5\%\), disease in one eye only with probability \(2e^{-m/2}(1 - e^{-m/2}) = 35\%\), and disease in both eyes with probability \((1 - e^{-m/2})^2 = 60\%\). Carriers who escape entirely are rare but real, which is why retinoblastoma pedigrees occasionally skip a generation, and the measured penetrance of an <em>RB1</em> mutation is above 90% rather than 100%.</p>
+      </div>
+
+      <figure class="bench" id="fig-knudson">
+        <div class="bench-head"><span class="fig">Fig. 1.1</span><span class="label">Interactive</span><h4>One hit or two, read off the ages</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="kn-m"><span>Mean tumours per carrier <span class="nocase">m</span></span> <output></output></label><input type="range" id="kn-m" min="0.5" max="6" step="0.1" value="3"></div>
+          <div class="ctl"><label for="kn-cells">Retinal cells at risk <output></output></label><input type="range" id="kn-cells" min="5" max="8" step="0.05" value="6.3"></div>
+          <div class="ctl"><label for="kn-exp">Divisions available to a one-hit cell <output></output></label><input type="range" id="kn-exp" min="0" max="4" step="0.05" value="1"></div>
+        </div>
+        <div class="stage">
+          <canvas class="sim kn-cv" role="img" aria-label="A cohort of 48 children drawn as pairs of eyes, each eye carrying a Poisson number of tumours, tallied as unaffected, unilateral and bilateral"></canvas>
+          <div class="chart-wrap"><svg class="kn-chart" role="img" aria-label="Fraction of eventual cases not yet diagnosed against age, straight for one-hit carriers and curved for two-hit sporadic cases"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: 48 children with an <em>RB1</em> mutation, the size of Knudson's series, each eye given a Poisson number of tumours with mean \(m/2\). At the default \(m = 3\) the tally lands near 5% unaffected, 35% one eye and 60% both. Right: the fraction of eventual cases not yet diagnosed, on a logarithmic axis, for carriers who need one more hit and for children who need two. The carrier line is straight, as Knudson's bilateral cases were; the two-hit line bends. The two lower sliders set the sporadic rate rather than the shape: with \(N\) cells at risk and a per-cell rate fixed by \(m\), the predicted frequency of sporadic retinoblastoma is \(N(ut)^2E/2\), where \(E\) counts the divisions a cell with one hit gets before the retina stops dividing. With no expansion the model underpredicts the real figure of about one child in 20,000 by two orders of magnitude; a few tens of divisions close the gap, which is the first hint that the intermediate cell grows before the second hit arrives. Simulated cohort, seeded so it is the same on every load.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>Knudson's paper contains no molecular biology. It is an argument from the shapes of two curves and a count of tumours, and it was right. Fifteen years later the gene was cloned and the first hit turned out to be a deletion or inactivating mutation in one copy of <em>RB1</em> on chromosome 13, the second the loss of the remaining copy. The model also made a prediction about what sort of gene this had to be. If one working copy is enough for a normal cell and cancer follows only when both are gone, the gene is not an accelerator that gets jammed on. It is a brake, and both brakes have to fail. In pedigrees the disease looks dominant, because carriers have one brake already gone in every cell; at the level of a cell it is recessive.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="oncogenes" data-year="1982" data-short="A jammed switch">
+      <div class="chapter-head">
+        <span class="year">1982</span>
+        <span class="label kicker">Chapter 2 · Oncogenes</span>
+        <h2>The other kind of gene: a switch stuck on</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The brake genes were inferred before they were found. The accelerators were found first, and in a virus. In 1911 Peyton Rous showed that a filtered extract from a chicken sarcoma gave sarcomas to other chickens. The agent became Rous sarcoma virus, and in 1970 Peter Duesberg and Peter Vogt showed it carried a gene the virus did not need for its own replication, <em>src</em>. In 1976 Dominique Stehelin, Harold Varmus, J. Michael Bishop and Peter Vogt found a close relative of <em>src</em> in normal chicken DNA. The virus had not invented a cancer gene; it had stolen a normal one.</p>
+        <p>That reframed the question. If cancer genes are corrupted versions of genes everyone has, a human tumour should contain one. In 1982 three laboratories, Robert Weinberg's at MIT, Mariano Barbacid's at the National Cancer Institute and Michael Wigler's at Cold Spring Harbor, took DNA from human tumour cell lines, put it into mouse NIH 3T3 fibroblasts, and asked which fragment made the recipient cells grow in a disordered heap. The fragment was the human homologue of the Harvey rat sarcoma gene, <em>HRAS</em>. The difference between the tumour copy and the normal copy was one base: glycine to valine at codon 12.</p>
+        <h3>What a single codon does</h3>
+        <p>RAS proteins are molecular switches. They are on when bound to GTP and off when bound to GDP, and they hydrolyse their own GTP to turn themselves off. The hydrolysis is slow, about \(3 \times 10^{-4}\,\mathrm{s^{-1}}\), so on its own RAS would stay on for an hour. A family of GTPase-activating proteins, GAPs, accelerate it by more than a hundred thousand fold, to about \(19\,\mathrm{s^{-1}}\). Exchange factors push the cycle the other way, pulling GDP out so GTP can bind. In a resting cell the GAPs win and almost all RAS is off.</p>
+        <p>If exchange runs at rate \(k_{\mathrm{ex}}\) and the total hydrolysis rate is \(k_{\mathrm{hyd}}\), the fraction of RAS in the active state at steady state is</p>
+        <div class="math-block">\[ f_{\mathrm{GTP}} = \frac{k_{\mathrm{ex}}}{k_{\mathrm{ex}} + k_{\mathrm{hyd}}}, \qquad k_{\mathrm{hyd}} = k_{\mathrm{int}} + [\mathrm{GAP}]\,k_{\mathrm{GAP}}. \]</div>
+        <p>A mutation at codon 12 or 61 sits in the active site. It barely affects nucleotide binding, and it slows intrinsic hydrolysis somewhat, but what it mainly does is make the protein a poor substrate for GAP. Jonathan Hunter and colleagues measured this in 2015 for the common KRAS mutants. Relative to wild type, intrinsic hydrolysis runs at 28% for G12D, 6% for G12V and 1% for Q61L, while GAP-stimulated hydrolysis runs at 2.1%, 0.6% and 0.3%. The switch is not broken open. It is deaf to the thing that normally shuts it.</p>
+      </div>
+
+      <figure class="bench" id="fig-ras">
+        <div class="bench-head"><span class="fig">Fig. 2.1</span><span class="label">Interactive</span><h4>A switch that cannot hear the off signal</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="ra-gap">GAP available, relative to resting cell <output></output></label><input type="range" id="ra-gap" min="-4" max="0" step="0.02" value="-2"></div>
+          <div class="ctl"><label for="ra-ex"><span>Exchange rate <span class="nocase">k<sub>ex</sub></span></span> <output></output></label><input type="range" id="ra-ex" min="-4" max="-0.5" step="0.02" value="-2.3"></div>
+          <div class="ctl"><label for="ra-var">Variant shown in the cycle</label><select id="ra-var"><option value="WT">Wild type</option><option value="G12D">G12D</option><option value="G12V" selected>G12V</option><option value="Q61L">Q61L</option></select></div>
+        </div>
+        <div class="stage">
+          <canvas class="sim ra-cv" role="img" aria-label="The RAS cycle drawn as two states, GTP-bound and GDP-bound, with the exchange and hydrolysis arrows scaled to their rates"></canvas>
+          <div class="chart-wrap"><svg class="ra-chart" role="img" aria-label="Fraction of RAS in the active GTP-bound state against the amount of GAP, for wild type and three oncogenic mutants"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Intrinsic hydrolysis \(3.4 \times 10^{-4}\,\mathrm{s^{-1}}\) and GAP-stimulated hydrolysis \(19\,\mathrm{s^{-1}}\) at the reference GAP level, from the Ras kinetics literature; mutant activities as fractions of wild type from Hunter et al. (2015). At the default settings wild-type RAS sits at 2.6% active and G12V at 82%, a factor of 32, and raising the GAP level tenfold leaves G12V above the level wild type reaches with no GAP at all. The absolute numbers depend on the exchange rate, which this figure does not pin down; the separation between the curves does not. Slide the GAP level to zero and the distinction nearly vanishes: the mutants are only dangerous in a cell that has working GAPs, which is the same reason that losing the GAP gene <em>NF1</em> causes tumours without any RAS mutation at all. A two-state steady state, not a simulation of the full cycle, which also involves membrane binding and effector competition.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>So cancer genetics has two kinds of gene and two kinds of mutation. An oncogene is activated: the change is a gain of function, it is dominant, one copy is enough, and the mutations cluster at a few specific codons because only a few changes jam the switch. A tumour suppressor is inactivated: the change is a loss of function, it is recessive in the cell, both copies must go, and the mutations are scattered all over the gene because almost any truncation will do. That asymmetry is visible in sequencing data and is one of the strongest signals for deciding what an unfamiliar gene is doing. <em>KRAS</em> mutations in colorectal cancer are overwhelmingly at codons 12, 13 and 61. <em>APC</em> mutations are nonsense and frameshift changes spread across 8,538 bases of coding sequence.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="loh" data-year="1986" data-short="Losing the second copy">
+      <div class="chapter-head">
+        <span class="year">1986</span>
+        <span class="label kicker">Chapter 3 · Tumour suppressors</span>
+        <h2>How the second copy goes</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Knudson's second hit is usually not a second point mutation. It is the loss of the chromosome segment carrying the remaining good copy, and that loss leaves a signature in the data that was exploited long before anyone could sequence a gene.</p>
+        <p>The method is called <em>loss of heterozygosity</em>. Pick a marker near the suspected gene where the patient is heterozygous, one allele from each parent, and compare normal tissue with tumour. If the tumour has lost one parental copy of that region, the marker reads as homozygous in the tumour and heterozygous in the blood. Webster Cavenee, Ray White and colleagues did this for retinoblastoma in 1983 and showed that the tumours had lost one copy of chromosome 13q, and that in hereditary cases the copy lost was the one inherited from the unaffected parent, leaving the mutant copy behind. In 1986 Stephen Friend, Thaddeus Dryja, Weinberg and colleagues cloned the gene itself; in 1987 Dryja's group showed it was mutated in the germline of hereditary cases. In 1989 the same logic applied to chromosome 17p led Bert Vogelstein's group to <em>TP53</em>, a gene that had been known since 1979 but misfiled as an oncogene, because the mutant form had been studied first.</p>
+        <h3>Reading it out of read counts</h3>
+        <p>Modern sequencing measures the same thing by counting reads. At a heterozygous site, the fraction of reads carrying the B allele, the \(B\)-allele frequency, is a mixture of what the tumour cells contribute and what the normal cells in the sample contribute. With tumour purity \(\rho\), tumour copy number \(n_A + n_B\) at that locus, and diploid normal cells, the expected value is</p>
+        <div class="math-block">\[ \mathrm{BAF} = \frac{\rho\, n_B + (1 - \rho)}{\rho\,(n_A + n_B) + 2(1 - \rho)} . \]</div>
+        <p>Set \(n_A = n_B = 1\) and this is \(1/2\) whatever the purity: a balanced locus looks balanced. Set \(n_A = 1, n_B = 0\), a deletion of one copy, and it becomes \((1-\rho)/(2-\rho)\), which falls from \(1/2\) at zero purity to \(0\) at purity one. The depth of coverage tells you the other half of the story: a locus with one copy instead of two in the tumour carries a read depth ratio of \((\rho \cdot 1 + 2(1-\rho))/2\), while a copy-neutral loss of heterozygosity, where one parental copy is lost and the other duplicated, has the allelic imbalance with no change in depth at all.</p>
+      </div>
+
+      <figure class="bench" id="fig-loh">
+        <div class="bench-head"><span class="fig">Fig. 3.1</span><span class="label">Interactive</span><h4>Allelic imbalance along a chromosome</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="lo-pur"><span>Tumour purity <span class="nocase">&rho;</span></span> <output></output></label><input type="range" id="lo-pur" min="0.05" max="1" step="0.01" value="0.6"></div>
+          <div class="ctl"><label for="lo-dep">Mean read depth per site <output></output></label><input type="range" id="lo-dep" min="10" max="200" step="1" value="60"></div>
+          <div class="ctl"><label for="lo-sub">Fraction of tumour cells carrying the loss <output></output></label><input type="range" id="lo-sub" min="0.1" max="1" step="0.01" value="1"></div>
+        </div>
+        <div class="stage one">
+          <div class="chart-wrap"><svg class="lo-baf" role="img" aria-label="B-allele frequency at heterozygous sites along a chromosome, showing a balanced region, a single-copy deletion, a copy-neutral loss of heterozygosity and a gain"></svg></div>
+          <div class="chart-wrap"><svg class="lo-dep" role="img" aria-label="Read depth ratio along the same chromosome for the same four segments"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">One simulated chromosome with four segments: balanced 1+1, a single-copy deletion 1+0, a copy-neutral loss of heterozygosity 2+0, and a gain 2+1. Read counts at each heterozygous site are drawn from a binomial with the expected \(\mathrm{BAF}\) above, so the scatter is the real sampling noise at the depth you set. The deletion and the copy-neutral loss are indistinguishable in the allele plot and separate only in the depth plot. Drag the purity down towards 0.2 and both signals collapse towards the balanced value, which is why copy-number calling on low-purity samples is unreliable and why callers estimate purity before anything else. The lowest slider makes the loss subclonal, present in only part of the tumour, which shifts the band in exactly the same direction as low purity. The two cannot be separated from one segment alone. Simulated data.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>Loss of heterozygosity is also why cancer genomes are so often aneuploid. Losing one copy of a chromosome arm is a cheap way to delete a brake, and the same event takes out every other gene on that arm as collateral. Something like a quarter of a typical solid tumour genome has lost a parental copy somewhere. Whole-genome doubling, which happens in about a third of tumours, often follows a loss, and the doubled karyotype preserves the imbalance.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="multistage" data-year="1990" data-short="How many steps">
+      <div class="chapter-head">
+        <span class="year">1990</span>
+        <span class="label kicker">Chapter 4 · The multistage model</span>
+        <h2>How many steps, counted from an incidence curve</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Two hits explain retinoblastoma, a tumour of a tissue that stops dividing in infancy. Adult carcinomas need more, and the number can be read off a public health statistic that was collected for other reasons entirely.</p>
+        <p>In 1954 Peter Armitage and Richard Doll, at the London School of Hygiene and Tropical Medicine, noticed that the age-specific incidence of most carcinomas rises as a high power of age. If a cell must pass through \(k\) ordered rare steps, each at constant rate, the probability that it has finished by age \(t\) grows as \(t^k\), and the incidence rate, its derivative, grows as</p>
+        <div class="math-block">\[ I(t) \;\propto\; t^{\,k-1}. \]</div>
+        <p>On a plot of \(\log I\) against \(\log t\) that is a straight line of slope \(k - 1\). Armitage and Doll found slopes between five and six for several common cancers and concluded that six or seven steps were needed. Their model was too simple in detail, because it ignores that the intermediate cells divide, and a two-stage model with clonal expansion of the intermediate population, worked out by Suresh Moolgavkar and Alfred Knudson in 1981, can produce the same curve with fewer stages. The exponent still sets a floor on how much has to happen.</p>
+        <h3>The steps, named</h3>
+        <p>In 1990 Eric Fearon and Bert Vogelstein put names to the steps for one cancer. Comparing normal colon, small adenomas, large adenomas and carcinomas from the same patients, they found an ordered accumulation: loss of <em>APC</em> at the earliest stage, often before any visible lesion; activation of <em>KRAS</em> in the growing adenoma; loss of chromosome 18q, later shown to involve <em>SMAD4</em>; and loss of <em>TP53</em> at the transition to carcinoma. The order was statistical rather than obligatory, and they said so, but the picture of a tumour as a sequence of selected clonal expansions has held up. Each step is a mutation that lets a clone outgrow its neighbours, which is Peter Nowell's 1976 proposal that a tumour evolves by clonal selection, made concrete.</p>
+      </div>
+
+      <figure class="bench" id="fig-multistage">
+        <div class="bench-head"><span class="fig">Fig. 4.1</span><span class="label">Interactive</span><h4>The slope of an incidence curve</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="ms-site">Cancer site</label><select id="ms-site"></select></div>
+          <div class="ctl"><label for="ms-lo">Fit from age <output></output></label><input type="range" id="ms-lo" min="0" max="12" step="1" value="7"></div>
+          <div class="ctl"><label for="ms-hi">Fit to age <output></output></label><input type="range" id="ms-hi" min="4" max="16" step="1" value="16"></div>
+          <div class="ctl"><label class="chk" for="ms-all"><input type="checkbox" id="ms-all"> <span class="nocase">Show all eight sites</span></label></div>
+        </div>
+        <div class="stage">
+          <div class="chart-wrap"><svg class="ms-chart" role="img" aria-label="Age-specific cancer incidence against age on logarithmic axes, with a fitted straight line whose slope gives the number of rate-limiting steps"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Real data: age-specific incidence per 100,000 per year by five-year age band, SEER 18 registries, 2013–2017, from the SEER Cancer Statistics Review 1975–2017. Both axes are logarithmic and the line is an unweighted least-squares fit over the age window you choose, with the slope reported as \(k - 1\). Colon and rectum gives a slope near 3.8 over ages 35 to 84, so about five rate-limiting steps, which is the right order for the Fearon–Vogelstein sequence. Lung gives nearly 7, but that slope is inflated by the smoking history of the cohorts involved rather than by seven mutations. Breast flattens after about 50, when menopause removes a driver of proliferation. Thyroid is flat and testicular cancer falls with age, and for those two the model says nothing at all: neither is a slow accumulation in a long-lived dividing tissue. Fit windows that include the childhood bands give meaningless slopes, which is the point of the sliders.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>The number of steps and the number of mutations are not the same thing. Iñigo Martincorena and colleagues counted selection directly in 2017, by borrowing the ratio of non-synonymous to synonymous substitutions, \(dN/dS\), from molecular evolution. In species evolution the ratio is below one almost everywhere, because most protein changes are harmful. In cancer it is above one in a few hundred genes, because the mutations that change proteins in those genes are the ones being selected. Across 7,664 tumours of 29 types they found an average of about four coding substitutions per tumour under positive selection, from fewer than one in thyroid and testicular cancer to more than ten in endometrial and colorectal cancer. Four drivers, in a genome carrying thousands of mutations.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== PART II -->
+    <div class="part-head"><span class="label">Part II</span><h2>Reading the genome</h2></div>
+
+    <section class="chapter" id="mmr" data-year="1993" data-short="The mutator">
+      <div class="chapter-head">
+        <span class="year">1993</span>
+        <span class="label kicker">Chapter 5 · Mutator phenotypes</span>
+        <h2>Tumours that break the copier</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1993 three groups, working on families with inherited colorectal cancer, found something that did not fit the pattern of brakes and accelerators. The tumours carried extra and missing copies of short repeated sequences, scattered across the genome, at thousands of sites. Manuel Perucho's group, Bert Vogelstein's group with Stanislas Thibodeau's, and Lauri Aaltonen with Albert de la Chapelle all reported it within months. The tumours were not just mutated. They were mutating, continuously, because a repair system had failed.</p>
+        <p>The system is mismatch repair. DNA polymerase slips when copying a run of identical bases, adding or dropping one unit of the repeat, and mismatch repair recognises the resulting loop and fixes it. When the genes that do this are lost, usually <em>MLH1</em> or <em>MSH2</em>, slippage goes uncorrected and every microsatellite in the genome drifts. The resulting state is called microsatellite instability, MSI, and the inherited syndrome that causes it is Lynch syndrome.</p>
+        <h3>Drift in a repeat tract</h3>
+        <p>Model a tract of \(L\) repeat units in one cell lineage. At each division it gains or loses one unit with probability \(p\) per division, and repair catches a fraction \(1 - \epsilon\) of those events, so the effective step rate is \(p\epsilon\) per division. The tract length performs a random walk, and after \(n\) divisions its length has standard deviation</p>
+        <div class="math-block">\[ \sigma_L = \sqrt{n\,p\,\epsilon}. \]</div>
+        <p>The slippage rate itself rises steeply with tract length, roughly exponentially, which is why the markers chosen for clinical testing are long mononucleotide runs. The Bethesda panel settled on BAT25 and BAT26, runs of 25 and 26 adenines, plus three dinucleotide markers. A tumour is called MSI-high when two or more of five markers have shifted.</p>
+      </div>
+
+      <figure class="bench" id="fig-msi">
+        <div class="bench-head"><span class="fig">Fig. 5.1</span><span class="label">Interactive</span><h4>A repeat tract drifting without repair</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="mi-eff"><span>Mismatch repair left working</span> <output></output></label><input type="range" id="mi-eff" min="0" max="100" step="1" value="10"></div>
+          <div class="ctl"><label for="mi-div">Divisions since the repair loss <output></output></label><input type="range" id="mi-div" min="10" max="2000" step="10" value="400"></div>
+          <div class="ctl"><label for="mi-len">Tract length, adenines <output></output></label><input type="range" id="mi-len" min="6" max="30" step="1" value="26"></div>
+        </div>
+        <div class="stage">
+          <canvas class="sim mi-cv" role="img" aria-label="Fragment-length traces for a microsatellite marker in normal and tumour tissue, the tumour showing extra peaks"></canvas>
+          <div class="chart-wrap"><svg class="mi-chart" role="img" aria-label="Expected number of indels per genome and the fraction of markers that have shifted, against the amount of mismatch repair remaining"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: the fragment-length trace a clinical laboratory sees, normal tissue above and tumour below. The normal trace is one allele plus the stutter that polymerase slippage puts into the assay itself; the tumour trace is the distribution of tract lengths in a clone that has been drifting for the number of divisions you set. Right: the genome-wide consequence, using a per-division slippage rate that rises with tract length. The dashed line marks the germline length. At the default of 10% repair remaining the tumour peak has moved a unit or two shorter and the indel burden is in the thousands, which is what an MSI-high tumour looks like; slide repair back to 100% and the tumour trace becomes indistinguishable from normal. Slide the tract length down to ten and the marker stops being informative at any repair level: short tracts barely slip, which is why the panels use long ones. Illustrative rates, chosen to reproduce the observed scale of indel burden in MSI-high tumours rather than measured for a specific locus.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>A mutator phenotype is not confined to mismatch repair. Proofreading-deficient DNA polymerase epsilon, from an exonuclease-domain mutation in <em>POLE</em>, produces tumours with more than a hundred mutations per megabase, the highest burdens seen outside melanoma. Loss of <em>BRCA1</em> or <em>BRCA2</em> breaks homologous recombination and leaves a characteristic pattern of deletions at microhomologies. These states matter clinically for a reason that would have surprised anyone in 1993: a genome full of mutations makes a lot of abnormal protein fragments, and those are visible to T cells. In May 2017 the US Food and Drug Administration approved pembrolizumab, an antibody against PD-1, for any advanced solid tumour that is mismatch-repair deficient, regardless of where in the body it started. It was the first approval in oncology written for a genotype rather than an organ.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="signatures" data-year="2013" data-short="Signatures">
+      <div class="chapter-head">
+        <span class="year">2013</span>
+        <span class="label kicker">Chapter 6 · Mutational signatures</span>
+        <h2>Every process leaves a different fingerprint</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A mutation is not just a substitution. It is a substitution in a context, and different damaging processes prefer different contexts. Ultraviolet light makes dimers between adjacent pyrimidines, so its mutations are C to T where the neighbouring base is also a pyrimidine. Benzo[a]pyrene from tobacco smoke sticks to guanine, which is read as C to A. Spontaneous loss of an amino group from methylated cytosine happens at CpG sites, giving C to T at ACG, CCG, GCG and TCG.</p>
+        <p>In 2013 Ludmil Alexandrov, Serena Nik-Zainal, Michael Stratton and colleagues turned this into a method. Classify every substitution in a tumour by its change and the bases on either side. There are six substitution classes once you fold each change together with its complement, and sixteen trinucleotide contexts for each, so 96 categories. A tumour's catalogue is a vector of 96 counts, and a catalogue produced by several processes at once is a non-negative mixture of their individual profiles. Factorise a matrix of many tumours' catalogues into a small number of non-negative components and the components are the processes.</p>
+        <div class="math-block">\[ M \;\approx\; S\,E, \qquad M \in \mathbb{R}^{96 \times t}_{\ge 0},\; S \in \mathbb{R}^{96 \times s}_{\ge 0},\; E \in \mathbb{R}^{s \times t}_{\ge 0}. \]</div>
+        <p>The extracted components turned out to be interpretable. Signature 7 appears only in sun-exposed skin. Signature 4 appears in smokers' lungs and not in non-smokers'. Signature 1 appears in everything and in proportion to age. The 2020 pan-cancer analysis of 4,645 whole genomes and 19,184 exomes, 84.7 million mutations in all, extended the catalogue to 49 single-base signatures, 11 doublet, 4 clustered and 17 indel signatures. The catalogue, COSMIC, is now a reference set, and the usual task is no longer extraction but <em>refitting</em>: given one tumour's 96 counts, which known signatures explain them, and in what proportion.</p>
+      </div>
+
+      <figure class="bench" id="fig-sigs">
+        <div class="bench-head"><span class="fig">Fig. 6.1</span><span class="label">Interactive</span><h4>Mixing signatures, then taking them apart again</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="sg-a">First process</label><select id="sg-a"></select></div>
+          <div class="ctl"><label for="sg-b">Second process</label><select id="sg-b"></select></div>
+          <div class="ctl"><label for="sg-w">Share of the first <output></output></label><input type="range" id="sg-w" min="0" max="100" step="1" value="60"></div>
+          <div class="ctl"><label for="sg-n">Mutations in the catalogue <output></output></label><input type="range" id="sg-n" min="1.7" max="5" step="0.02" value="3.48"></div>
+        </div>
+        <div class="stage">
+          <canvas class="sim sg-cv" role="img" aria-label="The 96-channel mutation spectrum of the simulated tumour, in six coloured blocks, one per substitution class"></canvas>
+          <div class="chart-wrap"><svg class="sg-fit" role="img" aria-label="Weights recovered by refitting the catalogue against fifteen reference signatures, compared with the weights used to generate it"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Real reference signatures: COSMIC v3.4, GRCh37, as released by the Alexandrov laboratory. The spectrum is a Poisson sample of the mixture you specify, plus a fixed 20% of the clock-like signature SBS5 to stand for the background every tumour carries. The lower panel refits that sample against all fifteen reference signatures in this volume by non-negative least squares and shows what comes back. With a few thousand mutations the recovered weights land within a few points of the truth. Pull the count down to fifty, which is what a targeted gene panel yields, and the fit falls apart: it reports a quarter of the smoking catalogue above as mismatch-repair deficiency and a tenth as aristolochic acid, and loses the clock-like background entirely. That failure mode is the reason signature refitting is reported with caution below a few hundred mutations, and the reason SBS3, which is nearly flat, is hard to call in a single sample.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>The method has had two kinds of use. The first is forensic: a liver tumour whose spectrum is almost pure T to A at CTG has been exposed to aristolochic acid, a compound in some herbal remedies, and that finding turned up in Taiwanese liver cancers where nobody had been looking. The second is prognostic in a narrow sense. The flat signature of homologous-recombination failure marks tumours that cannot repair double-strand breaks, and those tumours are the ones that respond to PARP inhibitors. Mutational signatures turned a drug-selection problem into a pattern-matching problem.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="drivers" data-year="2013" data-short="Drivers">
+      <div class="chapter-head">
+        <span class="year">2013</span>
+        <span class="label kicker">Chapter 7 · Drivers and passengers</span>
+        <h2>The gene that is mutated because it is long</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Sequence a few hundred tumours, count how many have a mutation in each gene, and the genes at the top of the list will include <em>TP53</em>, <em>KRAS</em> and <em>PIK3CA</em>. They will also include <em>TTN</em>, which encodes titin, a muscle protein with 101,862 bases of coding sequence, and several olfactory receptors. Titin is not a cancer gene. It is a very large target.</p>
+        <p>The test that is supposed to catch this is simple enough. If a gene of length \(\ell\) accumulates mutations at the background rate \(\mu\) per base per tumour, the number of mutated tumours out of \(T\) is binomial, and the \(p\)-value for observing \(x\) or more is</p>
+        <div class="math-block">\[ P(X \ge x) = \sum_{i=x}^{T} \binom{T}{i}\,q^{\,i}(1-q)^{\,T-i}, \qquad q = 1 - e^{-\mu \ell}. \]</div>
+        <p>Correct for testing twenty thousand genes at once with the Benjamini–Hochberg procedure and report the genes whose \(q\)-value falls below a threshold. Run this with one \(\mu\) for the whole genome and titin is significant, because the real background rate is not uniform. Michael Lawrence and colleagues showed in 2013 why. The mutation rate varies more than fivefold across the genome and is strongly predicted by two things: how late in S phase a region replicates, and how highly it is transcribed. Late-replicating, silent regions mutate far more. Titin in a carcinoma is late-replicating and barely expressed; <em>TP53</em> is early and highly expressed. Their method, MutSigCV, estimates a gene-specific background rate from those covariates and from each patient's own mutation rate and spectrum, and the false positives disappear.</p>
+      </div>
+
+      <figure class="bench" id="fig-drivers">
+        <div class="bench-head"><span class="fig">Fig. 7.1</span><span class="label">Interactive</span><h4>Significance with and without a covariate model</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="dr-t">Tumours in the cohort <output></output></label><input type="range" id="dr-t" min="1.7" max="4" step="0.02" value="2.6"></div>
+          <div class="ctl"><label for="dr-mu"><span>Background rate, per base per tumour</span> <output></output></label><input type="range" id="dr-mu" min="-7" max="-5" step="0.02" value="-6"></div>
+          <div class="ctl"><label class="chk" for="dr-cov"><input type="checkbox" id="dr-cov" checked> <span class="nocase">Use replication timing and expression</span></label></div>
+        </div>
+        <div class="stage">
+          <div class="chart-wrap"><svg class="dr-chart" role="img" aria-label="Observed mutation counts against gene length for twenty-four genes, with the significance threshold drawn as a curve"></svg></div>
+          <div class="chart-wrap"><svg class="dr-q" role="img" aria-label="False discovery rate q values for the same genes, ranked, with real cancer genes and long genes marked differently"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Twenty-four genes with their real coding lengths; the mutation counts are simulated, drawn from a background that depends on length, replication timing and expression, with an excess added to the eleven genes that really are cancer genes. The curve in the upper panel is the count at which a gene reaches a \(q\)-value of 0.1. Uncheck the covariate box and the model assumes one rate everywhere: <em>TTN</em>, <em>MUC16</em>, <em>OBSCN</em> and <em>RYR2</em> climb above the line while the short drivers such as <em>KRAS</em> stay put, exactly the list that embarrassed the field around 2010. Check it again and the long silent genes fall back. Push the cohort past a thousand tumours and genes with small excesses, such as <em>IDH1</em> and <em>NRAS</em>, finally clear the threshold, which is the real reason cancer gene discovery needed cohorts of thousands. Simulated counts, real gene lengths and a real test.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>Counting mutated tumours per gene is only one of several tests, and the others use different evidence. Clustering of mutations at a single codon is strong evidence for an activating oncogene even when the total count is modest. An excess of truncating mutations spread evenly through a gene is evidence for a tumour suppressor. The \(dN/dS\) approach tests for selection without needing a background model at all, by using synonymous mutations in the same gene as the control. Current driver catalogues are built from the agreement among several such methods, and the PCAWG consortium ran six of them side by side on 2,658 whole genomes in 2020 for precisely that reason.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="clones" data-year="2012" data-short="Clonal structure">
+      <div class="chapter-head">
+        <span class="year">2012</span>
+        <span class="label kicker">Chapter 8 · Clonal architecture</span>
+        <h2>A tumour is not one genome</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Grind up a tumour, sequence it, and the answer is an average over however many distinct clones were in the piece you took. In 2012 Marco Gerlinger and Charles Swanton sequenced several regions from each of four kidney tumours and found that about two thirds of the mutations were not shared between all regions of the same tumour. Most of what the biopsy reports is specific to the part of the tumour the needle happened to reach.</p>
+        <p>The numbers that reveal this are in the read counts. A mutation present in every tumour cell on one of two chromosome copies should appear in half the tumour-derived reads. One present in a quarter of the tumour cells should appear in an eighth. Converting back requires undoing both the normal-cell dilution and the local copy number, which gives the <em>cancer cell fraction</em>:</p>
+        <div class="math-block">\[ \mathrm{CCF} = \mathrm{VAF} \cdot \frac{\rho\,(n_A + n_B) + 2\,(1 - \rho)}{\rho\,m}, \]</div>
+        <p>where \(m\) is the number of tumour copies that carry the mutation, usually one. A histogram of CCF across the mutations in a tumour then has a peak near 1, the clonal mutations present in the founding cell, and one or more peaks below it, each a subclone. Fit a mixture to that histogram and you have the clonal structure; order the subclones by which mutations they share and you have a tree.</p>
+      </div>
+
+      <figure class="bench" id="fig-ccf">
+        <div class="bench-head"><span class="fig">Fig. 8.1</span><span class="label">Interactive</span><h4>From read counts to a clonal tree</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="cc-pur"><span>Tumour purity <span class="nocase">&rho;</span></span> <output></output></label><input type="range" id="cc-pur" min="0.15" max="1" step="0.01" value="0.65"></div>
+          <div class="ctl"><label for="cc-dep">Mean read depth <output></output></label><input type="range" id="cc-dep" min="20" max="400" step="5" value="150"></div>
+          <div class="ctl"><label for="cc-sub">Size of the larger subclone <output></output></label><input type="range" id="cc-sub" min="0.1" max="0.9" step="0.01" value="0.45"></div>
+          <div class="ctl"><label class="chk" for="cc-cn"><input type="checkbox" id="cc-cn"> <span class="nocase">Put a third of the mutations on gained regions</span></label></div>
+        </div>
+        <div class="stage">
+          <div class="chart-wrap"><svg class="cc-vaf" role="img" aria-label="Histogram of variant allele frequencies, and the same mutations after correction to cancer cell fraction"></svg></div>
+          <canvas class="sim cc-cv" role="img" aria-label="The clonal tree implied by the cancer cell fractions, drawn as nested blocks"></canvas>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">A simulated tumour with 1,500 mutations: a clonal set present in every cell, a subclone of the size you choose, and a smaller subclone nested inside it at a third of that size. The upper histogram is the raw variant allele frequency, the lower one the cancer cell fraction after correcting for purity and copy number. The correction puts the clonal peak on 1.00 and each subclone on its true fraction, but it multiplies the sampling noise by the same factor it multiplies the signal, so the lower histogram is the broader of the two. The readouts give how many standard errors separate neighbouring peaks: at purity 0.65 and 150-fold depth the clonal peak stands clear and the two subclones are only marginally apart, and at 40-fold nothing separates at all. Check the copy-number box and a third of the mutations sit in regions with three copies instead of two: in the raw plot they form spurious extra peaks, and the correction puts them back where they belong only if the copy number is known. This is why clonal deconvolution needs copy-number calls first, and why the same tumour sequenced twice at different depths can yield different trees. Simulated data.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>Clonal structure is not an academic refinement. The TRACERx study followed hundreds of lung cancers from surgery onward and found that the degree of chromosomal instability between regions of the primary tumour predicted relapse. And a subclone is what a drug meets: the mutation that will cause resistance is often already present in a few cells at diagnosis, below the detection limit of any single biopsy. That is the subject of the next chapter.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== PART III -->
+    <div class="part-head"><span class="label">Part III</span><h2>Acting on it</h2></div>
+
+    <section class="chapter" id="resistance" data-year="2001" data-short="Resistance">
+      <div class="chapter-head">
+        <span class="year">2001</span>
+        <span class="label kicker">Chapter 9 · Targeted therapy</span>
+        <h2>Why a drug that works stops working</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Imatinib was designed against the kinase that the Philadelphia translocation creates. In the IRIS trial, newly diagnosed chronic myeloid leukaemia patients given imatinib had an overall survival of 83% at ten years, in a disease whose median survival had been about five years. It is the best case in targeted oncology, and the reason it is the best case is not that the drug is uniquely good. It is that chronic myeloid leukaemia at diagnosis is driven by one lesion in a small number of cells.</p>
+        <p>In advanced solid tumours the pattern is different. Responses to a well-matched targeted drug are often dramatic and almost always temporary. Relapse comes with a mutation that blocks the drug: <em>BCR-ABL1</em> T315I under imatinib, <em>EGFR</em> T790M under gefitinib, <em>KRAS</em> mutations under the anti-EGFR antibodies in colorectal cancer. In 2012 Luis Diaz and colleagues sequenced plasma from patients receiving panitumumab and found the resistant <em>KRAS</em> clones appearing months before the scans changed, and in some patients detectable before treatment started. Mathematical modelling of the same cohort said the clones were there in essentially everyone: they were not caused by the drug, they were revealed by it.</p>
+        <h3>The arithmetic of pre-existing resistance</h3>
+        <p>Ivana Bozic, Martin Nowak and colleagues worked out the expected number of resistant cells present when treatment begins. A tumour of \(M\) cells grows with birth rate \(b\) and death rate \(d\), so the net growth fraction is \(s = (b-d)/b\). If \(n\) distinct point mutations can each confer resistance, and the point mutation rate is \(u\) per base per division, the expected number of resistant cells at size \(M\) is</p>
+        <div class="math-block">\[ X \;\approx\; M\,n\,\mu, \qquad \mu = u\,s\,\log(Ms), \]</div>
+        <p>and the probability that none exists is \(e^{-X}\). The logarithm is the price of history: resistant lineages that arose early have had the longest time to grow, so the expected number is larger than a naive \(Mnu\). For a second drug with \(n_2\) independent resistance mutations, a cell must carry two, and the expected number falls to \(M n_1 n_2 \mu^2\). Unless one single mutation confers resistance to both, in which case the count is back to \(M n_{12} \mu\) and the second drug buys nothing.</p>
+      </div>
+
+      <figure class="bench" id="fig-resistance">
+        <div class="bench-head"><span class="fig">Fig. 9.1</span><span class="label">Interactive</span><h4>Resistance that is already there</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="re-m">Tumour size at diagnosis, cells <output></output></label><input type="range" id="re-m" min="5" max="12" step="0.05" value="10"></div>
+          <div class="ctl"><label for="re-n"><span>Resistance mutations per drug <span class="nocase">n</span></span> <output></output></label><input type="range" id="re-n" min="1" max="200" step="1" value="50"></div>
+          <div class="ctl"><label for="re-u"><span>Mutation rate <span class="nocase">u</span>, per base per division</span> <output></output></label><input type="range" id="re-u" min="-10" max="-7" step="0.02" value="-9"></div>
+          <div class="ctl"><label for="re-x">Mutations conferring cross-resistance <output></output></label><input type="range" id="re-x" min="0" max="5" step="1" value="0"></div>
+        </div>
+        <div class="stage">
+          <div class="chart-wrap"><svg class="re-chart" role="img" aria-label="Probability that no resistant cell exists against tumour size, for one, two and three drugs"></svg></div>
+          <canvas class="sim re-cv" role="img" aria-label="A tumour drawn as a block of cells with the resistant fraction marked, and the course of treatment as the sensitive cells die and the resistant clone regrows"></canvas>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The model and its parameters are from Bozic et al. (2013): \(u = 10^{-9}\) per base per division, \(b = 0.14\) and \(d = 0.13\) per day, and 50 point mutations able to confer resistance to each drug. At the default tumour size of \(10^{10}\) cells, roughly a 20-gram deposit, the expected number of cells already resistant to a single drug is in the hundreds, so monotherapy cannot cure: it debulks and then the clone returns. Two drugs with no shared escape route bring the expected number below \(10^{-4}\) and the probability of cure above 99.9%. Then raise the cross-resistance slider to one and the whole advantage disappears, which is the paper's central practical point and the reason combinations are chosen for independence rather than potency. The right panel runs the implied clinical course: sensitive cells dying at the treatment death rate, the resistant clone growing at its own rate, and the sum as a tumour burden curve with a nadir and a relapse.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>Two other strategies attack the problem from different angles. Synthetic lethality exploits a repair pathway the tumour has already lost: a cell without <em>BRCA1</em> or <em>BRCA2</em> depends on PARP-mediated repair to survive, so a PARP inhibitor kills it and spares normal cells, as Thomas Helleday's and Alan Ashworth's groups showed in 2005. Immune checkpoint blockade attacks the passengers rather than the drivers: a hypermutated tumour presents many abnormal peptides, and releasing the brakes on T cells lets them act on what is already visible. Neither escapes evolution. <em>BRCA</em>-mutant tumours relapse on PARP inhibitors by restoring the reading frame of the broken gene, and hypermutated tumours relapse by losing antigen presentation.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="detection" data-year="Now" data-short="Detection">
+      <div class="chapter-head">
+        <span class="year">Now</span>
+        <span class="label kicker">Chapter 10 · Finding it early</span>
+        <h2>Looking for a tumour in a tube of blood</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Cells that die shed their DNA into the bloodstream in fragments about the length of a nucleosome's wrap. A tumour does this too, and the tumour-derived fraction of plasma cell-free DNA carries the tumour's mutations. Detecting it is a sampling problem before it is a sequencing problem, and the sampling limit is hard.</p>
+        <p>A millilitre of plasma typically yields five to thirty nanograms of cell-free DNA. One haploid human genome weighs 3.3 picograms, so that is roughly 1,500 to 9,000 genome copies: a few thousand molecules at each position in the genome, and no more. If the tumour fraction is \(f\) and a mutation is heterozygous in the tumour, the chance that any one molecule covering that position carries it is \(f/2\). With \(N\) molecules per site and \(S\) sites being watched, the number of mutant molecules recovered is binomial with mean \(NSf/2\), and the probability of seeing at least \(k\) of them is</p>
+        <div class="math-block">\[ P(\ge k) = \sum_{i=k}^{NS} \binom{NS}{i} \left(\frac{f}{2}\right)^{i}\left(1 - \frac{f}{2}\right)^{NS - i}. \]</div>
+        <p>At a tumour fraction of \(10^{-4}\) with 3,000 genome copies, a single tracked mutation gives an expected yield of 0.15 molecules. No amount of sequencing depth helps, because the molecules are not in the tube. The only remedies are more plasma, or more sites: watch 500 mutations instead of one and the expected yield is 75. That is why minimal-residual-disease assays are tumour-informed, built from a panel of hundreds or thousands of mutations found by sequencing the patient's own resected tumour first.</p>
+      </div>
+
+      <figure class="bench" id="fig-ctdna">
+        <div class="bench-head"><span class="fig">Fig. 10.1</span><span class="label">Interactive</span><h4>The sampling floor</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="cd-f">Tumour fraction of cell-free DNA <output></output></label><input type="range" id="cd-f" min="-6" max="-1" step="0.02" value="-5"></div>
+          <div class="ctl"><label for="cd-s">Mutations tracked <output></output></label><input type="range" id="cd-s" min="0" max="3.4" step="0.02" value="1.2"></div>
+          <div class="ctl"><label for="cd-ml">Plasma drawn, millilitres <output></output></label><input type="range" id="cd-ml" min="1" max="20" step="0.5" value="10"></div>
+          <div class="ctl"><label for="cd-err">Error rate per base, after duplex consensus <output></output></label><input type="range" id="cd-err" min="-9" max="-5" step="0.02" value="-8"></div>
+        </div>
+        <div class="stage">
+          <div class="chart-wrap"><svg class="cd-chart" role="img" aria-label="Probability of detecting the tumour against tumour fraction, for several panel sizes, with the false-positive rate marked"></svg></div>
+          <canvas class="sim cd-cv" role="img" aria-label="The molecules in the tube drawn as a grid, with the few tumour-derived mutant molecules marked"></canvas>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Real constants: 3.3 picograms per haploid genome, and a cell-free DNA yield of 10 nanograms per millilitre of plasma, within the usual range for a person without advanced cancer. Detection is called when at least two mutant molecules are recovered, the usual rule, and the false-positive probability is computed from the same binomial with the error rate in place of the tumour fraction. Each curve is labelled where it reaches an even chance: one tracked mutation gets there at a tumour fraction near \(10^{-3}\), sixteen near \(10^{-4}\), five hundred near \(10^{-5}\). The cost of a large panel is on the other side of the ledger. Tracking 500 sites in 30,000 genome copies means inspecting fifteen million molecules, so an error rate of one in ten million produces about 1.5 spurious mutant molecules and the two-molecule rule starts firing on healthy plasma. That is the whole reason for duplex sequencing, which reads both strands of each original fragment and pushes the error rate to \(10^{-8}\) or below; slide the error rate up from there and watch the false-positive line climb. The model assumes every molecule in the tube becomes a usable read, which no real assay achieves, so published limits of detection sit a few-fold above these curves. Clonal haematopoiesis is a separate and larger problem the model does not include: mutant clones in white blood cells shed the same kind of DNA, so a <em>TP53</em> mutation in plasma may come from the bone marrow and not from any tumour.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>These assays are now used in three ways, with very different levels of evidence behind them. Choosing a drug for advanced disease from plasma instead of a biopsy is established practice; the question is only whether the assay found the mutation, and the tumour fraction in advanced disease is often above a per cent. Detecting residual disease after surgery is the most promising use and the subject of many running trials: a positive result weeks after resection identifies patients who will relapse, long before imaging can. Screening people without symptoms is the hardest of the three, because the tumour fraction is lowest exactly when detection would help most, and because a test applied to millions of healthy people must have an extraordinarily low false-positive rate to do more good than harm. The arithmetic in the figure above is the reason the first two work and the third is still being argued about.</p>
+        <h3>What the genome does not say</h3>
+        <p>It is worth ending on the limits. A list of driver mutations does not predict how a tumour will behave, and two tumours with the same drivers often behave differently. Much of what distinguishes them is epigenetic, or lies in which cell type the tumour started from, or in the stroma and immune cells around it. Mutations in non-coding regions, which make up 98% of the genome, remain mostly uninterpretable: the PCAWG analysis of 2,658 whole genomes found very few non-coding drivers besides the <em>TERT</em> promoter. And the mutations are not confined to tumours. Normal oesophagus in a middle-aged person carries clones with <em>NOTCH1</em> mutations covering much of its surface; normal skin carries clones with the same drivers as the cancers that arise in it. Having the mutations is common. Becoming a cancer is not.</p>
+      </div>
+      <div class="callout">
+        <span class="label">The shape of the field now</span>
+        <p>Cancer genetics began by counting tumours in children's eyes and ended up with the most thoroughly catalogued set of mutational processes in biology. What it has not delivered is a general cure, and the reason is in Chapter 9 rather than in any gap in the catalogue. A tumour is a population under selection, and a population under selection escapes a single pressure. The treatments that work best are the ones that attack something the tumour cannot change: a lesion it depends on absolutely, a repair pathway it has already lost, or an immune system that adapts as fast as the tumour does.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== glossary -->
+    <section class="chapter" id="glossary" data-year="Ref" data-short="Glossary &amp; sources">
+      <div class="chapter-head">
+        <span class="label kicker">Reference</span>
+        <h2>Glossary</h2>
+      </div>
+      <dl class="glossary">
+        <dt>Aneuploidy</dt><dd>An abnormal number of chromosomes or chromosome arms in a cell.</dd>
+        <dt>B-allele frequency</dt><dd>The fraction of reads at a heterozygous site carrying the non-reference allele; its departure from one half reveals allelic imbalance.</dd>
+        <dt>Cancer cell fraction</dt><dd>The fraction of the tumour's cells that carry a given mutation, obtained from the variant allele frequency after correcting for purity and copy number.</dd>
+        <dt>Cell-free DNA</dt><dd>Fragments of DNA circulating in plasma, shed by dying cells. The tumour-derived part is called circulating tumour DNA.</dd>
+        <dt>Clonal haematopoiesis</dt><dd>Expanded blood-cell clones carrying driver mutations in a person without leukaemia; a common source of false positives in plasma tests.</dd>
+        <dt>Copy-neutral loss of heterozygosity</dt><dd>Loss of one parental copy of a region with duplication of the other, so the total copy number is unchanged but one parent's alleles are gone.</dd>
+        <dt>Driver</dt><dd>A mutation that confers a selective growth advantage on the cell carrying it.</dd>
+        <dt>dN/dS</dt><dd>The ratio of non-synonymous to synonymous substitution rates; above one indicates positive selection.</dd>
+        <dt>Loss of heterozygosity</dt><dd>Loss of one parental allele at a locus where the person is heterozygous, typically by deletion or by mitotic recombination.</dd>
+        <dt>Microsatellite instability</dt><dd>Widespread length changes in short repeat tracts, caused by failure of mismatch repair.</dd>
+        <dt>Mutational signature</dt><dd>The characteristic distribution of substitution types and sequence contexts produced by one mutational process.</dd>
+        <dt>Oncogene</dt><dd>A gene whose activation promotes cancer; the mutations are gain-of-function, dominant, and clustered at particular codons.</dd>
+        <dt>Penetrance</dt><dd>The fraction of carriers of a germline variant who develop the associated disease.</dd>
+        <dt>Purity</dt><dd>The fraction of cells in a sequenced sample that are tumour cells.</dd>
+        <dt>Synthetic lethality</dt><dd>A combination of two defects that kills a cell although either alone is tolerated; the basis of PARP inhibitors in <em>BRCA</em>-mutant cancer.</dd>
+        <dt>Tumour mutational burden</dt><dd>The number of somatic mutations per megabase of sequenced DNA.</dd>
+        <dt>Tumour suppressor</dt><dd>A gene whose loss promotes cancer; the mutations are loss-of-function, recessive in the cell, and scattered through the gene.</dd>
+        <dt>Variant allele frequency</dt><dd>The fraction of sequencing reads at a site that carry the mutant allele.</dd>
+      </dl>
+
+      <div class="chapter-head" style="margin-top:32px"><h2>Sources</h2></div>
+      <ol class="sources">
+        <li>Nowell, P. C. &amp; Hungerford, D. A. (1960). Chromosome studies on normal and leukemic human leukocytes. <em>Journal of the National Cancer Institute</em> 25, 85–109; Rowley, J. D. (1973). A new consistent chromosomal abnormality in chronic myelogenous leukaemia identified by quinacrine fluorescence and Giemsa staining. <em>Nature</em> 243, 290–293.</li>
+        <li>Knudson, A. G. (1971). Mutation and cancer: statistical study of retinoblastoma. <em>PNAS</em> 68, 820–823.</li>
+        <li>Lohmann, D. R. &amp; Gallie, B. L. Retinoblastoma, in <em>GeneReviews</em> (updated 2018); Dimaras, H. et al. (2015). Retinoblastoma. <em>Nature Reviews Disease Primers</em> 1, 15021. Incidence of one in 16,000–18,000 live births, median age at diagnosis 15 months bilateral and 24 months unilateral, penetrance above 90%.</li>
+        <li>Rous, P. (1911). A sarcoma of the fowl transmissible by an agent separable from the tumor cells. <em>Journal of Experimental Medicine</em> 13, 397–411; Stehelin, D., Varmus, H. E., Bishop, J. M. &amp; Vogt, P. K. (1976). DNA related to the transforming gene(s) of avian sarcoma viruses is present in normal avian DNA. <em>Nature</em> 260, 170–173.</li>
+        <li>Parada, L. F., Tabin, C. J., Shih, C. &amp; Weinberg, R. A. (1982). Human EJ bladder carcinoma oncogene is homologue of Harvey sarcoma virus ras gene. <em>Nature</em> 297, 474–478; Der, C. J., Krontiris, T. G. &amp; Cooper, G. M. (1982). <em>PNAS</em> 79, 3637–3640; Santos, E. et al. (1982). <em>Nature</em> 298, 343–347; Tabin, C. J. et al. (1982). Mechanism of activation of a human oncogene. <em>Nature</em> 300, 143–149.</li>
+        <li>Hunter, J. C. et al. (2015). Biochemical and structural analysis of common cancer-associated KRAS mutations. <em>Molecular Cancer Research</em> 13, 1325–1335. Relative intrinsic and GAP-stimulated hydrolysis rates for G12D, G12V and Q61L.</li>
+        <li>Ahmadian, M. R., Hoffmann, U., Goody, R. S. &amp; Wittinghofer, A. (1997). Individual rate constants for the interaction of Ras proteins with GTPase-activating proteins. <em>Biochemistry</em> 36, 4535–4541; Scheffzek, K. et al. (1997). The Ras–RasGAP complex. <em>Science</em> 277, 333–338. GAP acceleration of more than \(10^5\)-fold, to about 19 s<sup>−1</sup>.</li>
+        <li>Cavenee, W. K. et al. (1983). Expression of recessive alleles by chromosomal mechanisms in retinoblastoma. <em>Nature</em> 305, 779–784; Friend, S. H. et al. (1986). A human DNA segment with properties of the gene that predisposes to retinoblastoma and osteosarcoma. <em>Nature</em> 323, 643–646.</li>
+        <li>Baker, S. J. et al. (1989). Chromosome 17 deletions and p53 gene mutations in colorectal carcinomas. <em>Science</em> 244, 217–221; Olivier, M., Hollstein, M. &amp; Hainaut, P. (2010). TP53 mutations in human cancers. <em>Cold Spring Harbor Perspectives in Biology</em> 2, a001008.</li>
+        <li>Armitage, P. &amp; Doll, R. (1954). The age distribution of cancer and a multi-stage theory of carcinogenesis. <em>British Journal of Cancer</em> 8, 1–12; Moolgavkar, S. H. &amp; Knudson, A. G. (1981). Mutation and cancer: a model for human carcinogenesis. <em>JNCI</em> 66, 1037–1052.</li>
+        <li>Howlader, N. et al., eds. <em>SEER Cancer Statistics Review, 1975–2017</em>, National Cancer Institute (2020), tables 3.7, 4.11, 6.10, 13.11, 15.10, 22.7, 25.7, 26.7: age-specific SEER incidence rates, 2013–2017.</li>
+        <li>Fearon, E. R. &amp; Vogelstein, B. (1990). A genetic model for colorectal tumorigenesis. <em>Cell</em> 61, 759–767; Nowell, P. C. (1976). The clonal evolution of tumor cell populations. <em>Science</em> 194, 23–28.</li>
+        <li>Martincorena, I. et al. (2017). Universal patterns of selection in cancer and somatic tissues. <em>Cell</em> 171, 1029–1041. 7,664 tumours, 29 types, about four coding drivers per tumour, 179 genes under positive selection.</li>
+        <li>Ionov, Y., Peinado, M. A., Malkhosyan, S., Shibata, D. &amp; Perucho, M. (1993). <em>Nature</em> 363, 558–561; Thibodeau, S. N., Bren, G. &amp; Schaid, D. (1993). <em>Science</em> 260, 816–819; Aaltonen, L. A. et al. (1993). <em>Science</em> 260, 812–816; Fishel, R. et al. (1993). <em>Cell</em> 75, 1027–1038.</li>
+        <li>Boland, C. R. et al. (1998). A National Cancer Institute workshop on microsatellite instability for cancer detection and familial predisposition. <em>Cancer Research</em> 58, 5248–5257. The Bethesda panel: BAT25, BAT26, D2S123, D5S346, D17S250.</li>
+        <li>Marabelle, A. et al. (2020). Efficacy of pembrolizumab in patients with noncolorectal high microsatellite instability / mismatch repair-deficient cancer: KEYNOTE-158. <em>Journal of Clinical Oncology</em> 38, 1–10; US FDA accelerated approval of pembrolizumab for MSI-H/dMMR solid tumours, 23 May 2017.</li>
+        <li>Alexandrov, L. B. et al. (2013). Signatures of mutational processes in human cancer. <em>Nature</em> 500, 415–421; Alexandrov, L. B. et al. (2020). The repertoire of mutational signatures in human cancer. <em>Nature</em> 578, 94–101. 84.7 million mutations from 4,645 genomes and 19,184 exomes; 49 single-base, 11 doublet, 4 clustered and 17 indel signatures.</li>
+        <li>COSMIC Mutational Signatures v3.4 (2023), reference profiles for GRCh37, Wellcome Sanger Institute and the Alexandrov laboratory. The 96-channel profiles used in Fig. 6.1 are taken unchanged from this release.</li>
+        <li>Lawrence, M. S. et al. (2013). Mutational heterogeneity in cancer and the search for new cancer-associated genes. <em>Nature</em> 499, 214–218. Replication timing and expression as covariates of the background rate; titin and olfactory receptors as false positives.</li>
+        <li>Rheinbay, E. et al. and the PCAWG Consortium (2020). Analyses of non-coding somatic drivers in 2,658 cancer whole genomes. <em>Nature</em> 578, 102–111; Shuai, S. et al. (2020). Combined burden and functional impact tests for cancer driver discovery using DriverPower. <em>Nature Communications</em> 11, 734.</li>
+        <li>Gerlinger, M. et al. (2012). Intratumor heterogeneity and branched evolution revealed by multiregion sequencing. <em>New England Journal of Medicine</em> 366, 883–892; Jamal-Hanjani, M. et al. (2017). Tracking the evolution of non-small-cell lung cancer. <em>NEJM</em> 376, 2109–2121.</li>
+        <li>Druker, B. J. et al. (2006). Five-year follow-up of patients receiving imatinib for chronic myeloid leukemia. <em>NEJM</em> 355, 2408–2417; Hochhaus, A. et al. (2017). Long-term outcomes of imatinib treatment for chronic myeloid leukemia. <em>NEJM</em> 376, 917–927. Ten-year overall survival 83.3%.</li>
+        <li>Diaz, L. A. et al. (2012). The molecular evolution of acquired resistance to targeted EGFR blockade in colorectal cancers. <em>Nature</em> 486, 537–540; Misale, S. et al. (2012). <em>Nature</em> 486, 532–536.</li>
+        <li>Bozic, I. et al. (2013). Evolutionary dynamics of cancer in response to targeted combination therapy. <em>eLife</em> 2, e00747. The model, and the parameters \(u = 10^{-9}\), \(n = 50\), \(b = 0.14\), \(d = 0.13\) used in Fig. 9.1.</li>
+        <li>Bryant, H. E. et al. (2005). Specific killing of BRCA2-deficient tumours with inhibitors of poly(ADP-ribose) polymerase. <em>Nature</em> 434, 913–917; Farmer, H. et al. (2005). Targeting the DNA repair defect in BRCA mutant cells as a therapeutic strategy. <em>Nature</em> 434, 917–921.</li>
+        <li>Martincorena, I. et al. (2015). High burden and pervasive positive selection of somatic mutations in normal human skin. <em>Science</em> 348, 880–886; Martincorena, I. et al. (2018). Somatic mutant clones colonize the human esophagus with age. <em>Science</em> 362, 911–917.</li>
+        <li>Wan, J. C. M. et al. (2017). Liquid biopsies come of age: towards implementation of circulating tumour DNA. <em>Nature Reviews Cancer</em> 17, 223–238; Kurtz, D. M. et al. (2021). Enhanced detection of minimal residual disease by targeted sequencing of phased variants. <em>Nature Biotechnology</em> 39, 1537–1547.</li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">LearnAnything · Volume 15 · Figures compute real mechanisms; each caption says which data are real and which are simulated.</footer>
+
+<script src="../../assets/js/lab.js"></script>
+<script src="js/cg.js"></script>
+<script src="js/hero.js"></script>
+<script src="js/hits.js"></script>
+<script src="js/suppressor.js"></script>
+<script src="js/mutator.js"></script>
+<script src="js/catalogue.js"></script>
+<script src="js/clinic.js"></script>
+<script>Lab.rail();</script>
+</body>
+</html>

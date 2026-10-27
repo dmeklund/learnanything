@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Self and Nonself</title>
+<meta name="description" content="Immunobiology: how the innate and adaptive immune systems recognize invaders, how antibodies bind, how clonal selection and gene recombination build a repertoire of billions of receptors, how T cells tell self from foreign, how tolerance prevents autoimmunity, and how vaccines create memory.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Azeret+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<style>
+/* Volume XI identity: a stained tissue section. Pale eosin-pink paper, hematoxylin purple for the accent,
+   eosin pink for figure labels; Gloock for headings, Alegreya Sans for reading, Azeret Mono for data. */
+:root {
+  --paper: #F8F4F4; --paper-2: #F0E8EA; --paper-3: #FCFAFA;
+  --grid: #E6DCDF; --rule: #D2C3C8;
+  --ink: #1E1720; --ink-2: #463B48; --ink-3: #6B5F6D;
+  --accent: #4A2C7A; --signal: #A8325A; --tertiary: #2E9C82;
+  --s1: #1D4A9E; --s2: #C64A1C; --s3: #2E9C82;
+  --accent-wash: rgba(74, 44, 122, .08); --signal-wash: rgba(168, 50, 90, .1);
+  --f-display: "Gloock", Georgia, "Times New Roman", serif;
+  --f-body: "Alegreya Sans", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "Azeret Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --rail: 178px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #161219; --paper-2: #1D1820; --paper-3: #241E27;
+    --grid: #2A232D; --rule: #3B3240;
+    --ink: #EDE6EE; --ink-2: #BDB1BF; --ink-3: #8F8291;
+    --accent: #BCA4EA; --signal: #F08AA8; --tertiary: #35A386;
+    --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+    --accent-wash: rgba(188, 164, 234, .1); --signal-wash: rgba(240, 138, 168, .1);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #161219; --paper-2: #1D1820; --paper-3: #241E27;
+  --grid: #2A232D; --rule: #3B3240;
+  --ink: #EDE6EE; --ink-2: #BDB1BF; --ink-3: #8F8291;
+  --accent: #BCA4EA; --signal: #F08AA8; --tertiary: #35A386;
+  --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+  --accent-wash: rgba(188, 164, 234, .1); --signal-wash: rgba(240, 138, 168, .1);
+}
+body { background: var(--paper); font-size: 1.12rem; }
+.hero { grid-template-columns: 1fr; gap: 22px; }
+.hero h1 { font: 400 clamp(3.4rem, 10vw, 7rem)/.95 var(--f-display); letter-spacing: -.01em; margin-top: 10px; }
+.hero h1 i { font-style: normal; color: var(--accent); }
+.hero .dek { max-width: 54ch; }
+.chapter-head .year { font: 400 clamp(2.8rem, 7.4vw, 4.6rem)/.9 var(--f-display); }
+.chapter-head h2 { font: 400 clamp(1.9rem, 4.4vw, 3rem)/1.06 var(--f-display); }
+.prose h3 { font: 400 var(--t-lg)/1.25 var(--f-display); }
+.bench-head h4, .volume h2 { font-family: var(--f-display); font-weight: 400; }
+.bench-head h4 { font-size: 1.3rem; }
+.rail a { grid-template-columns: 46px 1fr; }
+.rail a .yr { font-size: 11px; }
+.part-head { max-width: var(--measure); padding-top: 64px; display: grid; gap: 4px; }
+.part-head .label { color: var(--accent); }
+.part-head h2 { font: 400 var(--t-xl)/1 var(--f-display); }
+.hero-rep canvas { width: 100%; display: block; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper-3); }
+.chart-wrap svg { width: 100%; display: block; }
+.bench canvas.square { width: 100%; display: block; }
+b.warn, .warn { color: var(--s2); }
+.callout { max-width: var(--measure); border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; display: grid; gap: 6px; }
+.callout .label { color: var(--accent); }
+.stat-row { display: flex; flex-wrap: wrap; gap: 12px 40px; max-width: var(--measure); padding-block: 8px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.stat-row div { display: grid; gap: 2px; }
+.stat-row b { font: 400 var(--t-xl)/1.05 var(--f-display); }
+.stat-row span { font: 400 var(--t-xs)/1.3 var(--f-mono); color: var(--ink-3); }
+.table-wrap { overflow-x: auto; max-width: var(--bench); }
+table.compare { border-collapse: collapse; font-size: var(--t-sm); min-width: 600px; width: 100%; }
+table.compare th { font: 500 var(--t-xs)/1.3 var(--f-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px; border-bottom: 1px solid var(--ink-3); vertical-align: bottom; }
+table.compare td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+table.compare td:first-child { font-weight: 700; color: var(--ink); }
+.nocase { text-transform: none; letter-spacing: 0; }
+</style>
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg', 'canvas'] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="brand" href="../../index.html">Learn<b>Anything</b></a>
+  <span class="where">Vol. 11 · Immunobiology</span>
+  <span class="progress" aria-hidden="true"></span>
+</header>
+
+<div class="module">
+  <nav class="rail" aria-label="Chapters"><ol></ol></nav>
+
+  <main class="content">
+
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="label">Volume 11 · How the body defends itself</p>
+        <h1 id="title">Self and <i>Nonself</i></h1>
+        <p class="dek">How the immune system tells the body's own cells from invaders: the fast, inherited defenses of innate immunity, the antibodies and T cells of adaptive immunity, the gene shuffling that builds billions of different receptors, the education that keeps them from attacking the self, and the memory that vaccines exploit.</p>
+        <div class="meta">
+          <span class="label">9 chapters</span>
+          <span class="label">8 interactive figures</span>
+          <span class="label">1796 → today</span>
+        </div>
+      </div>
+      <figure class="hero-rep" id="hero-rep" style="margin:0">
+        <canvas role="img" aria-label="Many dots representing lymphocyte clones scattered across a square; near a drifting antigen, the clones that fit it light up and multiply"></canvas>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PROLOGUE -->
+    <section class="chapter" id="prologue" data-year="Pro" data-short="Two systems">
+      <div class="chapter-head">
+        <span class="label kicker">Prologue</span>
+        <h2>Two ways to recognize an enemy</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Every surface of the body is under constant attack by bacteria, viruses, fungi, and parasites, which multiply far faster than human cells. The immune system has two strategies for dealing with them.</p>
+        <p><strong>Innate immunity</strong> is inherited and fast. Its receptors, encoded directly in the genome, recognize molecular patterns shared by whole classes of microbes, such as the cell walls of bacteria or the double-stranded RNA of many viruses. Within minutes to hours, cells like neutrophils and macrophages arrive and engulf the invaders.</p>
+        <p><strong>Adaptive immunity</strong> is learned and slow at first, but exquisitely specific. Each B or T lymphocyte carries a receptor assembled by randomly shuffling gene segments, so the body holds billions of different receptors, almost any of which might fit some future invader. When one does, that cell multiplies into an army of identical clones, and some of them remain as memory. This is why most people catch measles only once, and why vaccines work.</p>
+        <p>The figure above shows that idea in miniature: a repertoire of clones, each recognizing a slightly different shape, and an antigen that activates only the few that fit. The central puzzle, which took most of the twentieth century to solve, is how such a random system avoids attacking the body itself.</p>
+      </div>
+      <div class="stat-row">
+        <div><b>~10¹²</b><span>lymphocytes in an adult</span></div>
+        <div><b>~2–5%</b><span>of developing T cells that survive selection in the thymus</span></div>
+        <div><b>1980</b><span>smallpox declared eradicated</span></div>
+      </div>
+      <dl class="defn">
+        <dt>Antigen</dt><dd>Any molecule that a B or T cell receptor or an antibody can recognize.</dd>
+        <dt>Lymphocyte</dt><dd>A white blood cell of the adaptive immune system: B cells make antibodies; T cells kill infected cells or coordinate the response.</dd>
+        <dt>Clone</dt><dd>A population of cells descended from one cell, all carrying the same receptor.</dd>
+      </dl>
+    </section>
+
+    <!-- ===================================================== PART I -->
+    <div class="part-head"><span class="label">Part I</span><h2>Recognition</h2></div>
+
+    <section class="chapter" id="innate" data-year="1882" data-short="Innate immunity">
+      <div class="chapter-head">
+        <span class="year">1882</span>
+        <span class="label kicker">Chapter 1 · Innate immunity</span>
+        <h2>A thorn in a starfish larva</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In December 1882 the Russian zoologist Élie Metchnikoff, working in Messina, pushed rose thorns into the transparent larvae of starfish. The next morning the thorns were surrounded by mobile cells trying to engulf them. Metchnikoff called them <em>phagocytes</em>, "eating cells," and argued that they were the body's main defense against microbes. He shared the 1908 Nobel Prize in Physiology or Medicine with Paul Ehrlich, whose rival theory emphasized antibodies in the blood. Both were right.</p>
+        <p>For most of the next century, innate immunity was treated as crude and nonspecific. In 1989 Charles Janeway argued that it must recognize microbes through <em>pattern recognition receptors</em> that detect molecules shared by microbes and absent from the host, and that this recognition was what switched on adaptive immunity. The receptors were found within a decade. Jules Hoffmann's group showed in 1996 that fruit flies lacking the protein Toll die of fungal infections, and in 1998 Bruce Beutler identified Toll-like receptor 4 as the mammalian sensor of bacterial lipopolysaccharide. Ralph Steinman had discovered <em>dendritic cells</em> in 1973; they carry pieces of microbes from the site of infection to the lymph nodes and present them to T cells. Hoffmann, Beutler, and Steinman shared the 2011 Nobel Prize.</p>
+        <h3>A race</h3>
+        <p>An infection is a race between microbial growth and the innate response. A few hundred bacteria can be engulfed by the neutrophils already patrolling a tissue; a larger dose can grow faster than neutrophils arrive, and once the bacteria outnumber the phagocytes, each phagocyte can only eat so many. That saturation creates a threshold dose above which the infection escapes local control.</p>
+      </div>
+
+      <figure class="bench" id="fig-race">
+        <div class="bench-head"><span class="fig">Fig. 1.1</span><span class="label">Interactive</span><h4>Bacteria against neutrophils</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="rc-b">Initial dose <output></output></label><input type="range" id="rc-b" min="2" max="8" step="0.1" value="4"></div>
+          <div class="ctl"><label for="rc-a">Neutrophil recruitment rate <output></output></label><input type="range" id="rc-a" min="0.05" max="1.5" step="0.05" value="0.5"></div>
+        </div>
+        <div class="chart-wrap"><svg class="race-b" role="img" aria-label="Bacterial load on a log scale over 48 hours"></svg></div>
+        <div class="chart-wrap"><svg class="race-n" role="img" aria-label="Neutrophil activity over the same 48 hours"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Bacteria double roughly every 45 minutes; neutrophils are recruited in proportion to the bacterial signal and eat bacteria at a rate that saturates when outnumbered. Below a threshold dose, the response catches up and the infection is cleared. Push the dose up by tenfold steps and watch the outcome flip abruptly; then speed up recruitment and the threshold rises. An illustrative two-variable model, not fitted to a particular pathogen.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="antibodies" data-year="1890" data-short="Antibodies">
+      <div class="chapter-head">
+        <span class="year">1890</span>
+        <span class="label kicker">Chapter 2 · Antibodies</span>
+        <h2>Protection in the blood</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In December 1890 Emil von Behring and Shibasaburo Kitasato, working in Robert Koch's institute in Berlin, showed that serum from animals immunized against diphtheria or tetanus toxin could protect other animals. Something in the blood, which they called <em>antitoxin</em>, neutralized the poison. Serum therapy for diphtheria followed within a few years, and Behring received the first Nobel Prize in Physiology or Medicine in 1901. In 1897 Ehrlich proposed that cells carry "side chains" that bind toxins specifically and are shed into the blood when overproduced, the first receptor theory.</p>
+        <p>The antitoxins are antibodies. In the late 1950s and 1960s Rodney Porter and Gerald Edelman worked out their structure: a Y-shaped molecule of two identical heavy chains and two identical light chains. The tips of the two arms are the <em>variable regions</em>, which differ from one antibody to the next and form the binding site; the stem is the <em>constant region</em>, which tells the rest of the immune system what to do with whatever is bound. They shared the 1972 Nobel Prize.</p>
+        <h3>Affinity and avidity</h3>
+        <p>An antibody arm binds its target reversibly. At equilibrium, the fraction of target sites occupied depends on the antibody concentration \(c\) and the dissociation constant \(K_d\), the concentration at which half the sites are bound:</p>
+        <div class="math-block">\[ \theta = \frac{c}{c + K_d}, \qquad K_d = \frac{k_{\text{off}}}{k_{\text{on}}}. \]</div>
+        <p>Antibodies early in a response have \(K_d\) around a micromolar; after affinity maturation (Chapter 3) the best reach the nanomolar to picomolar range. Because an IgG antibody has two identical arms, once one arm is bound to a surface with many copies of the antigen, such as a virus or bacterium, the second arm is held close to another copy and binds easily. The combined grip, called <em>avidity</em>, can be orders of magnitude stronger than either arm alone. IgM, the first antibody class made in a response, has ten arms, which compensates for its lower affinity.</p>
+      </div>
+
+      <figure class="bench" id="fig-bind">
+        <div class="bench-head"><span class="fig">Fig. 2.1</span><span class="label">Interactive</span><h4>Affinity and avidity</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="bd-k"><span>Single-arm <span class="nocase">K<sub>d</sub></span></span> <output></output></label><input type="range" id="bd-k" min="-12" max="-5" step="0.1" value="-8"></div>
+          <div class="ctl"><span class="label">Binding arms</span><div class="chips"><button class="chip" type="button" data-val="1" aria-pressed="false">1 (a single arm)</button><button class="chip" type="button" data-val="2" aria-pressed="true">2 (IgG)</button></div></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Fraction of target sites occupied versus antibody concentration for one and two binding arms"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Occupancy curves for a single binding arm (blue) and for two arms binding a surface with many copies of the antigen (vermilion). The effective dissociation constant drops by a factor of 1 + C<sub>eff</sub>/K<sub>d</sub>, where C<sub>eff</sub>, about 10 µM here, is the effective concentration of the second arm near a neighbouring site. Avidity helps most for high-affinity arms. The half-life readout assumes a typical association rate of 10⁵ per molar per second. A deliberately simple model of bivalent binding.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="clonal" data-year="1957" data-short="Clonal selection">
+      <div class="chapter-head">
+        <span class="year">1957</span>
+        <span class="label kicker">Chapter 3 · Clonal selection</span>
+        <h2>Selection, not instruction</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">How can the body make an antibody against a chemical that never existed before, such as a synthetic dye? Through the 1930s and 1940s the leading answer was <em>instruction</em>: the antigen acted as a template, and antibodies folded around it. In 1955 Niels Jerne proposed instead that the body already contains antibodies of every specificity and that antigen merely selects among them. In 1957 Macfarlane Burnet sharpened this into the <em>clonal selection theory</em>: each lymphocyte makes antibody of a single specificity; an antigen binds the few cells whose receptors fit; those cells multiply into a clone and secrete that antibody; and clones that recognize the body's own molecules are eliminated early in life.</p>
+        <p>In 1958 Gustav Nossal and Joshua Lederberg showed that single antibody-forming cells make antibody of only one specificity, as the theory required. Burnet shared the 1960 Nobel Prize with Peter Medawar, whose experiments on skin grafts had shown that tolerance to foreign tissue could be acquired early in life. In 1975 Georges Köhler and César Milstein fused single antibody-producing cells with tumor cells to make immortal clones secreting one antibody, <em>monoclonal antibodies</em>; they shared the 1984 Nobel Prize with Jerne.</p>
+        <h3>Affinity maturation</h3>
+        <p>The response improves as it goes. Activated B cells enter <em>germinal centers</em> in lymph nodes, where they divide rapidly and an enzyme, activation-induced cytidine deaminase (identified by Tasuku Honjo's group in 2000), introduces mutations into their antibody genes at roughly a million times the normal rate. The mutated cells then compete for antigen and for help from T cells; those with higher affinity win and divide again. Over weeks, this Darwinian cycle of mutation and selection raises antibody affinity a hundredfold or more.</p>
+      </div>
+
+      <figure class="bench" id="fig-gc">
+        <div class="bench-head"><span class="fig">Fig. 3.1</span><span class="label">Interactive</span><h4>Affinity maturation in a germinal center</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="gc-m">Mutation size <output></output></label><input type="range" id="gc-m" min="0" max="0.05" step="0.002" value="0.006"></div>
+          <div class="ctl"><label for="gc-s">Selection stringency <output></output></label><input type="range" id="gc-s" min="1" max="20" step="1" value="6"></div>
+          <button class="chip" type="button" id="gc-go">Run 30 generations</button>
+        </div>
+        <div class="stage">
+          <canvas class="square" role="img" aria-label="Shape space with the naive repertoire, the antigen, and the evolving population of responding B cells"></canvas>
+          <div class="chart-wrap"><svg role="img" aria-label="Average and best affinity of the responding B cells over generations"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: an abstract "shape space" in which each point is a possible receptor; the antigen (vermilion) is best fitted by receptors at its center. Clonal selection activates the dozen naive clones nearest it; then each generation, B cells divide in proportion to their affinity and mutate. Right: the population's average and best affinity. With no mutation, the response is stuck with what the naive repertoire offered; with too much, good clones mutate away from the target; with weak selection, nothing improves. An illustrative evolutionary model.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="vdj" data-year="1976" data-short="Generating diversity">
+      <div class="chapter-head">
+        <span class="year">1976</span>
+        <span class="label kicker">Chapter 4 · Gene rearrangement</span>
+        <h2>Billions of receptors from a few hundred genes</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Clonal selection raised a new puzzle. The human genome has about 20,000 protein-coding genes, yet the immune system makes billions of different antibodies. In 1976 Nobumichi Hozumi and Susumu Tonegawa, at the Basel Institute for Immunology, compared antibody genes in embryonic cells and in antibody-producing tumor cells. In the embryo, the pieces encoding the variable region lay far apart; in the antibody-making cell, they had been joined. Antibody genes are assembled by cutting and pasting DNA. Tonegawa received the 1987 Nobel Prize.</p>
+        <p>Each heavy-chain variable region is built from one of about 40 functional <em>V</em> segments, one of 23 <em>D</em> segments, and one of 6 <em>J</em> segments; light chains use V and J only. The enzymes RAG1 and RAG2, identified by David Schatz, Marjorie Oettinger, and David Baltimore in 1989 and 1990, cut the DNA at the segment boundaries. Diversity multiplies at three levels:</p>
+        <ul>
+          <li><strong>Combinatorial:</strong> the choice of segments, times the choice of pairing between a heavy and a light chain.</li>
+          <li><strong>Junctional:</strong> the joints are imprecise. Nucleotides are trimmed and random nucleotides added by the enzyme TdT, so the most variable part of the receptor, the third complementarity-determining region, differs even between cells that chose the same segments.</li>
+          <li><strong>Somatic hypermutation:</strong> after activation, B cells keep mutating (Chapter 3). T cell receptors, assembled the same way from their own segment families, do not.</li>
+        </ul>
+        <p>The potential diversity far exceeds the number of lymphocytes in a body, so each person carries only a sample of the possible repertoire.</p>
+      </div>
+
+      <figure class="bench" id="fig-vdj">
+        <div class="bench-head"><span class="fig">Fig. 4.1</span><span class="label">Interactive</span><h4>Counting receptor diversity</h4></div>
+        <div class="controls">
+          <div class="ctl"><span class="label">Receptor</span><div class="chips"><button class="chip" type="button" data-loc="bcr" aria-pressed="true">Antibody</button><button class="chip" type="button" data-loc="tcr" aria-pressed="false">T cell receptor</button></div></div>
+          <div class="ctl"><label for="vj-j">Junctional diversity factor <output></output></label><input type="range" id="vj-j" min="0" max="10" step="1" value="6"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Logarithmic bar showing receptor diversity contributed by gene segments, chain pairing, and junctional diversity"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Each segment of the bar multiplies the diversity, so lengths add on this log scale. Gene-segment counts are approximate numbers of functional human segments from the IMGT database, which vary between people (for example 38 to 46 heavy-chain V segments). Junctional diversity is hard to pin down and estimates span many orders of magnitude; set it to zero to see what segment choice alone provides. The dashed line marks roughly how many lymphocytes a person has.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="tcells" data-year="1974" data-short="T cells and MHC">
+      <div class="chapter-head">
+        <span class="year">1974</span>
+        <span class="label kicker">Chapter 5 · T cells</span>
+        <h2>Recognizing fragments on a platter</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Antibodies recognize intact molecules. T cells do something stranger. In 1974 Rolf Zinkernagel and Peter Doherty, in Canberra, found that mouse T cells killed virus-infected cells only if the infected cells carried the same version of the <em>major histocompatibility complex</em> (MHC) as the mouse the T cells came from. T cells recognize not the virus but fragments of viral protein displayed on MHC molecules, the body's own platters. They shared the 1996 Nobel Prize.</p>
+        <p>MHC class I molecules, on nearly every cell, display peptides from proteins made inside that cell, so a cell infected by a virus displays viral peptides to <em>cytotoxic</em> (CD8) T cells, which kill it. MHC class II molecules, on specialized antigen-presenting cells, display peptides from material the cell has engulfed to <em>helper</em> (CD4) T cells, which coordinate the response. The genes for the T cell receptor were cloned in 1984 by Mark Davis and Stephen Hedrick and by Tak Mak's group.</p>
+        <h3>How a T cell tells a foreign peptide from a self peptide</h3>
+        <p>A T cell faces a needle-in-a-haystack problem: a few foreign peptide–MHC complexes among tens of thousands of self complexes on the same cell, some binding the receptor only a little less tightly. Equilibrium binding cannot discriminate that well. In 1995 Timothy McKeithan proposed <em>kinetic proofreading</em>, an idea John Hopfield had introduced in 1974 for the accuracy of protein synthesis. After the receptor binds, it must complete a series of \(N\) modification steps, each at rate \(k_p\), before it signals; if the peptide falls off first, everything resets. The chance of completing the chain is</p>
+        <div class="math-block">\[ P = \left(\frac{k_p}{k_p + k_{\text{off}}}\right)^{N}, \]</div>
+        <p>so a tenfold difference in how long a peptide stays bound becomes a difference of about \(10^N\) in signaling. Delay buys specificity.</p>
+      </div>
+
+      <figure class="bench" id="fig-kp">
+        <div class="bench-head"><span class="fig">Fig. 5.1</span><span class="label">Interactive</span><h4>Kinetic proofreading</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="kp-n"><span>Proofreading steps <span class="nocase">N</span></span> <output></output></label><input type="range" id="kp-n" min="0" max="10" step="1" value="5"></div>
+          <div class="ctl"><label for="kp-k"><span>Rate of each step <span class="nocase">k<sub>p</sub></span></span> <output></output></label><input type="range" id="kp-k" min="-1" max="1" step="0.05" value="0"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Probability of completing the signaling chain versus off-rate, with a foreign and a self peptide marked"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The curve gives the chance that a single binding event completes all N steps, as a function of how quickly the peptide–MHC falls off. The foreign peptide stays bound ten times longer than the self peptide. With N = 0, both signal every time; each added step multiplies the discrimination. Slower steps sharpen discrimination further but make every signal rarer, the trade-off between specificity and sensitivity. Off-rates are illustrative.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PART II -->
+    <div class="part-head"><span class="label">Part II</span><h2>Tolerance, memory, and medicine</h2></div>
+
+    <section class="chapter" id="tolerance" data-year="1995" data-short="Tolerance">
+      <div class="chapter-head">
+        <span class="year">1995</span>
+        <span class="label kicker">Chapter 6 · Tolerance</span>
+        <h2>Learning not to attack the self</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A repertoire built at random will contain receptors that recognize the body's own molecules. Ehrlich called the danger <em>horror autotoxicus</em>. The first defense is education in the thymus, a gland above the heart where T cells mature.</p>
+        <p>Developing T cells, thymocytes, are tested against self peptides displayed on MHC. Those whose receptors cannot engage self MHC at all are useless and die by neglect. Those that engage it weakly receive a survival signal: <em>positive selection</em>. Those that bind self peptide–MHC too strongly are potential autoimmune attackers and are killed: <em>negative selection</em>. Only about 2 to 5% of thymocytes survive. A transcription regulator called AIRE, described in 2002, lets specialized thymic cells express thousands of proteins normally made only in other organs, such as insulin, so that T cells reactive to them can be deleted before they leave.</p>
+        <h3>Regulatory T cells</h3>
+        <p>Deletion is incomplete. In 1995 Shimon Sakaguchi identified a population of CD4 T cells carrying the marker CD25 whose removal caused widespread autoimmune disease in mice: <em>regulatory T cells</em>, which actively suppress other T cells. In 2001 Mary Brunkow and Fred Ramsdell found that the "scurfy" mice, which die of runaway autoimmunity, carry mutations in a gene they named <em>Foxp3</em>, and that mutations in the human version cause the fatal disease IPEX. In 2003 Sakaguchi and others showed that Foxp3 controls the development of regulatory T cells. Brunkow, Ramsdell, and Sakaguchi shared the 2025 Nobel Prize in Physiology or Medicine "for their discoveries concerning peripheral immune tolerance."</p>
+        <p>When tolerance fails, the result is autoimmune disease: type 1 diabetes, multiple sclerosis, rheumatoid arthritis, lupus, and dozens of others, together affecting several percent of people.</p>
+      </div>
+
+      <figure class="bench" id="fig-thymus">
+        <div class="bench-head"><span class="fig">Fig. 6.1</span><span class="label">Interactive</span><h4>Selection in the thymus</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="th-p">Positive selection threshold <output></output></label><input type="range" id="th-p" min="0" max="3" step="0.1" value="1.6"></div>
+          <div class="ctl"><label for="th-n">Negative selection threshold <output></output></label><input type="range" id="th-n" min="1" max="3.8" step="0.1" value="2.5"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Distribution of thymocyte receptor strengths for self, split into death by neglect, survival, and deletion"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Random receptor assembly produces a spread of binding strengths for self peptide–MHC (horizontal axis, in standard deviations). Thymocytes below the first threshold die of neglect (gray), those above the second are deleted (vermilion), and only the window between survives (blue). The default thresholds give the measured survival of a few percent. Narrow the window and fewer cells survive, but each is safer; widen it upward and more self-reactive cells escape, which is what regulatory T cells are there to catch. The bell-shaped distribution is illustrative.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="vaccines" data-year="1796" data-short="Memory and vaccines">
+      <div class="chapter-head">
+        <span class="year">1796</span>
+        <span class="label kicker">Chapter 7 · Memory and vaccines</span>
+        <h2>Immunity on purpose</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Immunological memory was exploited long before it was understood. People who survived smallpox never caught it again, and in parts of Asia and Africa healthy people were deliberately infected with material from mild cases, <em>variolation</em>, which Lady Mary Wortley Montagu popularized in England from 1721. On 14 May 1796 Edward Jenner inoculated a boy, James Phipps, with material from a cowpox sore on a milkmaid's hand, and later showed that Phipps resisted smallpox. Jenner called the procedure <em>vaccination</em>, from <em>vacca</em>, cow. Louis Pasteur generalized it with weakened pathogens, for chicken cholera around 1880 and rabies in 1885. Vaccination eradicated smallpox, declared by the World Health Assembly on 8 May 1980.</p>
+        <h3>Primary and secondary responses</h3>
+        <p>The first encounter with an antigen starts from a handful of naive cells, so antibody appears only after a lag of about a week and peaks after one to two weeks. Some of the expanded B and T cells remain as long-lived memory cells. A second encounter starts from that larger, already affinity-matured pool, so the response comes within days, climbs higher, and produces better antibodies. Booster doses of vaccines exploit exactly this.</p>
+      </div>
+
+      <figure class="bench" id="fig-memory">
+        <div class="bench-head"><span class="fig">Fig. 7.1</span><span class="label">Interactive</span><h4>Primary and secondary responses</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="mm-b">Second exposure <output></output></label><input type="range" id="mm-b" min="20" max="180" step="5" value="60"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Antibody level over 200 days with a primary response and a larger, faster secondary response"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Antibody level on a log scale after a first and a second exposure to the same antigen. The secondary response starts from a memory pool about sixty times larger than the naive clone and needs a shorter lag, so it peaks sooner and far higher. Antibody decays with a half-life of about three weeks between responses. An illustrative model of the textbook curves; real magnitudes vary with antigen, vaccine, and person.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>Herd immunity</h3>
+        <p>Vaccines protect people who are not vaccinated too. An infection with basic reproduction number \(R_0\), the average number of people one case infects in a fully susceptible population, cannot spread once fewer than \(1/R_0\) of contacts are susceptible. If a vaccine prevents infection with efficacy \(E\), the share of people who must be vaccinated is</p>
+        <div class="math-block">\[ p_c = \frac{1 - 1/R_0}{E}. \]</div>
+        <p>For measles, with \(R_0\) commonly estimated at 12 to 18, the threshold is above 90%, which is why measles returns quickly when vaccination rates slip.</p>
+      </div>
+
+      <figure class="bench" id="fig-herd">
+        <div class="bench-head"><span class="fig">Fig. 7.2</span><span class="label">Interactive</span><h4>Herd immunity in an epidemic model</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="hd-r"><span>Basic reproduction number <span class="nocase">R₀</span></span> <output></output></label><input type="range" id="hd-r" min="1.2" max="18" step="0.1" value="3"></div>
+          <div class="ctl"><label for="hd-c">Vaccination coverage <output></output></label><input type="range" id="hd-c" min="0" max="1" step="0.01" value="0.5"></div>
+          <div class="ctl"><label for="hd-e">Vaccine efficacy <output></output></label><input type="range" id="hd-e" min="0.3" max="1" step="0.01" value="0.9"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Epidemic curve of infectious people over a year with and without vaccination"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">A susceptible-infected-recovered (SIR) model with a week-long infectious period, in a well-mixed population where a share of people are immune from vaccination at the start. The dashed curve is the same epidemic with no vaccination. Raise coverage toward the threshold and the epidemic flattens and shrinks; past it, an introduced case fizzles. Set R₀ to 15, like measles, and see how little room there is. A textbook model that ignores age structure, waning immunity, and uneven mixing.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== NOW -->
+    <section class="chapter" id="now" data-year="Now" data-short="Immunology as medicine">
+      <div class="chapter-head">
+        <span class="label kicker">Chapter 8 · Today</span>
+        <h2>Engineering the immune system</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The discoveries of this volume have become a large share of modern medicine.</p>
+        <ul>
+          <li><strong>Monoclonal antibodies.</strong> From Köhler and Milstein's hybridomas came antibody drugs that block molecules in inflammation, cancer, and infection; they are among the best-selling medicines in the world.</li>
+          <li><strong>Checkpoint inhibitors.</strong> T cells carry brakes, such as CTLA-4 and PD-1, that keep responses in check. James Allison and Tasuku Honjo showed that blocking them unleashes T cells against tumors; the first such drug, ipilimumab, was approved in 2011, and they shared the 2018 Nobel Prize. Releasing the brakes can also cause autoimmunity, the flip side of the tolerance mechanisms of Chapter 6.</li>
+          <li><strong>CAR T cells.</strong> A patient's own T cells are engineered to carry a chimeric antigen receptor that recognizes a tumor protein. The first was approved by the FDA in 2017 for a childhood leukemia.</li>
+          <li><strong>mRNA vaccines.</strong> Katalin Karikó and Drew Weissman found in 2005 that modifying the nucleosides of synthetic mRNA lets it avoid the innate immune sensors of Chapter 1. The result made the COVID-19 vaccines possible, and they shared the 2023 Nobel Prize.</li>
+          <li><strong>Regulatory T cell therapies.</strong> The newest direction reverses the others: expanding or engineering regulatory T cells to calm autoimmune disease and prevent transplant rejection.</li>
+        </ul>
+      </div>
+      <div class="table-wrap">
+        <table class="compare">
+          <thead><tr><th>Feature</th><th>Innate immunity</th><th>Adaptive immunity</th></tr></thead>
+          <tbody>
+            <tr><td>Receptors</td><td>Encoded in the genome, shared by all cells of a type</td><td>Assembled by gene rearrangement, unique to each clone</td></tr>
+            <tr><td>Recognizes</td><td>Patterns shared by classes of microbes</td><td>Specific molecules or peptide fragments</td></tr>
+            <tr><td>Speed</td><td>Minutes to hours</td><td>About a week on first exposure, days on re-exposure</td></tr>
+            <tr><td>Memory</td><td>Largely none</td><td>Long-lived memory cells</td></tr>
+            <tr><td>Main cells</td><td>Neutrophils, macrophages, dendritic cells, natural killer cells</td><td>B cells (antibodies), CD4 and CD8 T cells</td></tr>
+            <tr><td>Self-tolerance by</td><td>Recognizing what the host lacks</td><td>Thymic selection, regulatory T cells, and other checks</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose">
+        <div class="callout">
+          <span class="label">The common thread</span>
+          <p>The adaptive immune system is evolution run inside one body: variation by random gene assembly and mutation, selection by antigen, and amplification of the winners. Everything else in this volume, from thymic education to regulatory T cells, exists to keep that powerful random generator from turning on the self.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== glossary -->
+    <section class="chapter" id="glossary" data-year="Ref" data-short="Glossary & sources">
+      <div class="chapter-head">
+        <span class="label kicker">Reference</span>
+        <h2>Glossary</h2>
+      </div>
+      <dl class="glossary">
+        <dt>Affinity</dt><dd>The strength of binding between one binding site and its target, measured by the dissociation constant.</dd>
+        <dt>Avidity</dt><dd>The combined binding strength of several binding sites acting together.</dd>
+        <dt>Clonal selection</dt><dd>The theory that antigen activates the pre-existing lymphocytes whose receptors fit it, which then multiply.</dd>
+        <dt>Germinal center</dt><dd>A site in lymphoid tissue where activated B cells mutate and are selected for higher affinity.</dd>
+        <dt>Kinetic proofreading</dt><dd>A mechanism in which a series of delays after binding amplifies differences in binding lifetime.</dd>
+        <dt>MHC</dt><dd>Major histocompatibility complex: molecules that display peptide fragments to T cells.</dd>
+        <dt>Pattern recognition receptor</dt><dd>An innate receptor, such as a Toll-like receptor, that detects molecules common to microbes.</dd>
+        <dt>Phagocyte</dt><dd>A cell that engulfs and digests particles, such as a neutrophil or macrophage.</dd>
+        <dt>R₀</dt><dd>The basic reproduction number: average new infections caused by one case in a fully susceptible population.</dd>
+        <dt>Regulatory T cell</dt><dd>A T cell, defined by the transcription factor Foxp3, that suppresses other immune responses.</dd>
+        <dt>Somatic hypermutation</dt><dd>Rapid mutation of antibody genes in activated B cells.</dd>
+        <dt>V(D)J recombination</dt><dd>Assembly of receptor genes by joining variable, diversity, and joining gene segments.</dd>
+      </dl>
+
+      <div class="chapter-head" style="margin-top:32px"><h2>Sources</h2></div>
+      <ol class="sources">
+        <li>Murphy, K. &amp; Weaver, C. (2022). <em>Janeway's Immunobiology</em>, 10th ed. W. W. Norton; Silverstein, A. M. (2009). <em>A History of Immunology</em>, 2nd ed. Academic Press.</li>
+        <li>Metchnikoff, É. (1884). Über eine Sprosspilzkrankheit der Daphnien. Beitrag zur Lehre über den Kampf der Phagocyten gegen Krankheitserreger. <em>Virchows Archiv</em> 96; The Nobel Prize in Physiology or Medicine 1908 (Metchnikoff, Ehrlich). nobelprize.org.</li>
+        <li>Janeway, C. A. Jr. (1989). Approaching the asymptote? Evolution and revolution in immunology. <em>Cold Spring Harbor Symposia on Quantitative Biology</em> 54; Lemaitre, B. et al. (1996). The dorsoventral regulatory gene cassette spätzle/Toll/cactus controls the potent antifungal response in Drosophila adults. <em>Cell</em> 86; Poltorak, A. et al. (1998). Defective LPS signaling in C3H/HeJ and C57BL/10ScCr mice: mutations in Tlr4 gene. <em>Science</em> 282.</li>
+        <li>Steinman, R. M. &amp; Cohn, Z. A. (1973). Identification of a novel cell type in peripheral lymphoid organs of mice. <em>Journal of Experimental Medicine</em> 137; The Nobel Prize in Physiology or Medicine 2011.</li>
+        <li>Behring, E. &amp; Kitasato, S. (1890). Ueber das Zustandekommen der Diphtherie-Immunität und der Tetanus-Immunität bei Thieren. <em>Deutsche Medizinische Wochenschrift</em> 16; Ehrlich, P. (1900). On immunity with special reference to cell life. Croonian Lecture. <em>Proceedings of the Royal Society</em> 66.</li>
+        <li>Porter, R. R. (1959). The hydrolysis of rabbit γ-globulin and antibodies with crystalline papain. <em>Biochemical Journal</em> 73; Edelman, G. M. et al. (1969). The covalent structure of an entire γG immunoglobulin molecule. <em>PNAS</em> 63.</li>
+        <li>Jerne, N. K. (1955). The natural-selection theory of antibody formation. <em>PNAS</em> 41; Burnet, F. M. (1957). A modification of Jerne's theory of antibody production using the concept of clonal selection. <em>Australian Journal of Science</em> 20; Nossal, G. J. V. &amp; Lederberg, J. (1958). Antibody production by single cells. <em>Nature</em> 181.</li>
+        <li>Köhler, G. &amp; Milstein, C. (1975). Continuous cultures of fused cells secreting antibody of predefined specificity. <em>Nature</em> 256.</li>
+        <li>Muramatsu, M. et al. (2000). Class switch recombination and hypermutation require activation-induced cytidine deaminase (AID). <em>Cell</em> 102; Victora, G. D. &amp; Nussenzweig, M. C. (2022). Germinal centers. <em>Annual Review of Immunology</em> 40.</li>
+        <li>Hozumi, N. &amp; Tonegawa, S. (1976). Evidence for somatic rearrangement of immunoglobulin genes coding for variable and constant regions. <em>PNAS</em> 73; Schatz, D. G., Oettinger, M. A. &amp; Baltimore, D. (1989). The V(D)J recombination activating gene, RAG-1. <em>Cell</em> 59.</li>
+        <li>Lefranc, M.-P. et al. IMGT, the international ImMunoGeneTics information system: number of human IG and TR genes. imgt.org.</li>
+        <li>Zinkernagel, R. M. &amp; Doherty, P. C. (1974). Restriction of in vitro T cell-mediated cytotoxicity in lymphocytic choriomeningitis within a syngeneic or semiallogeneic system. <em>Nature</em> 248; Hedrick, S. M. et al. (1984) and Yanagi, Y. et al. (1984), <em>Nature</em> 308.</li>
+        <li>Hopfield, J. J. (1974). Kinetic proofreading. <em>PNAS</em> 71; McKeithan, T. W. (1995). Kinetic proofreading in T-cell receptor signal transduction. <em>PNAS</em> 92.</li>
+        <li>Anderson, M. S. et al. (2002). Projection of an immunological self shadow within the thymus by the Aire protein. <em>Science</em> 298; Bionumbers: percent of thymocytes that survive selection.</li>
+        <li>Sakaguchi, S. et al. (1995). Immunologic self-tolerance maintained by activated T cells expressing IL-2 receptor α-chains (CD25). <em>Journal of Immunology</em> 155; Brunkow, M. E. et al. (2001). Disruption of a new forkhead/winged-helix protein, scurfin, results in the fatal lymphoproliferative disorder of the scurfy mouse. <em>Nature Genetics</em> 27; Hori, S., Nomura, T. &amp; Sakaguchi, S. (2003). Control of regulatory T cell development by the transcription factor Foxp3. <em>Science</em> 299; The Nobel Prize in Physiology or Medicine 2025.</li>
+        <li>Jenner, E. (1798). <em>An Inquiry into the Causes and Effects of the Variolae Vaccinae</em>. London; World Health Assembly (1980). Resolution WHA33.3, declaration of global eradication of smallpox.</li>
+        <li>Anderson, R. M. &amp; May, R. M. (1991). <em>Infectious Diseases of Humans: Dynamics and Control</em>. Oxford University Press; Guerra, F. M. et al. (2017). The basic reproduction number (R0) of measles: a systematic review. <em>Lancet Infectious Diseases</em> 17.</li>
+        <li>Leach, D. R., Krummel, M. F. &amp; Allison, J. P. (1996). Enhancement of antitumor immunity by CTLA-4 blockade. <em>Science</em> 271; Ishida, Y. et al. (1992). Induced expression of PD-1. <em>EMBO Journal</em> 11; The Nobel Prize in Physiology or Medicine 2018.</li>
+        <li>Karikó, K., Buckstein, M., Ni, H. &amp; Weissman, D. (2005). Suppression of RNA recognition by Toll-like receptors: the impact of nucleoside modification. <em>Immunity</em> 23; FDA (2017). Approval of tisagenlecleucel (Kymriah).</li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">LearnAnything · Volume 11 · Figures are illustrative models of mechanisms, not fits to clinical data.</footer>
+
+<script src="../../assets/js/lab.js"></script>
+<script src="js/im.js"></script>
+<script src="js/hero.js"></script>
+<script src="js/innate.js"></script>
+<script src="js/adaptive.js"></script>
+<script src="js/vaccines.js"></script>
+<script>Lab.rail();</script>
+</body>
+</html>

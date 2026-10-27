@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Budding</title>
+<meta name="description" content="Organoids: how stem cells grown in a drop of gel sort themselves, form crypts, optic cups and brain tissue, and stand in for patients in tests of cystic fibrosis drugs and cancer treatments, with the physics and statistics that limit them.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..800,100&family=Hanken+Grotesk:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<style>
+/* Volume XIII identity: a culture plate under the dissecting scope. Paper tinted like phenol-red medium, a deep
+   medium-red accent and a slate-teal for figure labels; Fraunces with its soft axis for headings, Hanken Grotesk
+   for reading, DM Mono for data. */
+:root {
+  --paper: #F6F2F1; --paper-2: #EDE6E5; --paper-3: #FCFAFA;
+  --grid: #E6DEDD; --rule: #D2C7C6;
+  --ink: #1C1416; --ink-2: #47393C; --ink-3: #75666A;
+  --accent: #A3264B; --signal: #2C6670; --tertiary: #2E9C82;
+  --s1: #1D4A9E; --s2: #C64A1C; --s3: #2E9C82;
+  --gel: #D9CFC0;
+  --accent-wash: rgba(163, 38, 75, .07); --signal-wash: rgba(44, 102, 112, .08);
+  --f-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --f-body: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --rail: 178px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #151012; --paper-2: #1C1619; --paper-3: #231C1F;
+    --grid: #2A2226; --rule: #3D3237;
+    --ink: #F1E9EA; --ink-2: #C5B7BA; --ink-3: #94858A;
+    --accent: #F0809E; --signal: #79C2CB; --tertiary: #35A386;
+    --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+    --gel: #4A4038;
+    --accent-wash: rgba(240, 128, 158, .1); --signal-wash: rgba(121, 194, 203, .1);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #151012; --paper-2: #1C1619; --paper-3: #231C1F;
+  --grid: #2A2226; --rule: #3D3237;
+  --ink: #F1E9EA; --ink-2: #C5B7BA; --ink-3: #94858A;
+  --accent: #F0809E; --signal: #79C2CB; --tertiary: #35A386;
+  --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+  --gel: #4A4038;
+  --accent-wash: rgba(240, 128, 158, .1); --signal-wash: rgba(121, 194, 203, .1);
+}
+body { background: var(--paper); font-size: 1.08rem; }
+.hero { grid-template-columns: 1fr; gap: 22px; }
+.hero h1, .chapter-head .year, .chapter-head h2, .part-head h2, .prose h3, .bench-head h4 { font-family: var(--f-display); font-variation-settings: "SOFT" 100; }
+.hero h1 { font-size: clamp(3.4rem, 11vw, 7.6rem); font-weight: 700; line-height: .88; letter-spacing: -.04em; margin-top: 10px; }
+.hero h1 i { font-style: italic; font-weight: 500; color: var(--accent); }
+.hero .dek { max-width: 56ch; }
+.chapter-head .year { font-size: clamp(2.6rem, 7vw, 4.4rem); font-weight: 700; line-height: .9; letter-spacing: -.03em; color: var(--accent); }
+.chapter-head h2 { font-size: clamp(1.8rem, 4.2vw, 2.7rem); font-weight: 600; line-height: 1.06; letter-spacing: -.02em; }
+.prose h3 { font-size: var(--t-lg); font-weight: 600; line-height: 1.25; }
+.bench-head h4 { font-weight: 600; font-size: 1.2rem; }
+.rail a { grid-template-columns: 46px 1fr; }
+.rail a .yr { font-size: 11px; }
+.part-head { max-width: var(--measure); padding-top: 64px; display: grid; gap: 4px; }
+.part-head .label { color: var(--accent); }
+.part-head h2 { font-size: var(--t-xl); font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+.hero-bud canvas { width: 100%; display: block; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper-3); }
+.bench canvas.sim { width: 100%; display: block; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper-3); }
+.chart-wrap svg { width: 100%; display: block; }
+b.warn, .warn { color: var(--s2); }
+.callout { max-width: var(--measure); border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; display: grid; gap: 6px; }
+.callout .label { color: var(--accent); }
+.ctl select { font: 400 var(--t-sm)/1.3 var(--f-mono); color: var(--ink); background: var(--paper-3); border: 1px solid var(--rule); border-radius: 4px; padding: 6px 8px; width: 100%; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.table-wrap { overflow-x: auto; max-width: var(--bench); }
+table.compare { border-collapse: collapse; font-size: var(--t-sm); min-width: 640px; width: 100%; }
+table.compare th { font: 500 var(--t-xs)/1.3 var(--f-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px; border-bottom: 1px solid var(--ink-3); vertical-align: bottom; }
+table.compare td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+table.compare td:first-child { font-weight: 600; color: var(--ink); }
+.nocase { text-transform: none; letter-spacing: 0; }
+</style>
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg', 'canvas'] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="brand" href="../../index.html">Learn<b>Anything</b></a>
+  <span class="where">Vol. 13 · Organoids</span>
+  <span class="progress" aria-hidden="true"></span>
+</header>
+
+<div class="module">
+  <nav class="rail" aria-label="Chapters"><ol></ol></nav>
+
+  <main class="content">
+
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="label">Volume 13 · Organs grown from stem cells</p>
+        <h1 id="title">Bud<i>ding</i></h1>
+        <p class="dek">How a single stem cell in a drop of gel grows into a small gut with crypts and villi, how pluripotent cells fold into optic cups and brain tissue, and how these organoids now stand in for patients when doctors choose a drug.</p>
+        <div class="meta">
+          <span class="label">11 chapters</span>
+          <span class="label">8 interactive figures</span>
+          <span class="label">1907 → today</span>
+        </div>
+      </div>
+      <figure class="hero-bud" id="hero-bud" style="margin:0">
+        <canvas role="img" aria-label="A single intestinal stem cell divides into a hollow sphere of cells, which then grows buds; stem cells and Paneth cells gather at the tips of the buds"></canvas>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PROLOGUE -->
+    <section class="chapter" id="prologue" data-year="Pro" data-short="An organ in a gel drop">
+      <div class="chapter-head">
+        <span class="label kicker">Prologue</span>
+        <h2>A small organ in a drop of gel</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Put a single stem cell from the lining of a mouse intestine into a drop of gel, give it three signaling proteins, and in about two weeks it becomes a hollow ball of a few thousand cells with buds growing out of it. Each bud is a crypt, the pocket where the gut's stem cells live, and the hollow center is a gut lumen into which the cells shed their dead. This structure is an <em>organoid</em>.</p>
+        <p>The figure above follows that growth over fourteen days. Nobody arranges the cells. They divide, stick to one another, sense the signals around them, and fold into a shape that resembles the organ they came from. Madeline Lancaster and Jürgen Knoblich proposed a definition in 2014 that most of the field uses: an organoid is a collection of organ-specific cell types that develops from stem cells or organ progenitors and organizes itself, through cell sorting and spatially restricted lineage commitment, in a manner similar to the organ in the body.</p>
+        <p>Organoids come from two kinds of starting cells. <em>Adult stem cells</em>, taken from a biopsy of gut, liver, lung or tumor, give organoids of that one tissue, made of epithelium only. <em>Pluripotent stem cells</em>, either embryonic or reprogrammed from skin or blood, can be led through the steps of embryonic development to make brain, retina, kidney or gut tissue, often with several cell layers. This volume follows both routes, starting with the physics of cells that sort themselves and ending with organoids used to choose treatments for patients.</p>
+      </div>
+      <dl class="defn">
+        <dt>Organoid</dt><dd>A three-dimensional structure grown from stem cells that contains several of an organ's cell types, arranged in part as they are in the organ.</dd>
+        <dt>Spheroid</dt><dd>A ball of aggregated cells, often from a cancer cell line, without the self-organized structure of an organoid.</dd>
+        <dt>Niche</dt><dd>The local environment that keeps a stem cell a stem cell: neighboring cells, matrix, and secreted signals.</dd>
+        <dt>Dome</dt><dd>The drop of basement-membrane gel, set on the bottom of a culture well, in which most organoids grow.</dd>
+      </dl>
+    </section>
+
+    <!-- ===================================================== PART I -->
+    <div class="part-head"><span class="label">Part I</span><h2>Self-organization</h2></div>
+
+    <section class="chapter" id="sorting" data-year="1907" data-short="Cells that sort">
+      <div class="chapter-head">
+        <span class="year">1907</span>
+        <span class="label kicker">Chapter 1 · Cell sorting</span>
+        <h2>Cells that know where to go</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1907 Henry Van Peters Wilson, a zoologist at the University of North Carolina, pressed living sponges through fine silk cloth. The sponge fell apart into single cells and small clumps. Within days the cells crawled together, formed aggregates, and the aggregates rebuilt small functioning sponges.</p>
+        <p>Later embryologists repeated the experiment with vertebrate cells. In the 1950s Aron Moscona dissociated chick embryo organs with trypsin and found that mixed cells from two organs reaggregated and then separated by type. In 1955 Philip Townes and Johannes Holtfreter mixed cells from the three germ layers of amphibian embryos. The cells first formed a random clump, then migrated until each layer was in its proper place: ectoderm outside, mesoderm in the middle, endoderm inside, as in the embryo.</p>
+        <p>Malcolm Steinberg proposed an explanation in 1963, the <em>differential adhesion hypothesis</em>. Cells that stick to one another with different strengths behave like immiscible liquids such as oil and water. The aggregate moves toward the arrangement with the lowest total interfacial energy, so the most cohesive cells end up inside and the least cohesive cells cover them. Steinberg later showed that aggregates of embryonic tissues have measurable surface tensions and that the tissue with the higher tension is always the one enveloped.</p>
+        <h3>A model of sorting</h3>
+        <p>In 1992 François Graner and James Glazier turned the hypothesis into a simulation, now called the <em>cellular Potts model</em>. Space is a grid of pixels. Each cell owns a patch of pixels, and the energy of a configuration is the sum of contact energies along every boundary between different cells plus a penalty for cells that drift away from their preferred area:</p>
+        <div class="math-block">\[ H = \sum_{\langle i,j \rangle} J\big(\tau(\sigma_i), \tau(\sigma_j)\big)\,\big(1 - \delta_{\sigma_i \sigma_j}\big) + \lambda \sum_{\text{cells } \sigma} \big(a_\sigma - A\big)^2 . \]</div>
+        <p>Here \(\sigma_i\) is the cell that owns pixel \(i\), \(\tau\) is its type, \(J\) is the energy per unit of boundary between two types (low means sticky), and \(a_\sigma\) is the cell's current area. At each step, a random pixel tries to copy the owner of a random neighbor. The copy is accepted if it lowers the energy, and with probability \(e^{-\Delta H / T}\) if it raises it, where \(T\) stands for the random motility of the cells. Steinberg's rule falls out of the energies. Dark cells sort to the inside when \(J_{dd} \lt J_{dl} \lt J_{ll}\), and the two types mix when the heterotypic boundary is cheaper than the average of the two homotypic ones, \(J_{dl} \lt (J_{dd} + J_{ll})/2\).</p>
+      </div>
+
+      <figure class="bench" id="fig-cpm">
+        <div class="bench-head"><span class="fig">Fig. 1.1</span><span class="label">Interactive</span><h4>Sorting by differential adhesion</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="cp-j"><span>Dark–light contact energy <span class="nocase">J<sub>dl</sub></span></span> <output></output></label><input type="range" id="cp-j" min="1" max="20" step="1" value="11"></div>
+          <div class="ctl"><label for="cp-t"><span>Cell motility <span class="nocase">T</span></span> <output></output></label><input type="range" id="cp-t" min="2" max="20" step="1" value="8"></div>
+          <div class="ctl"><span class="label">Run</span><div class="chips"><button class="chip" id="cp-reset" type="button">Mix again</button><button class="chip" id="cp-play" type="button" aria-pressed="true">Pause</button></div></div>
+        </div>
+        <div class="stage">
+          <canvas class="sim cpm-cv" role="img" aria-label="A lattice of dark and light cells in an aggregate, rearranging over time"></canvas>
+          <div class="chart-wrap"><svg class="cpm-chart" role="img" aria-label="Share of dark cell boundary that touches light cells, over Monte Carlo steps"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">An aggregate of about 355 cells, half dark and half light, each about 20 pixels in area, starting fully mixed. The contact energies follow Graner and Glazier (1992): dark–dark 2, light–light 14, and both types against the surrounding medium 16. With the default dark–light energy of 11, between the two homotypic values, the dark cells gather into clusters that drift inward while light cells cover the outside, and the share of dark boundary touching light falls from about 45% to 15%. Lower it below 8, the average of 2 and 14, and the cells prefer unlike neighbors and stay mixed. Raise it above 16, the cost of touching the medium, and the two types pull apart faster still. Two thousand steps show the direction of the rearrangement, not its endpoint; full engulfment takes far longer. The chart tracks the share of dark-cell boundary that touches light cells, which falls as the cells sort. Simulated; one Monte Carlo step is one copy attempt per pixel.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>Differential adhesion is not the whole story. Cortical tension inside each cell, set by actin and myosin, matters at least as much as adhesion molecules, and later work recast Steinberg's surface tension as a balance between the two. But the lesson that carries into organoid culture is the one the model shows: a mix of the right cell types, given time and freedom to move, finds its own arrangement.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="spheroids" data-year="1971" data-short="Spheroids and gels">
+      <div class="chapter-head">
+        <span class="year">1971</span>
+        <span class="label kicker">Chapter 2 · Three dimensions</span>
+        <h2>Spheroids, gels, and the problem of breathing</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Most cell biology of the twentieth century was done on flat plastic. Cells spread out on it in a single layer, lose their shape and polarity, and stop doing much of what they do in the body. Three developments in the 1970s and 1980s pushed culture back into three dimensions.</p>
+        <p>In 1971 Robert Sutherland, J. A. McCredie and W. R. Inch grew cancer cells as free-floating balls, <em>multicellular spheroids</em>, as a model of small tumor nodules. Spheroids grew to a few hundred micrometers across and then developed a dead center surrounded by a shell of living cells, just as poorly vascularized tumors do. The cause was supply by diffusion alone.</p>
+        <p>In 1975 James Rheinwald and Howard Green found that human skin keratinocytes, grown on a layer of irradiated mouse fibroblasts, formed stratified sheets resembling epidermis. The method was soon used to grow skin grafts for burn patients. It showed that adult human stem cells could be expanded in culture for long periods if given the right neighbors.</p>
+        <p>The third development was a gel. A mouse tumor, the Engelbreth-Holm-Swarm sarcoma, secretes large amounts of basement membrane, the thin sheet of matrix on which every epithelium sits. In the early 1980s Hynda Kleinman and colleagues at the US National Institutes of Health extracted it as a liquid that sets into a gel at body temperature, later sold as Matrigel. It is mostly laminin and type IV collagen. Mina Bissell's laboratory at Berkeley showed in 1989 that mouse mammary cells embedded in it formed hollow spheres that secreted milk proteins into their centers, which they did not do on plastic. Matrix, Bissell argued, is a signal in its own right.</p>
+        <h3>How large can a ball of cells grow?</h3>
+        <p>A spheroid or organoid with no blood vessels receives oxygen only by diffusion from the medium. If cells consume oxygen at a constant rate \(Q\) per unit volume, the steady concentration \(C(r)\) in a sphere of radius \(R\) obeys</p>
+        <div class="math-block">\[ D\,\frac{1}{r^{2}}\frac{d}{dr}\!\left(r^{2}\frac{dC}{dr}\right) = Q, \qquad C(R) = C_0, \]</div>
+        <p>whose solution is a parabola, \(C(r) = C_0 - \frac{Q}{6D}(R^2 - r^2)\). The center runs out of oxygen when the radius exceeds</p>
+        <div class="math-block">\[ R^{*} = \sqrt{\frac{6\,D\,C_0}{Q}} . \]</div>
+        <p>Beyond that radius an anoxic core forms whose edge \(r_0\) satisfies \(C_0 = \frac{Q}{6D}\big(R^2 - 3r_0^2 + 2r_0^3/R\big)\), and cells are already short of oxygen wherever the concentration falls below a hypoxic threshold. The radius grows only as the square root of the oxygen supply, so doubling the oxygen in the incubator buys about 40% more radius.</p>
+      </div>
+
+      <figure class="bench" id="fig-oxygen">
+        <div class="bench-head"><span class="fig">Fig. 2.1</span><span class="label">Interactive</span><h4>Oxygen inside an organoid</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="ox-r">Organoid radius <output></output></label><input type="range" id="ox-r" min="50" max="1200" step="10" value="500"></div>
+          <div class="ctl"><label for="ox-q">Oxygen use per volume <output></output></label><input type="range" id="ox-q" min="1" max="30" step="0.1" value="6.9"></div>
+          <div class="ctl"><label for="ox-o">Oxygen in the gas phase <output></output></label><input type="range" id="ox-o" min="2" max="40" step="1" value="21"></div>
+        </div>
+        <div class="stage">
+          <canvas class="sim oxy-cv" role="img" aria-label="Cross-section of the organoid shaded by oxygen concentration, with the hypoxic and anoxic zones marked"></canvas>
+          <div class="chart-wrap"><svg class="oxy-chart" role="img" aria-label="Oxygen concentration across the organoid from edge to edge"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Steady-state oxygen in a spherical organoid with no vessels, consuming oxygen at a constant rate until none is left. Parameters follow a published model of brain organoids (Magliaro et al., 2019): oxygen diffusivity in tissue 1.07×10⁻⁹ m²/s, 0.2 mol/m³ dissolved at the surface when the gas phase is 21% oxygen, a default use of 6.9×10⁻³ mol/m³/s (2.75×10⁻¹⁷ mol per cell per second at 2.5×10¹⁴ cells/m³), and a hypoxic threshold of 0.04 mol/m³. With these numbers the largest radius with oxygen everywhere is about 430 µm, so the default organoid of 500 µm already has a small anoxic center. Brain organoids commonly reach 1 mm or more, where most of the volume is dead. Raise the gas phase to 40% oxygen, as some protocols do, and the limit moves out by about 40%. The model ignores the unstirred medium and gel around the organoid, which lower the surface concentration further.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>The same years brought the cells that would later be grown in these gels. Martin Evans and Matthew Kaufman, and separately Gail Martin, isolated mouse embryonic stem cells in 1981. James Thomson derived human embryonic stem cells in 1998. In 2006 Kazutoshi Takahashi and Shinya Yamanaka reprogrammed mouse fibroblasts into pluripotent cells with four transcription factors, and in 2007 they did the same with human cells. Any person's skin or blood could now be turned into cells able to make any tissue.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== PART II -->
+    <div class="part-head"><span class="label">Part II</span><h2>Two routes to an organoid</h2></div>
+
+    <section class="chapter" id="crypt" data-year="2009" data-short="A gut from one cell">
+      <div class="chapter-head">
+        <span class="year">2009</span>
+        <span class="label kicker">Chapter 3 · Adult stem cells</span>
+        <h2>A gut from one cell</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The lining of the small intestine is replaced every four to five days. Finger-like villi project into the gut, and between them, pockets called crypts hold the stem cells that resupply them. In 2007 Nick Barker, Hans Clevers and colleagues at the Hubrecht Institute in Utrecht showed that a gene called <em>Lgr5</em> marks those stem cells: small, slender cells wedged between Paneth cells at the bottom of each crypt. When they labeled Lgr5 cells genetically, the label spread over months to every cell type of the epithelium.</p>
+        <p>In 2009 Toshiro Sato, a postdoctoral fellow in Clevers's laboratory, sorted single Lgr5 cells into Matrigel with three proteins: epidermal growth factor (EGF), which drives proliferation; R-spondin 1, which amplifies the Wnt signal that keeps stem cells as stem cells; and Noggin, which blocks the BMP signal that pushes cells toward differentiation. The single cells grew into organoids with crypt-like buds and villus-like domains, containing every cell type of the intestinal epithelium, without any of the connective tissue thought to form the niche. The organoids could be split and passaged for more than a year and remained genetically stable.</p>
+        <p>Two years later the same group found that Paneth cells, which sit beside the stem cells, supply them with Wnt3 and EGF. The organoid carries its own niche in its buds. Human intestinal organoids needed a few more factors, including Wnt3a and inhibitors of the TGF-β and p38 pathways, and were reported in 2011. Within a few years the recipe had been adapted to stomach, colon, liver, pancreas, prostate, lung and breast, and to the tumors of each.</p>
+        <h3>Neutral competition</h3>
+        <p>Each crypt base holds roughly fourteen Lgr5 cells, and each divides about once a day. Yet a crypt does not grow. In 2010 Hugo Snippert and colleagues labeled single stem cells in four random colors with a reporter called Confetti and watched what happened to the colors over months. Crypts that started with several colors gradually lost all but one. They concluded that stem cells mostly divide symmetrically, that a daughter is pushed out of the niche at random, and that clones win or lose by chance, a process called <em>neutral drift</em>. Carla Lopez-Garcia, Douglas Winton and colleagues reached the same conclusion the same year by a different route. Arranged around the crypt base, the stem cells behave like a ring in which a dividing cell replaces one of its neighbors.</p>
+        <p>How many cells are in that ring is disputed. Counting Lgr5 cells gives about fourteen, but fitting the drift model to clone sizes gives fewer: Kozar, Winton and colleagues estimated in 2013 that only five to seven of them function as stem cells at any time, with the rest able to take over if one is lost.</p>
+      </div>
+
+      <figure class="bench" id="fig-drift">
+        <div class="bench-head"><span class="fig">Fig. 3.1</span><span class="label">Interactive</span><h4>Neutral drift in the crypt</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="dr-n">Stem cells per crypt <output></output></label><input type="range" id="dr-n" min="4" max="24" step="1" value="14"></div>
+          <div class="ctl"><label for="dr-k">Replacements per stem cell per day <output></output></label><input type="range" id="dr-k" min="0.1" max="1" step="0.05" value="0.3"></div>
+          <div class="ctl"><span class="label">Run</span><div class="chips"><button class="chip" id="dr-reset" type="button">Relabel</button><button class="chip" id="dr-play" type="button" aria-pressed="true">Pause</button></div></div>
+        </div>
+        <div class="stage">
+          <canvas class="sim drift-cv" role="img" aria-label="Twenty-four crypts seen from below, each a ring of stem cells in four colors"></canvas>
+          <div class="chart-wrap"><svg class="drift-chart" role="img" aria-label="Share of crypts that have become a single color, over days"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Twenty-four crypts, each a ring of stem cells labeled at random in four colors on day 0. At random times each cell divides and its daughter replaces one of its two neighbors, so colored patches grow and shrink like random walks until one color holds the whole ring. The chart shows the share of crypts that have become a single color in this run (solid) and the average of 400 runs with the same settings (dashed). With fourteen cells and a replacement every three days, crypts become single-colored over roughly one to six months, the range Snippert and colleagues observed; with the five to seven functioning cells that Kozar and colleagues estimated, it takes weeks. The time scales roughly with the square of the number of stem cells. Simulated.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>Neutral drift has a consequence for cancer. A mutation that arises in one stem cell usually disappears by chance. A mutation that makes a cell slightly more likely to replace its neighbors, such as loss of the <em>APC</em> gene, gives its clone a head start in this lottery, and once a crypt is taken over the mutation is fixed in it. Organoid culture made it possible to watch these competitions directly, in a dish.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="pluripotent" data-year="2008" data-short="From pluripotent cells">
+      <div class="chapter-head">
+        <span class="year">2008</span>
+        <span class="label kicker">Chapter 4 · Pluripotent stem cells</span>
+        <h2>Eyes, brains and kidneys from scratch</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">At the RIKEN Center for Developmental Biology in Kobe, Yoshiki Sasai's group grew mouse and human embryonic stem cells as floating aggregates in serum-free medium. In 2008 Mototsugu Eiraku and colleagues in the group reported that these aggregates formed layered cortical tissue on their own. In 2011 the group showed something more striking. Aggregates of mouse stem cells budded out vesicles that folded inward into two-walled optic cups, with neural retina on the inside and pigment epithelium outside, the same shape the eye takes in the embryo. Human optic cups followed in 2012.</p>
+        <p>Other organs followed quickly. In 2011 Jason Spence, James Wells and colleagues in Cincinnati led human pluripotent cells through endoderm and hindgut stages with activin A, FGF4 and Wnt3a. Small spheres budded off the culture and, embedded in Matrigel with the Sato factors, grew into intestinal organoids with both epithelium and surrounding mesenchyme. In 2013 Madeline Lancaster and Jürgen Knoblich in Vienna grew <em>cerebral organoids</em> up to about 4 mm across in spinning bioreactors, with distinct regions resembling forebrain, retina and choroid plexus. The same year Takanori Takebe and colleagues in Yokohama mixed hepatic cells with endothelial and mesenchymal cells and grew liver buds that connected to the host's blood vessels after transplantation into mice. Kidney organoids with nephrons, collecting ducts and blood vessel cells came from Minoru Takasato and Melissa Little in 2015.</p>
+        <h3>Recapitulating the embryo</h3>
+        <p>All of these protocols work by giving cells the signals they would meet in the embryo, in the same order. In the embryo, much of that order comes from <em>morphogens</em>, signaling molecules that spread from a source and are degraded as they go. Lewis Wolpert framed the idea in 1969 as the French flag problem: how can a line of cells form three stripes in fixed proportions? A morphogen made at one end, diffusing with coefficient \(D\) and degraded at rate \(k\), settles into an exponential gradient,</p>
+        <div class="math-block">\[ c(x) = c_0\, e^{-x/\lambda}, \qquad \lambda = \sqrt{D/k}, \]</div>
+        <p>and cells read their position by comparing the local concentration with thresholds. A boundary forms where \(c(x) = \theta\), at \(x_\theta = \lambda \ln(c_0/\theta)\). If the source strength \(c_0\) varies from one embryo or organoid to the next by a fraction \(\delta\), the boundary moves by about \(\lambda\,\delta\), whatever the threshold. A short gradient is precise; a long one tolerates noise poorly. This is one reason organoids, which lack the embryo's precisely placed sources, vary so much in their regional makeup.</p>
+      </div>
+
+      <figure class="bench" id="fig-gradient">
+        <div class="bench-head"><span class="fig">Fig. 4.1</span><span class="label">Interactive</span><h4>Reading position from a morphogen gradient</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="gr-l"><span>Decay length <span class="nocase">λ</span></span> <output></output></label><input type="range" id="gr-l" min="20" max="200" step="5" value="60"></div>
+          <div class="ctl"><label for="gr-n">Source variation between samples <output></output></label><input type="range" id="gr-n" min="0" max="0.6" step="0.02" value="0.2"></div>
+          <div class="ctl"><label for="gr-t">Cell-to-cell noise in reading <output></output></label><input type="range" id="gr-t" min="0" max="0.4" step="0.02" value="0.08"></div>
+        </div>
+        <div class="chart-wrap"><svg class="grad-chart" role="img" aria-label="Morphogen concentration against distance for many samples, with two thresholds"></svg></div>
+        <div class="chart-wrap"><svg class="grad-flags" role="img" aria-label="Rows of cells colored by the fate they read from the gradient, one row per sample"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Top: the morphogen profile in 16 samples over a 300 µm field, each with a source strength that varies log-normally by the chosen amount, and the two thresholds that divide three fates. Bottom: each row is one sample's line of cells, colored by the fate each cell reads, with independent noise in each cell's reading. Shorten the decay length and the boundaries line up from row to row; lengthen it and the same source variation scatters them, and with cell-to-cell noise the boundaries also become ragged. The readout compares the measured scatter of the first boundary with \(\lambda\,\delta\). Simulated with arbitrary concentration units.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>Organoids reproduce some of the embryo's patterning on their own, through local sources that appear by chance. In 2014 Susanne van den Brink, Alfonso Martinez Arias and colleagues found that small aggregates of mouse stem cells given one pulse of a Wnt activator broke symmetry and elongated along an axis; these <em>gastruloids</em> later formed segments resembling somites. Engineers now place morphogen sources deliberately, with beads, microfluidic channels or light-controlled genes, to impose the gradients that free-floating organoids lack.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== PART III -->
+    <div class="part-head"><span class="label">Part III</span><h2>Organoids as patients</h2></div>
+
+    <section class="chapter" id="cf" data-year="2013" data-short="Cystic fibrosis">
+      <div class="chapter-head">
+        <span class="year">2013</span>
+        <span class="label kicker">Chapter 5 · Cystic fibrosis</span>
+        <h2>A swelling test</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Cystic fibrosis is caused by mutations in <em>CFTR</em>, a chloride channel in the surface of epithelial cells. Without chloride flow, water does not follow, and mucus in the lungs, pancreas and gut becomes thick and sticky. More than two thousand <em>CFTR</em> variants are known. Drugs called CFTR modulators help some of them: potentiators such as ivacaftor hold a channel open longer, and correctors help a misfolded channel reach the cell surface. For a patient with a rare variant, there is often no clinical trial to say whether a modulator will work.</p>
+        <p>In 2013 Johanna Dekkers, Jeffrey Beekman, Hans Clevers and colleagues in Utrecht grew organoids from small rectal biopsies of people with cystic fibrosis. Healthy intestinal organoids form a closed sphere with the gut surface facing inward. When the researchers added forskolin, which raises cAMP and opens CFTR, healthy organoids pumped chloride and water into their lumens and swelled visibly within minutes. Organoids from patients barely swelled. Adding a modulator restored swelling in proportion to how well it rescued the channel.</p>
+        <p>Swelling is measured as the increase in organoid cross-sectional area over an hour, summarized as the area under the curve. A simple model captures it. Fluid enters at a rate proportional to the epithelial surface area \(S\) and to the CFTR activity \(f\) (as a fraction of normal), so the volume grows as \(dV/dt = k f S\). For a sphere, \(S \propto V^{2/3}\), and the radius therefore grows linearly in time, \(dR/dt = k f\), until the wall is stretched to its limit.</p>
+      </div>
+
+      <figure class="bench" id="fig-fis">
+        <div class="bench-head"><span class="fig">Fig. 5.1</span><span class="label">Interactive</span><h4>Forskolin-induced swelling</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="fs-g">Genotype</label>
+            <select id="fs-g">
+              <option value="wt">Healthy control</option>
+              <option value="f508">F508del / F508del</option>
+              <option value="g551">G551D / F508del</option>
+              <option value="rare" selected>Rare variant with residual function</option>
+              <option value="none0">Two nonsense variants (no protein)</option>
+            </select>
+          </div>
+          <div class="ctl"><label for="fs-d">Treatment</label>
+            <select id="fs-d">
+              <option value="none">None</option>
+              <option value="iva">Potentiator (ivacaftor)</option>
+              <option value="corr">Corrector (lumacaftor)</option>
+              <option value="combo" selected>Corrector + potentiator</option>
+            </select>
+          </div>
+          <div class="ctl"><label for="fs-f">Forskolin <output></output></label><input type="range" id="fs-f" min="0.008" max="5" step="0.001" value="0.128"></div>
+        </div>
+        <div class="stage">
+          <canvas class="sim fis-cv" role="img" aria-label="Organoids at the start and end of an hour of forskolin stimulation"></canvas>
+          <div class="chart-wrap"><svg class="fis-chart" role="img" aria-label="Organoid area relative to the start over 60 minutes, for untreated and treated organoids"></svg></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: a field of organoids at time zero (outline) and after 60 minutes (filled). Right: mean area relative to the start, untreated (dashed) and with the chosen treatment (solid). The model sets a CFTR activity for each genotype and drug, scales it by a forskolin dose–response curve (half-maximal at 0.1 µM), and grows each organoid's radius at a rate proportional to the activity, with the wall stretching no further than 2.2 times its starting area. The activities are illustrative: F508del is mostly misfolded, so a potentiator alone does little and a corrector is needed; G551D reaches the surface but rarely opens, so a potentiator helps most. The swelling assay is usually read at a low forskolin dose, such as 0.128 µM, where differences in residual function show best; at 5 µM even weak channels swell their organoids fully.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>In 2016 the Utrecht group reported that swelling of a patient's organoids under a modulator correlated with that patient's improvement in lung function and sweat chloride. In 2019 Gitte Berkers and colleagues measured organoids from 97 people with cystic fibrosis and used the test to select patients with rare variants who then responded to ivacaftor in the clinic. Dutch health insurers funded a trial to judge whether the test could decide which patients receive modulators, a rare case of an organoid assay entering reimbursement decisions.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="cancer" data-year="2015" data-short="Tumor organoids">
+      <div class="chapter-head">
+        <span class="year">2015</span>
+        <span class="label kicker">Chapter 6 · Cancer</span>
+        <h2>Tumors in a dish</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Cancer cell lines, grown on plastic for decades, have drifted far from the tumors they came from. In 2015 Marc van de Wetering and colleagues at the Hubrecht Institute grew organoids from the colorectal tumors of 20 patients alongside organoids from each patient's normal colon. The tumor organoids kept the mutations of the original tumors, and they could be screened against panels of drugs, linking each tumor's mutations to the drugs it resisted. This was the first <em>living biobank</em>; similar ones followed for pancreas, breast, liver, bladder and other cancers.</p>
+        <p>Organoids also let researchers build a tumor step by step. The same year, Jarno Drost and colleagues in Utrecht, and Mami Matano, Toshiro Sato and colleagues in Tokyo, used CRISPR to mutate the four genes most often hit in colorectal cancer, <em>APC</em>, <em>KRAS</em>, <em>TP53</em> and <em>SMAD4</em>, in normal human colon organoids. Each mutation removes the need for one factor in the medium. <em>APC</em> loss switches on the Wnt pathway inside the cell, so the organoid no longer needs Wnt or R-spondin. Activating <em>KRAS</em> makes EGF unnecessary. Losing <em>SMAD4</em> blinds the cell to BMP, so Noggin is no longer needed. Losing <em>TP53</em> lets cells survive nutlin-3, a drug that activates p53. Withdrawing a factor therefore selects for the cells carrying the matching mutation. Quadruple mutants grew without any niche factor and formed invasive tumors when transplanted into mice.</p>
+      </div>
+
+      <figure class="bench" id="fig-select">
+        <div class="bench-head"><span class="fig">Fig. 6.1</span><span class="label">Interactive</span><h4>Selecting engineered organoids by withdrawing niche factors</h4></div>
+        <div class="controls">
+          <div class="ctl"><span class="label">Medium</span><div class="chips" id="se-med">
+            <button class="chip" type="button" data-f="wnt" aria-pressed="false">Wnt + R-spondin</button>
+            <button class="chip" type="button" data-f="egf" aria-pressed="true">EGF</button>
+            <button class="chip" type="button" data-f="nog" aria-pressed="true">Noggin</button>
+            <button class="chip" type="button" data-f="nut" aria-pressed="true">Nutlin-3</button>
+          </div></div>
+          <div class="ctl"><label for="se-e">Editing efficiency per gene <output></output></label><input type="range" id="se-e" min="0.02" max="0.5" step="0.01" value="0.15"></div>
+          <div class="ctl"><label for="se-p">Passages <output></output></label><input type="range" id="se-p" min="0" max="8" step="1" value="4"></div>
+        </div>
+        <div class="chart-wrap"><svg class="sel-chart" role="img" aria-label="Share of organoids carrying each number of mutations, over passages"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">A culture of normal colon organoids is edited at four genes at once, each with the chosen efficiency, so that the starting population holds every combination of mutations at the frequencies chance gives. At each passage an organoid grows 3-fold if it has every factor its genotype needs, and dies back to a tenth if it lacks one. The chart shows the share of the culture carrying 0 to 4 of the mutations; the readout lists the genotypes that can survive the medium. It opens with Wnt and R-spondin withdrawn and nutlin-3 added, which selects for cells that have lost both APC and TP53. Remove all three factors and add nutlin-3, the sequence Drost and colleagues used, and only quadruple mutants remain. The growth rates are illustrative; the mapping from mutation to factor follows Drost et al. (2015) and Matano et al. (2015).</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>Predicting a patient's response</h3>
+        <p>The clinical question is whether a patient's tumor organoids respond to drugs the way the patient does. In 2018 Georgios Vlachogiannis, Nicola Valeri and colleagues at the Institute of Cancer Research in London grew organoids from 110 biopsies of 71 patients with metastatic gastrointestinal cancers. Where they could compare the organoid's drug response with the patient's, the organoid test had a positive predictive value of 88% and a negative predictive value of 100%. When the organoid resisted a drug, the patient's tumor did too.</p>
+        <p>Those two numbers depend on more than the test. The positive predictive value is the share of patients called sensitive who really respond,</p>
+        <div class="math-block">\[ \text{PPV} = \frac{\text{sens}\cdot p}{\text{sens}\cdot p + (1-\text{spec})(1-p)}, \qquad \text{NPV} = \frac{\text{spec}\,(1-p)}{\text{spec}\,(1-p) + (1-\text{sens})\,p}, \]</div>
+        <p>where \(p\) is the share of patients who respond. A drug that few patients respond to gives a high NPV almost automatically, and the cohorts of early organoid studies were small.</p>
+      </div>
+
+      <figure class="bench" id="fig-predict">
+        <div class="bench-head"><span class="fig">Fig. 6.2</span><span class="label">Interactive</span><h4>Does the organoid predict the patient?</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="pr-c">How closely organoid and patient agree <output></output></label><input type="range" id="pr-c" min="0" max="0.95" step="0.05" value="0.7"></div>
+          <div class="ctl"><label for="pr-p">Share of patients who respond <output></output></label><input type="range" id="pr-p" min="0.05" max="0.7" step="0.01" value="0.25"></div>
+          <div class="ctl"><label for="pr-t">Organoid cutoff (viability AUC) <output></output></label><input type="range" id="pr-t" min="0.2" max="0.9" step="0.01" value="0.55"></div>
+        </div>
+        <div class="chart-wrap"><svg class="pred-chart" role="img" aria-label="Organoid drug response for each patient, colored by the patient's clinical response, with a cutoff line"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Sixty simulated patients. Each has a hidden tumor sensitivity; the patient responds if it is high enough, and the organoid's viability under the drug (area under the dose–response curve, lower means more killed) reflects the same sensitivity with an amount of agreement you choose. Organoids below the cutoff are called sensitive. Blue dots are patients who responded, vermilion dots those who did not. With few responders, NPV stays high even when agreement is poor, while PPV collapses. Hover a dot for its values. Illustrative data; the 88% and 100% in the text come from the smaller set of patients in Vlachogiannis et al. (2018) whose organoid and clinical responses could both be compared.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <p>Organoids take weeks to establish, and not every biopsy grows. Success rates differ by tumor type, from above 70% for colorectal cancer to much lower for others, and normal cells in the biopsy can outgrow the tumor cells. Several prospective trials now test whether choosing treatment by organoid response improves outcomes; the early evidence is mixed, and it remains an open question.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="disease" data-year="2016" data-short="Disease and infection">
+      <div class="chapter-head">
+        <span class="year">2016</span>
+        <span class="label kicker">Chapter 7 · Disease models</span>
+        <h2>A brain in a dish, and its limits</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Lancaster and Knoblich's first cerebral organoids already modeled a disease. They grew organoids from the cells of a patient with microcephaly, a severely small brain, caused by a mutation in <em>CDK5RAP2</em>. The organoids were smaller, because their progenitor cells stopped dividing and turned into neurons too early. Mice with the same mutation have nearly normal brains; the human outer layers of progenitors that the mutation depletes barely exist in mice.</p>
+        <p>In early 2016, during the Zika epidemic in Brazil, several groups infected brain organoids with the virus. Xuyu Qian, Hongjun Song, Guo-li Ming and colleagues at Johns Hopkins, and Patricia Garcez, Stevens Rehen and colleagues in Rio de Janeiro, found that Zika preferentially infected and killed neural progenitor cells and shrank the organoids, connecting the virus to the epidemic of microcephaly within months. In 2020 Mart Lamers and colleagues showed that SARS-CoV-2 infects human intestinal organoids, explaining the gut symptoms of COVID-19. Organoids from human cells answered questions that animals with different receptors could not.</p>
+        <h3>Variation</h3>
+        <p>Organoids also vary, from one organoid to the next, from batch to batch, and from one stem cell line to another. In 2019 Silvia Velasco, Paola Arlotta and colleagues showed that a dorsal forebrain protocol could produce organoids with nearly the same set of cell types as one another, about as consistent as individual brains. In 2020 Aparna Bhaduri, Arnold Kriegstein and colleagues found that cortical organoids show signs of cellular stress and fail to specify neuron subtypes as precisely as the developing brain does.</p>
+        <p>Variation matters most when designing an experiment. Organoids from the same batch share their differentiation run and resemble each other. If measurements within a batch are correlated with intraclass correlation \(\rho\), then \(m\) organoids from one batch carry the information of only</p>
+        <div class="math-block">\[ m_{\text{eff}} = \frac{m}{1 + (m-1)\,\rho} \]</div>
+        <p>independent ones. As \(m\) grows, this approaches \(1/\rho\): a batch never counts for more than that, however many organoids are imaged. The ratio \(1 + (m-1)\rho\) is the <em>design effect</em> of survey statistics.</p>
+      </div>
+
+      <figure class="bench" id="fig-power">
+        <div class="bench-head"><span class="fig">Fig. 7.1</span><span class="label">Interactive</span><h4>Organoids, batches and statistical power</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="pw-b">Batches per condition <output></output></label><input type="range" id="pw-b" min="2" max="12" step="1" value="6"></div>
+          <div class="ctl"><label for="pw-m">Organoids measured per batch <output></output></label><input type="range" id="pw-m" min="1" max="60" step="1" value="20"></div>
+          <div class="ctl"><label for="pw-r"><span>Batch correlation <span class="nocase">ρ</span></span> <output></output></label><input type="range" id="pw-r" min="0" max="0.8" step="0.01" value="0.3"></div>
+          <div class="ctl"><label for="pw-d"><span>True effect, in <span class="nocase">SD</span></span> <output></output></label><input type="range" id="pw-d" min="0.1" max="2" step="0.05" value="0.8"></div>
+        </div>
+        <div class="chart-wrap"><svg class="pw-chart" role="img" aria-label="Statistical power against organoids per batch for the chosen number of batches, compared with ignoring the batches"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Power to detect a difference between a mutant and a control, each grown in the chosen number of batches, with the total variance split between batches (ρ) and organoids within a batch (1 − ρ). The solid curve analyzes batch means correctly, with a t-test on batches; the dashed curve counts every organoid as independent, which overstates power and, in real data, inflates false positives. Adding organoids per batch soon stops helping, because the batch itself is what is being measured, and the solid curve flattens against a ceiling; adding batches keeps helping. Computed from the noncentral t distribution, with the effective sample size above.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="beyond" data-year="2017" data-short="Assembloids and chips">
+      <div class="chapter-head">
+        <span class="year">2017</span>
+        <span class="label kicker">Chapter 8 · Beyond one organoid</span>
+        <h2>Assembloids, chips, transplants and embryo models</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">An organoid lacks most of what surrounds an organ: blood vessels, immune cells, nerves, mechanical forces, and the other organs it talks to. Much current work tries to add them back.</p>
+        <p><em>Assembloids</em> join organoids of different regions. In 2017 Fikri Birey, Sergiu Pașca and colleagues at Stanford fused an organoid of the dorsal forebrain with one of the ventral forebrain. Inhibitory interneurons migrated from the ventral part into the dorsal part, as they do in the fetal brain, and the migration was abnormal in cells from patients with Timothy syndrome. Later assembloids connected cortex to spinal cord and muscle, forming a circuit in which stimulating cortical neurons made muscle contract.</p>
+        <p><em>Organs-on-chips</em> grow cells in microfluidic channels where fluid flows and tissue can be stretched. In 2010 Dongeun Huh, Donald Ingber and colleagues at Harvard's Wyss Institute built a lung-on-a-chip: lung epithelium and capillary endothelium on either side of a porous membrane, stretched rhythmically to imitate breathing. Chips and organoids are now often combined, with organoid-derived cells seeded in perfused channels.</p>
+        <p><em>Transplantation</em> provides vessels and an environment that no dish can. In 2022 Omer Revah, Sergiu Pașca and colleagues transplanted human cortical organoids into the brains of newborn rats. The human neurons grew larger and more mature than in a dish, received input from the rat's sensory pathways, and could influence the rat's reward-seeking behavior.</p>
+        <p><em>Embryo models</em> push self-organization furthest. In 2018 Nicolas Rivron and colleagues assembled mouse stem cells into <em>blastoids</em>, structures resembling the early embryo before implantation, and in 2021 several groups made human blastoids. These raise ethical questions that tissue organoids do not. The International Society for Stem Cell Research revised its guidelines in 2021 to place embryo models under specialized oversight and to prohibit transferring them into a uterus. Brain organoids raise a different question, whether a sufficiently complex one could have any form of experience; current organoids lack the inputs, scale and organization that most researchers think this would require, but bioethicists have asked the field to watch for it.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="now" data-year="Now" data-short="Organoids in practice">
+      <div class="chapter-head">
+        <span class="label kicker">Chapter 9 · Now</span>
+        <h2>Choosing a model</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In December 2022 the FDA Modernization Act 2.0 removed the United States' statutory requirement that new drugs be tested in animals before human trials, allowing cell-based assays and computer models in their place. On 10 April 2025 the FDA published a roadmap to reduce animal testing, starting with monoclonal antibodies, and named organoids and organs-on-chips among the human-based methods it would accept. The agency has not set out which organoid assays will count for which decisions, and validation remains the bottleneck: each assay must show that it predicts human results at least as well as the animal test it replaces.</p>
+        <p>Organoids sit between simpler cultures and whole animals. The table compares them.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="compare">
+          <thead><tr><th>Model</th><th>Human genetics</th><th>Tissue structure</th><th>Vessels, immune cells, other organs</th><th>Time and scale</th><th>Typical use</th></tr></thead>
+          <tbody>
+            <tr><td>2D cell line</td><td>Yes, but drifted over years of culture</td><td>None</td><td>No</td><td>Days; millions of wells</td><td>High-throughput screening, mechanism</td></tr>
+            <tr><td>Spheroid</td><td>Yes</td><td>Aggregate with gradients</td><td>No</td><td>Days; thousands of wells</td><td>Tumor penetration, toxicity</td></tr>
+            <tr><td>Adult stem cell organoid</td><td>The donor's own, stable over passages</td><td>Epithelium with crypts, ducts or glands</td><td>No, unless co-cultured</td><td>1–3 weeks to establish; hundreds to thousands of wells</td><td>Patient-specific drug tests, biobanks, infection, gene editing</td></tr>
+            <tr><td>Pluripotent stem cell organoid</td><td>Any donor, including patients</td><td>Several tissue layers, regional patterning</td><td>Partly; vessels usually absent</td><td>1–6 months; tens to hundreds</td><td>Development, brain and kidney disease</td></tr>
+            <tr><td>Organ-on-chip</td><td>Yes</td><td>Layers at interfaces, with flow and stretch</td><td>Some, by design</td><td>Days to weeks; tens of chips</td><td>Barrier function, toxicity, drug transport</td></tr>
+            <tr><td>Patient-derived xenograft</td><td>Human tumor in a mouse</td><td>Full tumor with mouse stroma</td><td>Mouse vessels, little or no immunity</td><td>Months; tens of mice</td><td>Preclinical efficacy</td></tr>
+            <tr><td>Animal model</td><td>No</td><td>Whole organism</td><td>Yes</td><td>Months to years</td><td>Systemic effects, regulatory safety</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <span class="label">The short version</span>
+        <p>An organoid is the smallest system that has a human genome, more than one cell type, and the tissue's own architecture. Choose it when those three matter to the question. Account for its limits: no blood supply, a size capped by diffusion, a fate set partly by chance, and variation that makes batches, not organoids, the unit of replication.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== glossary -->
+    <section class="chapter" id="glossary" data-year="Ref" data-short="Glossary & sources">
+      <div class="chapter-head">
+        <span class="label kicker">Reference</span>
+        <h2>Glossary</h2>
+      </div>
+      <dl class="glossary">
+        <dt>Assembloid</dt><dd>Two or more organoids of different regions or tissues fused so their cells interact.</dd>
+        <dt>Basement membrane extract</dt><dd>A gel of laminin and type IV collagen, such as Matrigel, used to embed organoids.</dd>
+        <dt>Blastoid</dt><dd>A stem-cell-derived model of the blastocyst, the embryo before implantation.</dd>
+        <dt>CFTR</dt><dd>The chloride channel mutated in cystic fibrosis.</dd>
+        <dt>Crypt</dt><dd>A pocket in the intestinal lining holding stem cells and Paneth cells.</dd>
+        <dt>Design effect</dt><dd>The factor by which clustering of measurements inflates the variance of an estimate.</dd>
+        <dt>Differential adhesion hypothesis</dt><dd>Steinberg's proposal that cells sort like immiscible liquids according to their adhesive strengths.</dd>
+        <dt>Forskolin-induced swelling</dt><dd>An assay in which CFTR activity drives fluid into organoid lumens, measured as an increase in area.</dd>
+        <dt>Lgr5</dt><dd>A receptor for R-spondin that marks adult stem cells in the intestine and other epithelia.</dd>
+        <dt>Morphogen</dt><dd>A signaling molecule whose concentration tells cells their position.</dd>
+        <dt>Neutral drift</dt><dd>Random replacement among equivalent stem cells that ends with one clone filling the niche.</dd>
+        <dt>Paneth cell</dt><dd>A secretory cell at the base of the crypt that provides niche signals to stem cells.</dd>
+        <dt>R-spondin</dt><dd>A secreted protein that amplifies Wnt signaling by binding Lgr5.</dd>
+      </dl>
+
+      <div class="chapter-head" style="margin-top:32px"><h2>Sources</h2></div>
+      <ol class="sources">
+        <li>Lancaster, M. A. &amp; Knoblich, J. A. (2014). Organogenesis in a dish: modeling development and disease using organoid technologies. <em>Science</em> 345; Simian, M. &amp; Bissell, M. J. (2017). Organoids: a historical perspective of thinking in three dimensions. <em>Journal of Cell Biology</em> 216.</li>
+        <li>Wilson, H. V. (1907). A new method by which sponges may be artificially reared. <em>Science</em> 25; Townes, P. L. &amp; Holtfreter, J. (1955). Directed movements and selective adhesion of embryonic amphibian cells. <em>Journal of Experimental Zoology</em> 128.</li>
+        <li>Steinberg, M. S. (1963). Reconstruction of tissues by dissociated cells. <em>Science</em> 141; Foty, R. A. &amp; Steinberg, M. S. (2005). The differential adhesion hypothesis: a direct evaluation. <em>Developmental Biology</em> 278.</li>
+        <li>Graner, F. &amp; Glazier, J. A. (1992). Simulation of biological cell sorting using a two-dimensional extended Potts model. <em>Physical Review Letters</em> 69.</li>
+        <li>Sutherland, R. M., McCredie, J. A. &amp; Inch, W. R. (1971). Growth of multicell spheroids in tissue culture as a model of nodular carcinomas. <em>Journal of the National Cancer Institute</em> 46.</li>
+        <li>Rheinwald, J. G. &amp; Green, H. (1975). Serial cultivation of strains of human epidermal keratinocytes: the formation of keratinizing colonies from single cells. <em>Cell</em> 6.</li>
+        <li>Kleinman, H. K. et al. (1986). Basement membrane complexes with biological activity. <em>Biochemistry</em> 25; Barcellos-Hoff, M. H., Aggeler, J., Ram, T. G. &amp; Bissell, M. J. (1989). Functional differentiation and alveolar morphogenesis of primary mammary cultures on reconstituted basement membrane. <em>Development</em> 105.</li>
+        <li>Magliaro, C. et al. (2019). Allometric scaling of physiologically-relevant organoids. <em>Scientific Reports</em> 9.</li>
+        <li>Evans, M. J. &amp; Kaufman, M. H. (1981). <em>Nature</em> 292; Martin, G. R. (1981). <em>PNAS</em> 78; Thomson, J. A. et al. (1998). <em>Science</em> 282; Takahashi, K. &amp; Yamanaka, S. (2006). <em>Cell</em> 126; Takahashi, K. et al. (2007). <em>Cell</em> 131.</li>
+        <li>Barker, N. et al. (2007). Identification of stem cells in small intestine and colon by marker gene Lgr5. <em>Nature</em> 449.</li>
+        <li>Sato, T. et al. (2009). Single Lgr5 stem cells build crypt–villus structures in vitro without a mesenchymal niche. <em>Nature</em> 459; Sato, T. et al. (2011). Paneth cells constitute the niche for Lgr5 stem cells in intestinal crypts. <em>Nature</em> 469; Sato, T. et al. (2011). Long-term expansion of epithelial organoids from human colon, adenoma, adenocarcinoma, and Barrett's epithelium. <em>Gastroenterology</em> 141.</li>
+        <li>Snippert, H. J. et al. (2010). Intestinal crypt homeostasis results from neutral competition between symmetrically dividing Lgr5 stem cells. <em>Cell</em> 143; Lopez-Garcia, C. et al. (2010). Intestinal stem cell replacement follows a pattern of neutral drift. <em>Science</em> 330; Kozar, S. et al. (2013). Continuous clonal labeling reveals small numbers of functional stem cells in intestinal crypts and adenomas. <em>Cell Stem Cell</em> 13.</li>
+        <li>Eiraku, M. et al. (2008). Self-organized formation of polarized cortical tissues from ESCs. <em>Cell Stem Cell</em> 3; Eiraku, M. et al. (2011). Self-organizing optic-cup morphogenesis in three-dimensional culture. <em>Nature</em> 472; Nakano, T. et al. (2012). <em>Cell Stem Cell</em> 10.</li>
+        <li>Spence, J. R. et al. (2011). Directed differentiation of human pluripotent stem cells into intestinal tissue in vitro. <em>Nature</em> 470; Lancaster, M. A. et al. (2013). Cerebral organoids model human brain development and microcephaly. <em>Nature</em> 501; Takebe, T. et al. (2013). Vascularized and functional human liver from an iPSC-derived organ bud transplant. <em>Nature</em> 499; Takasato, M. et al. (2015). Kidney organoids from human iPS cells contain multiple lineages and model human nephrogenesis. <em>Nature</em> 526.</li>
+        <li>Wolpert, L. (1969). Positional information and the spatial pattern of cellular differentiation. <em>Journal of Theoretical Biology</em> 25; van den Brink, S. C. et al. (2014). Symmetry breaking, germ layer specification and axial organisation in aggregates of mouse embryonic stem cells. <em>Development</em> 141.</li>
+        <li>Dekkers, J. F. et al. (2013). A functional CFTR assay using primary cystic fibrosis intestinal organoids. <em>Nature Medicine</em> 19; Dekkers, J. F. et al. (2016). Characterizing responses to CFTR-modulating drugs using rectal organoids derived from subjects with cystic fibrosis. <em>Science Translational Medicine</em> 8; Berkers, G. et al. (2019). Rectal organoids enable personalized treatment of cystic fibrosis. <em>Cell Reports</em> 26.</li>
+        <li>van de Wetering, M. et al. (2015). Prospective derivation of a living organoid biobank of colorectal cancer patients. <em>Cell</em> 161; Drost, J. et al. (2015). Sequential cancer mutations in cultured human intestinal stem cells. <em>Nature</em> 521; Matano, M. et al. (2015). Modeling colorectal cancer using CRISPR-Cas9-mediated engineering of human intestinal organoids. <em>Nature Medicine</em> 21.</li>
+        <li>Vlachogiannis, G. et al. (2018). Patient-derived organoids model treatment response of metastatic gastrointestinal cancers. <em>Science</em> 359.</li>
+        <li>Qian, X. et al. (2016). Brain-region-specific organoids using mini-bioreactors for modeling ZIKV exposure. <em>Cell</em> 165; Garcez, P. P. et al. (2016). Zika virus impairs growth in human neurospheres and brain organoids. <em>Science</em> 352; Lamers, M. M. et al. (2020). SARS-CoV-2 productively infects human gut enterocytes. <em>Science</em> 369.</li>
+        <li>Velasco, S. et al. (2019). Individual brain organoids reproducibly form cell diversity of the human cerebral cortex. <em>Nature</em> 570; Bhaduri, A. et al. (2020). Cell stress in cortical organoids impairs molecular subtype specification. <em>Nature</em> 578.</li>
+        <li>Birey, F. et al. (2017). Assembly of functionally integrated human forebrain spheroids. <em>Nature</em> 545; Huh, D. et al. (2010). Reconstituting organ-level lung functions on a chip. <em>Science</em> 328; Andersen, J. et al. (2020). Generation of functional human 3D cortico-motor assembloids. <em>Cell</em> 183; Revah, O. et al. (2022). Maturation and circuit integration of transplanted human cortical organoids. <em>Nature</em> 610.</li>
+        <li>Rivron, N. C. et al. (2018). Blastocyst-like structures generated solely from stem cells. <em>Nature</em> 557; International Society for Stem Cell Research (2021). Guidelines for Stem Cell Research and Clinical Translation.</li>
+        <li>FDA Modernization Act 2.0, Public Law 117-328 (December 2022); US Food and Drug Administration (10 April 2025). Roadmap to Reducing Animal Testing in Preclinical Safety Studies.</li>
+        <li>Kerry, S. M. &amp; Bland, J. M. (1998). The intracluster correlation coefficient in cluster randomisation. <em>BMJ</em> 316.</li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">LearnAnything · Volume 13 · Figures simulate real mechanisms with illustrative data, as each caption states.</footer>
+
+<script src="../../assets/js/lab.js"></script>
+<script src="js/og.js"></script>
+<script src="js/hero.js"></script>
+<script src="js/assembly.js"></script>
+<script src="js/stem.js"></script>
+<script src="js/clinic.js"></script>
+<script src="js/trials.js"></script>
+<script>Lab.rail();</script>
+</body>
+</html>

@@ -18,7 +18,7 @@ A static website of encyclopedic, interactive learning modules. Each module is o
 1. Create `modules/<slug>/index.html` by copying the structure of `modules/ai-evolution/index.html`: masthead, `.module` grid with an empty `<nav class="rail"><ol></ol></nav>`, `<main class="content">`, a `.hero`, then `<section class="chapter">` elements.
 2. Give each chapter an `id`, a `data-year` (or a short label such as `Pro` or `Ref`), and a `data-short` title. `Lab.rail()` builds the sidebar navigation from these attributes, so don't hand-write rail links.
 3. Put figure scripts in `modules/<slug>/js/`, grouped by chapter range. Load `../../assets/js/lab.js` first, then your scripts, then call `Lab.rail()` at the end of the page.
-4. Add a `.volume` link to the shelf in the root `index.html`, numbered with the next Roman numeral.
+4. Add a `.volume` link to the right category section (Math, Physics, Biology, Medtech, or Policy; add a new category when none fits) of the root `index.html`, numbered with the next Roman numeral, with a short subject line in `.sub`.
 5. Update the module table in README.md.
 
 ## Writing a figure

@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Single File</title>
+<meta name="description" content="Flow cytometry: how cells are lined up in single file by hydrodynamic focusing, measured by light scatter and fluorescence one at a time, separated by spectral compensation and unmixing, sorted into droplets, and counted for clinical diagnosis.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;700;900&family=Chivo+Mono:wght@400;500&family=Vollkorn:ital,wght@0,400;0,600;1,400&display=swap">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<style>
+/* Volume XII identity: an instrument's list-mode readout. Cool steel paper, a 488 nm cyan for the accent and
+   405 nm violet for figure labels; Chivo set heavy for headings, Vollkorn for reading, Chivo Mono for data. */
+:root {
+  --paper: #F3F4F5; --paper-2: #E8EBEE; --paper-3: #FBFBFC;
+  --grid: #E0E4E8; --rule: #C9CFD6;
+  --ink: #11161D; --ink-2: #3A434F; --ink-3: #66707D;
+  --accent: #0B6B78; --signal: #6A3DB0; --tertiary: #2E9C82;
+  --s1: #1D4A9E; --s2: #C64A1C; --s3: #2E9C82;
+  --laser: #12A3BD;
+  --accent-wash: rgba(11, 107, 120, .08); --signal-wash: rgba(106, 61, 176, .08);
+  --f-display: "Chivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Vollkorn", Georgia, "Times New Roman", serif;
+  --f-mono: "Chivo Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --rail: 178px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #0F1318; --paper-2: #161B22; --paper-3: #1C222B;
+    --grid: #222932; --rule: #343D49;
+    --ink: #E7ECF2; --ink-2: #B3BCC8; --ink-3: #808B99;
+    --accent: #5CC8D2; --signal: #B79AF0; --tertiary: #35A386;
+    --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+    --laser: #46D0E6;
+    --accent-wash: rgba(92, 200, 210, .1); --signal-wash: rgba(183, 154, 240, .1);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #0F1318; --paper-2: #161B22; --paper-3: #1C222B;
+  --grid: #222932; --rule: #343D49;
+  --ink: #E7ECF2; --ink-2: #B3BCC8; --ink-3: #808B99;
+  --accent: #5CC8D2; --signal: #B79AF0; --tertiary: #35A386;
+  --s1: #9CB9F7; --s2: #EE7A45; --s3: #35A386;
+  --laser: #46D0E6;
+  --accent-wash: rgba(92, 200, 210, .1); --signal-wash: rgba(183, 154, 240, .1);
+}
+body { background: var(--paper); font-size: 1.1rem; }
+.hero { grid-template-columns: 1fr; gap: 22px; }
+.hero h1 { font: 900 clamp(3.2rem, 10vw, 7rem)/.9 var(--f-display); letter-spacing: -.035em; margin-top: 10px; text-transform: uppercase; }
+.hero h1 i { font-style: normal; color: var(--accent); }
+.hero .dek { max-width: 56ch; }
+.chapter-head .year { font: 900 clamp(2.6rem, 7vw, 4.4rem)/.9 var(--f-display); letter-spacing: -.03em; }
+.chapter-head h2 { font: 700 clamp(1.8rem, 4.2vw, 2.8rem)/1.06 var(--f-display); letter-spacing: -.02em; }
+.prose h3 { font: 700 var(--t-lg)/1.25 var(--f-display); letter-spacing: -.01em; }
+.bench-head h4 { font-family: var(--f-display); font-weight: 700; font-size: 1.2rem; letter-spacing: -.01em; }
+.rail a { grid-template-columns: 46px 1fr; }
+.rail a .yr { font-size: 11px; }
+.part-head { max-width: var(--measure); padding-top: 64px; display: grid; gap: 4px; }
+.part-head .label { color: var(--accent); }
+.part-head h2 { font: 900 var(--t-xl)/1 var(--f-display); text-transform: uppercase; letter-spacing: -.02em; }
+.hero-flow canvas { width: 100%; display: block; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper-3); }
+.chart-wrap svg { width: 100%; display: block; }
+.chart-wrap canvas.overlay { position: absolute; left: 0; top: 0; pointer-events: none; }
+b.warn, .warn { color: var(--s2); }
+.callout { max-width: var(--measure); border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; display: grid; gap: 6px; }
+.callout .label { color: var(--accent); }
+.ctl select { font: 400 var(--t-sm)/1.3 var(--f-mono); color: var(--ink); background: var(--paper-3); border: 1px solid var(--rule); border-radius: 4px; padding: 6px 8px; width: 100%; }
+.table-wrap { overflow-x: auto; max-width: var(--bench); }
+table.compare { border-collapse: collapse; font-size: var(--t-sm); min-width: 640px; width: 100%; }
+table.compare th { font: 500 var(--t-xs)/1.3 var(--f-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px; border-bottom: 1px solid var(--ink-3); vertical-align: bottom; }
+table.compare td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-2); }
+table.compare td:first-child { font-weight: 600; color: var(--ink); }
+.nocase { text-transform: none; letter-spacing: 0; }
+</style>
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'svg', 'canvas'] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+
+<header class="masthead">
+  <a class="brand" href="../../index.html">Learn<b>Anything</b></a>
+  <span class="where">Vol. 12 · Flow cytometry</span>
+  <span class="progress" aria-hidden="true"></span>
+</header>
+
+<div class="module">
+  <nav class="rail" aria-label="Chapters"><ol></ol></nav>
+
+  <main class="content">
+
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="label">Volume 12 · Measuring cells one at a time</p>
+        <h1 id="title">Single <i>File</i></h1>
+        <p class="dek">How a flow cytometer lines cells up in a stream, measures each one with light in a few microseconds, separates a dozen or forty colors that overlap, sorts the cells it wants into droplets, and counts the rare ones that decide a diagnosis.</p>
+        <div class="meta">
+          <span class="label">10 chapters</span>
+          <span class="label">9 interactive figures</span>
+          <span class="label">1934 → today</span>
+        </div>
+      </div>
+      <figure class="hero-flow" id="hero-flow" style="margin:0">
+        <canvas role="img" aria-label="Cells flow from a wide channel into a narrow stream, cross a laser beam, produce pulses on two detector traces, and appear as dots on a scatter versus fluorescence plot"></canvas>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PROLOGUE -->
+    <section class="chapter" id="prologue" data-year="Pro" data-short="One cell at a time">
+      <div class="chapter-head">
+        <span class="label kicker">Prologue</span>
+        <h2>A microscope that never stops</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A microscope shows a few hundred cells in a field of view. A blood sample holds millions of white cells, and the ones that matter, such as a leukemic clone after treatment or a stem cell for a transplant, may be one in ten thousand or rarer. Flow cytometry measures cells in a moving stream instead of on a slide, one after another, at thousands to tens of thousands per second.</p>
+        <p>The figure above shows the whole instrument in one picture. A narrow stream of sample is wrapped in a faster stream of saline, the <em>sheath</em>, which squeezes the cells into single file. Each cell crosses a focused laser beam in a few microseconds. Detectors record the light it scatters and the fluorescence of the dyes attached to it, as short pulses. Each pulse becomes a number, each cell becomes a row of numbers, and a sample becomes a table of a million rows, usually viewed as a cloud of dots.</p>
+        <p>Every chapter of this volume follows one part of that chain: the fluid that lines the cells up, the light they scatter, the fluorescence that identifies them, the arithmetic that separates overlapping colors, the droplets that sort them, and the statistics that decide whether a rare population is really there.</p>
+      </div>
+      <dl class="defn">
+        <dt>Event</dt><dd>One thing that crossed the laser and triggered the detectors: usually a cell, sometimes debris or two cells together.</dd>
+        <dt>Parameter</dt><dd>One measured quantity per event, such as forward scatter or the fluorescence in one detector.</dd>
+        <dt>Gate</dt><dd>A region drawn on a plot to select a subset of events for further analysis.</dd>
+      </dl>
+    </section>
+
+    <!-- ===================================================== PART I -->
+    <div class="part-head"><span class="label">Part I</span><h2>The instrument</h2></div>
+
+    <section class="chapter" id="fluidics" data-year="1953" data-short="Fluidics">
+      <div class="chapter-head">
+        <span class="year">1953</span>
+        <span class="label kicker">Chapter 1 · Fluidics</span>
+        <h2>Lining cells up</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1934 Andrew Moldavan described in <em>Science</em> a device to count cells as they passed through a fine capillary on a microscope stage, read by a photoelectric cell. It was never made to work well: cells clogged the capillary, and a tube wide enough not to clog let them pass side by side.</p>
+        <p>Two inventions of the late 1940s and early 1950s solved the counting problem in different ways. Wallace Coulter, an engineer in Chicago, noticed that a cell is a poor conductor compared with the salt solution around it. If cells are drawn through a small hole between two electrodes, each one briefly raises the electrical resistance of the hole in proportion to its volume. His patent was granted on 20 October 1953, and the Coulter counter soon replaced counting blood cells by eye. For a particle much smaller than the aperture, the resistance pulse is approximately</p>
+        <div class="math-block">\[ \Delta R \approx \frac{3}{2}\,\frac{\rho\,V}{A^{2}}, \]</div>
+        <p>where \(\rho\) is the resistivity of the fluid, \(V\) the particle's volume, and \(A\) the cross-sectional area of the aperture. The pulse measures volume directly, whatever the cell's shape or color.</p>
+        <p>The same year, P. J. Crosland-Taylor in London described the trick that every optical flow cytometer still uses. He injected a slow suspension of red cells into the middle of a faster stream flowing through a wider tube. Because the flow was laminar, the two fluids did not mix: the outer stream squeezed the inner one into a thin core, and the cells within it were forced into single file down the center. This is <em>hydrodynamic focusing</em>.</p>
+        <h3>How thin is the core?</h3>
+        <p>In laminar flow through a tube of radius \(R\), the speed falls parabolically from the center to the wall, \(u(r) = u_{\max}\,(1 - r^2/R^2)\). The share of the total flow passing within radius \(r\) is \(2x^2 - x^4\), where \(x = r/R\). If the sample supplies a share \(q\) of the total flow, its core radius \(r_c\) satisfies \(2x^2 - x^4 = q\), so</p>
+        <div class="math-block">\[ \frac{r_c}{R} = \sqrt{1 - \sqrt{1 - q}} \approx \sqrt{q/2} \quad \text{for small } q. \]</div>
+        <p>The core width grows with the square root of the sample flow. Running a sample faster widens the core, cells wander farther from the center of the laser beam, and identical cells give less identical signals.</p>
+      </div>
+
+      <figure class="bench" id="fig-focus">
+        <div class="bench-head"><span class="fig">Fig. 1.1</span><span class="label">Interactive</span><h4>Hydrodynamic focusing</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="fo-q">Sample flow rate <output></output></label><input type="range" id="fo-q" min="5" max="150" step="1" value="35"></div>
+          <div class="ctl"><label for="fo-c">Cell concentration <output></output></label><input type="range" id="fo-c" min="2" max="5" step="0.1" value="3"></div>
+        </div>
+        <div class="chart-wrap"><svg class="focus-full" role="img" aria-label="Parabolic velocity profile across the channel with the sample core shaded"></svg></div>
+        <div class="chart-wrap"><svg class="focus-zoom" role="img" aria-label="Zoom on the center of the stream showing the laser intensity profile and where cells sit in it"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">A 250 µm channel carrying 10 mL/min in total, with a Gaussian laser beam 30 µm in 1/e² half-width across the stream. Top: the velocity profile across the whole channel and the sample core it creates. Bottom: a zoom on the center, where each dot is a cell placed at random in the core and lifted to the laser intensity it receives. Raise the sample rate from about 12 to 60 µL/min, typical low and high settings on analyzers, and watch the signal spread grow, while the event rate rises and with it the chance that two cells share the beam (counted here within a 10 µs window). The geometry is representative, not that of a specific instrument.</figcaption>
+      </figure>
+
+      <div class="prose">
+        <h3>Pulses, and two cells mistaken for one</h3>
+        <p>A cell crossing the beam produces a pulse whose shape is the beam profile blurred by the cell's own size. Electronics record three numbers from each pulse: its <em>height</em> (peak), its <em>area</em> (integral), and its <em>width</em>. For a single cell, area and height are proportional. Two cells stuck together give twice the area, but if the beam is narrow along the flow, they pass through it one after the other and the height barely rises. Plotting area against height therefore separates single cells from <em>doublets</em>, which matters whenever a doublet would be mistaken for a cell with twice the DNA or with two markers it does not have.</p>
+      </div>
+
+      <figure class="bench" id="fig-pulse">
+        <div class="bench-head"><span class="fig">Fig. 1.2</span><span class="label">Interactive</span><h4>Pulse shape and doublet discrimination</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="pu-b">Beam height along the flow (1/e² half-height) <output></output></label><input type="range" id="pu-b" min="2" max="40" step="1" value="5"></div>
+        </div>
+        <div class="stage">
+          <div class="chart-wrap"><svg class="pulse-trace" role="img" aria-label="Pulse from one cell and from two cells in line"></svg></div>
+          <div class="chart-wrap"><svg class="pulse-dots" role="img" aria-label="Pulse area against pulse height for single cells and doublets"></svg><canvas class="overlay pulse-dots-cv" aria-hidden="true"></canvas></div>
+        </div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Left: pulses from one 10 µm cell (blue) and from two cells stuck together and aligned with the flow (vermilion). Right: area against height for 1,600 events, 15% of them doublets at random tilts to the flow. The dashed line is a singlet gate. With a tight beam, the doublets sit well above the singlets; widen the beam until it is larger than a cell and the doublet pulse merges into one taller hump, height and area rise together, and doublets slip into the gate. Pairs lying across the flow look like one large cell at any beam size, which is why a few always get through. Simulated events with Gaussian beam and cell profiles.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="scatter" data-year="1965" data-short="Light scatter">
+      <div class="chapter-head">
+        <span class="year">1965</span>
+        <span class="label kicker">Chapter 2 · Light scatter</span>
+        <h2>Size and texture without a stain</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1965 Louis Kamentsky, at IBM, and the pathologist Myron Melamed published a "spectrophotometer for ultrarapid cell analysis" in <em>Science</em>. It measured how much ultraviolet light each cell absorbed and how much light it scattered, hundreds of cells per second, to screen cervical smears for cancer. It was the first instrument to measure more than one parameter per cell in flow, and Kamentsky soon added a sorter.</p>
+        <p>Light that hits a cell is scattered in all directions. The light scattered at small angles, a few degrees from the beam, is called <em>forward scatter</em> (FSC); its intensity rises with the cell's size, though it also depends on the cell's refractive index and on the wavelength, as Mie's 1908 theory of scattering from spheres describes. Light scattered at about 90 degrees, <em>side scatter</em> (SSC), comes mostly from internal structure: granules, a lobed nucleus, folds in the membrane.</p>
+        <p>With just these two unstained measurements, the white cells of lysed blood fall into three clouds: small, smooth lymphocytes; larger monocytes; and granulocytes, whose granules make them scatter strongly to the side. Drawing a gate around a cloud selects that population for every later analysis. Gating, done by hand on two-dimensional plots, became the basic analytic act of flow cytometry.</p>
+      </div>
+
+      <figure class="bench" id="fig-scatter">
+        <div class="bench-head"><span class="fig">Fig. 2.1</span><span class="label">Interactive</span><h4>Scatter gating in blood</h4></div>
+        <div class="controls">
+          <div class="ctl"><span class="label">Gate</span><div class="chips"><button class="chip" type="button" data-gate="lym" aria-pressed="true">Lymphocytes</button><button class="chip" type="button" data-gate="mono" aria-pressed="false">Monocytes</button><button class="chip" type="button" data-gate="gran" aria-pressed="false">Granulocytes</button></div></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Forward scatter against side scatter dot plot of white blood cells with a rectangular gate"></svg><canvas class="overlay" aria-hidden="true"></canvas></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Forward against side scatter for 6,000 events from lysed blood, with debris near the origin. Choose a gate to select a population; the readout gives its share of white cells (debris excluded). Notice how monocytes and lymphocytes touch: a rectangle drawn by hand on scatter alone mixes them a little, which is why clinical panels add a stain such as CD45. Illustrative data with typical relative positions and proportions.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="fluorescence" data-year="1969" data-short="Fluorescence">
+      <div class="chapter-head">
+        <span class="year">1969</span>
+        <span class="label kicker">Chapter 3 · Fluorescence</span>
+        <h2>Counting photons from each cell</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Scatter says what a cell looks like; fluorescence says what it is. In 1969 three groups published fluorescence measurements in flow. At Los Alamos, Marvin Van Dilla and colleagues measured DNA stained with a fluorescent dye, using hydrodynamic focusing and an argon-ion laser. In Münster, Wolfgang Dittrich and Wolfgang Göhde built an instrument around a fluorescence microscope, which the company Partec later sold. At Stanford, Leonard Herzenberg's group, with Henry Hulett, William Bonner, and Janet Barrett, sorted living cells according to the fluorescence of antibodies bound to them. Herzenberg called it fluorescence-activated cell sorting, FACS. The field took the name <em>flow cytometry</em> at a conference in Pensacola, Florida, in 1978.</p>
+        <h3>The photon budget</h3>
+        <p>A cell carrying a few thousand dye molecules crosses the beam in a few microseconds and emits a few thousand photons toward the collection lens. The detector, usually a photomultiplier tube, converts only a fraction of them into photoelectrons. If a cell carries the equivalent of \(N\) fluorescent molecules (the unit is <em>MESF</em>, molecules of equivalent soluble fluorochrome), the detector produces on average \(QN\) photoelectrons, where \(Q\) is the detection efficiency, plus \(B\) photoelectrons of background from the optics, the sheath, and stray light. Photoelectron counts follow a Poisson distribution, so the variance of the measured signal is</p>
+        <div class="math-block">\[ \operatorname{Var}(\hat N) = \frac{QN + B}{Q^2}, \]</div>
+        <p>after the mean background is subtracted. A dim population sits just above unstained cells, and whether the two can be told apart depends on \(Q\) and \(B\) as much as on the dye. Holden Maecker and colleagues at BD defined the <em>stain index</em> in 2004 to compare reagents and instruments:</p>
+        <div class="math-block">\[ \text{SI} = \frac{\text{median}_{\text{pos}} - \text{median}_{\text{neg}}}{2\,\text{SD}_{\text{neg}}}. \]</div>
+      </div>
+
+      <figure class="bench" id="fig-photons">
+        <div class="bench-head"><span class="fig">Fig. 3.1</span><span class="label">Interactive</span><h4>Photons, background, and resolution</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="ph-d">Stain brightness <output></output></label><input type="range" id="ph-d" min="2" max="4.5" step="0.05" value="3.18"></div>
+          <div class="ctl"><label for="ph-q"><span>Detection efficiency <span class="nocase">Q</span></span> <output></output></label><input type="range" id="ph-q" min="0.01" max="0.5" step="0.01" value="0.1"></div>
+          <div class="ctl"><label for="ph-b"><span>Background <span class="nocase">B</span></span> <output></output></label><input type="range" id="ph-b" min="0" max="2000" step="10" value="100"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Histograms of unstained and dimly stained cells"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Unstained cells (blue) carry about 300 MESF of autofluorescence; stained cells (vermilion) add the stain on top. Every cell varies by 30% in its true fluorescence, then its photoelectrons are drawn from a Poisson distribution. Lower the efficiency or raise the background and the unstained population widens until the dim one disappears into it, even though nothing about the cells changed. The arcsinh axis is linear near zero, where background subtraction can push values negative. 6,000 simulated cells per population.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="compensation" data-year="1975" data-short="Many colors">
+      <div class="chapter-head">
+        <span class="year">1975</span>
+        <span class="label kicker">Chapter 4 · Many colors</span>
+        <h2>When dyes spill into each other's detectors</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Monoclonal antibodies, made possible by Köhler and Milstein in 1975, gave flow cytometry an unlimited supply of identical stains, one for each surface protein. Labeling a cell with several antibodies, each carrying a different dye, lets one tube measure several proteins at once. The difficulty is that fluorescent dyes have broad emission spectra. Fluorescein (FITC), which glows green, also puts a substantial share of its light into the orange detector meant for phycoerythrin (PE).</p>
+        <p>If \(\mathbf{x}\) holds the true amounts of each dye on a cell and \(\mathbf{y}\) the detector signals, the two are related by a <em>spillover matrix</em> \(S\), measured from single-stained controls:</p>
+        <div class="math-block">\[ \mathbf{y} = S\,\mathbf{x}, \qquad \hat{\mathbf{x}} = S^{-1}\mathbf{y}. \]</div>
+        <p>Early instruments subtracted spillover with analog circuits, one pair of detectors at a time. In 1993 Bruce Bagwell and Earl Adams showed how to compensate any number of parameters by inverting the full matrix in software, which is what every modern instrument does.</p>
+        <h3>Compensation removes the spillover, not its noise</h3>
+        <p>Compensation corrects the average, but the photons that FITC sends into the PE detector still carry Poisson noise, and subtraction cannot remove it. After compensation, bright FITC cells have the right PE median and a much wider PE distribution than unstained cells. Mario Roederer described this <em>spillover spreading</em> in 2001, and it explains the funnel shape of compensated plots and the negative values around zero. On a log axis those negative values cannot be drawn, so they pile up on the axis. David Parks, Roederer, and Wayne Moore introduced the <em>logicle</em> display in 2006, linear near zero and logarithmic far from it; the arcsinh scale in these figures behaves the same way.</p>
+      </div>
+
+      <figure class="bench" id="fig-comp">
+        <div class="bench-head"><span class="fig">Fig. 4.1</span><span class="label">Interactive</span><h4>Compensation and spreading</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="cp-s">FITC spillover into the PE detector <output></output></label><input type="range" id="cp-s" min="0" max="0.5" step="0.01" value="0.2"></div>
+          <div class="ctl"><span class="label">Display</span><div class="chips"><button class="chip" type="button" data-comp="0" aria-pressed="false">Raw</button><button class="chip" type="button" data-comp="1" aria-pressed="true">Compensated</button></div></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="FITC against PE dot plot of four populations"></svg><canvas class="overlay" aria-hidden="true"></canvas></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Four populations: unstained (gray), FITC only (blue), PE only (vermilion), and both (teal). In the raw data, FITC-only cells appear PE positive. Compensation moves their median back to zero, but compare the spread readouts: the bright FITC cells are now far wider in PE than unstained cells, so a dim PE signal on FITC-bright cells could not be resolved. Raise the spillover and the spreading grows. Simulated cells with Poisson photon statistics (0.1 photoelectrons per MESF), a little electronic noise, and 2% PE spillover into the FITC detector.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== PART II -->
+    <div class="part-head"><span class="label">Part II</span><h2>What it is used for</h2></div>
+
+    <section class="chapter" id="dna" data-year="1974" data-short="DNA and the cell cycle">
+      <div class="chapter-head">
+        <span class="year">1974</span>
+        <span class="label kicker">Chapter 5 · DNA content</span>
+        <h2>Reading the cell cycle from a histogram</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">A dye that binds DNA in proportion to its amount turns a flow cytometer into a cell-cycle counter. Cells resting or in G1 have two copies of the genome; cells in G2 or mitosis have four; cells in S phase, copying their DNA, fall in between. Göhde's first instrument was built for exactly this measurement, and in 1975 Awtar Krishan published a rapid method using propidium iodide, a dye that is still the standard.</p>
+        <p>The histogram is never as sharp as the biology. Staining and measurement blur every peak by a coefficient of variation (CV), so G1 and G2 become Gaussians and the S phase blurs into both. In 1974 Phillip Dean and James Jett modeled the histogram as two Gaussian peaks with the S phase distributed between them, each component broadened by the same CV, and fitted the proportions. Their approach, refined over decades, still underlies cell-cycle software.</p>
+        <p>The same measurement detects <em>aneuploid</em> tumors, whose cells carry an abnormal amount of DNA. A tumor's G1 peak sits at a <em>DNA index</em> above 1. Whether a near-diploid tumor can be seen at all depends on the CV.</p>
+      </div>
+
+      <figure class="bench" id="fig-dna">
+        <div class="bench-head"><span class="fig">Fig. 5.1</span><span class="label">Interactive</span><h4>DNA content and the cell cycle</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="dn-cv">Peak CV <output></output></label><input type="range" id="dn-cv" min="0.01" max="0.12" step="0.005" value="0.04"></div>
+          <div class="ctl"><label for="dn-s">S-phase share <output></output></label><input type="range" id="dn-s" min="0.05" max="0.6" step="0.01" value="0.3"></div>
+          <div class="ctl"><span class="label">Sample</span><div class="chips"><button class="chip" type="button" data-tumor="0" aria-pressed="true">Normal cells</button><button class="chip" type="button" data-tumor="1" aria-pressed="false">With aneuploid tumor</button></div></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="DNA content histogram with G1, S, and G2/M phases"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">A simulated histogram of 20,000 cells (blue) and the Dean and Jett model it was drawn from (line), with 12% of cells in G2/M. The shaded band is where the simplest estimate measures the S-phase density, two standard deviations clear of each peak. With a sharp G1 peak the estimate is close; raise the CV and the band shrinks and fills with the tails of the peaks, so the estimate drifts upward, which is why real software fits the whole model. Switch to the tumor sample (30% of cells at DNA index 1.15) and find the CV at which its G1 peak merges with the normal one.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="sorting" data-year="1965" data-short="Sorting">
+      <div class="chapter-head">
+        <span class="year">1965</span>
+        <span class="label kicker">Chapter 6 · Sorting</span>
+        <h2>One droplet per cell</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">Measuring a cell is useful; keeping it is more useful. In 1965 Richard Sweet at Stanford published a high-speed chart recorder that drew with a jet of ink broken into droplets, each charged and steered by deflection plates. The same year, Mack Fulwyler at Los Alamos joined a Coulter volume sensor to a droplet jet and separated mouse red cells from human ones by size, the first cell sorter. Herzenberg's group replaced size with fluorescence in 1969, and their 1972 paper describing the FACS led to commercial sorters from Becton Dickinson in the mid-1970s.</p>
+        <h3>How the stream breaks</h3>
+        <p>A jet of liquid is unstable. In 1878 Lord Rayleigh showed that surface tension amplifies ripples on a cylinder of fluid, and that ripples with a wavelength of about \(4.51\) times the jet diameter \(d\) grow fastest. A sorter shakes its nozzle with a piezoelectric crystal at that frequency, so the jet breaks into uniform drops at a fixed distance below the nozzle. The jet speed comes from the pressure behind it, by Bernoulli's equation, so</p>
+        <div class="math-block">\[ v \approx \sqrt{\frac{2\,\Delta P}{\rho}}, \qquad f \approx \frac{v}{4.51\,d}. \]</div>
+        <p>When a wanted cell is measured, the instrument waits the exact time it will take to reach the break-off point, charges the stream as that drop forms, and the drop is deflected into a collection tube.</p>
+        <h3>Purity, yield, and Poisson</h3>
+        <p>Cells arrive at random. If \(\lambda\) is the mean number of cells per drop, the number in any drop follows a Poisson distribution. To keep the sorted tube pure, the sorter aborts a wanted cell when another cell would fall into the same <em>sort envelope</em> of \(k\) drops, which happens with probability \(1 - e^{-\lambda k}\). Running faster sorts more cells per hour but loses a growing share of the wanted ones.</p>
+      </div>
+
+      <figure class="bench" id="fig-sort">
+        <div class="bench-head"><span class="fig">Fig. 6.1</span><span class="label">Interactive</span><h4>Droplet sorting</h4></div>
+        <div class="controls">
+          <div class="ctl"><span class="label">Nozzle</span><div class="chips"><button class="chip" type="button" data-nozzle="70" aria-pressed="true">70 µm</button><button class="chip" type="button" data-nozzle="85" aria-pressed="false">85 µm</button><button class="chip" type="button" data-nozzle="100" aria-pressed="false">100 µm</button><button class="chip" type="button" data-nozzle="130" aria-pressed="false">130 µm</button></div></div>
+          <div class="ctl"><label for="so-p">Sheath pressure <output></output></label><input type="range" id="so-p" min="10" max="70" step="1" value="70"></div>
+          <div class="ctl"><label for="so-r">Event rate <output></output></label><input type="range" id="so-r" min="3" max="5.2" step="0.05" value="4.3"></div>
+          <div class="ctl"><label for="so-k">Sort envelope <output></output></label><input type="range" id="so-k" min="1" max="3" step="1" value="1"></div>
+        </div>
+        <div class="chart-wrap"><svg class="sort-stream" role="img" aria-label="A row of droplets after break-off, some containing cells"></svg></div>
+        <div class="chart-wrap"><svg class="sort-chart" role="img" aria-label="Share of wanted cells sorted against event rate for one-, two-, and three-drop envelopes"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">The drop frequency follows from the nozzle and pressure; the event rate then sets how crowded the drops are. In the strip, cells are placed in drops by a Poisson draw, and about one cell in three is marked as wanted so the aborts are easy to see; the chart and the hourly count assume the wanted cells are 5% of events. Wider nozzles at lower pressure are gentler on large or fragile cells but make fewer drops per second, so the same event rate crowds them more. The ideal Bernoulli speed overestimates the true jet speed slightly, so real drop frequencies run somewhat lower.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="clinic" data-year="1981" data-short="In the clinic">
+      <div class="chapter-head">
+        <span class="year">1981</span>
+        <span class="label kicker">Chapter 7 · In the clinic</span>
+        <h2>Counting what matters</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">In 1981 Michael Gottlieb and colleagues in Los Angeles described previously healthy young men with Pneumocystis pneumonia. Using the new monoclonal antibodies against T cell subsets, they found that the men had lost their helper T cells, which carry the protein CD4. The disease was AIDS, and counting CD4 T cells by flow cytometry became the way to stage it. In 1993 the US Centers for Disease Control added a CD4 count below 200 cells per microliter to the definition of AIDS. Counts guided treatment for decades, and the need for cheaper counting in poorer countries drove the design of simple, dedicated cytometers.</p>
+        <p>Flow cytometry also became central to diagnosing leukemia and lymphoma. The combination of surface markers on the abnormal cells identifies the lineage and stage at which a cancer arose. For stem cell transplants, the number of CD34-positive cells in a collection decides whether there are enough to graft; a protocol published by D. Robert Sutherland and colleagues for ISHAGE in 1996 standardized the count across laboratories.</p>
+        <h3>Minimal residual disease</h3>
+        <p>After treatment, the question becomes whether any cancer cells remain. A residual leukemia or myeloma may be one cell in a hundred thousand or a million. Finding it is a counting problem. If the rare population makes up a fraction \(p\) of events, and \(r\) of its events are counted, Poisson statistics give a coefficient of variation of</p>
+        <div class="math-block">\[ \text{CV} = \frac{1}{\sqrt{r}}, \qquad N_{\text{total}} = \frac{r}{p} = \frac{1}{p\,\text{CV}^2}. \]</div>
+        <p>Laboratories typically require a cluster of a few tens of events before calling a population present at all. The EuroFlow consortium's "next-generation flow" method for myeloma, published by Juan Flores-Montero and colleagues in 2017, acquires at least ten million cells per sample to reach those depths, comparable to the sensitivity of DNA sequencing methods.</p>
+      </div>
+
+      <figure class="bench" id="fig-rare">
+        <div class="bench-head"><span class="fig">Fig. 7.1</span><span class="label">Interactive</span><h4>How many events for a rare population?</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="ra-f">Rare population <output></output></label><input type="range" id="ra-f" min="-7" max="-2" step="0.1" value="-5"></div>
+          <div class="ctl"><label for="ra-cv">Target precision (CV) <output></output></label><input type="range" id="ra-cv" min="0.05" max="0.3" step="0.01" value="0.1"></div>
+          <div class="ctl"><label for="ra-r">Acquisition rate <output></output></label><input type="range" id="ra-r" min="3" max="5" step="0.1" value="4"></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Total events required against rare population frequency on log scales"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Total events to acquire for a rare population at a given frequency. The dashed line is what it takes just to see 20 events, a typical detection threshold; the solid line is what it takes to measure the frequency with the chosen CV. At one cell in a million with 10% precision you need a hundred million events, hours of acquisition and far more cells than a tube holds. Counting statistics only; real limits also depend on how cleanly the rare cells separate from normal ones.</figcaption>
+      </figure>
+    </section>
+
+    <section class="chapter" id="spectral" data-year="2009" data-short="Beyond color">
+      <div class="chapter-head">
+        <span class="year">2009</span>
+        <span class="label kicker">Chapter 8 · Beyond a filter per color</span>
+        <h2>Spectral, mass, and imaging cytometry</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">For forty years, adding a color meant adding a detector behind an optical filter chosen for one dye. By the 2000s, instruments with several lasers measured eighteen or more colors this way, at the cost of rising spillover and careful panel design. Three newer technologies changed the limits.</p>
+        <p><strong>Spectral cytometry</strong> records each cell's light across an array of detectors covering the whole spectrum under every laser, instead of one filtered band per dye. J. Paul Robinson's group at Purdue built early spectral systems in the 2000s; Sony released the first commercial spectral analyzer in 2012, and Cytek's Aurora followed in 2017. Each dye then has a full <em>signature</em>, and the instrument solves for the amount of each dye on each cell by least squares, a step called <em>unmixing</em>. If \(M\) is the matrix whose columns are the signatures, then</p>
+        <div class="math-block">\[ \hat{\mathbf{x}} = (M^{\mathsf T} M)^{-1} M^{\mathsf T}\,\mathbf{y}. \]</div>
+        <p>Two dyes can be separated even if their peaks fall in the same detector, as long as their signatures differ somewhere. The cost is noise: with equal noise in every channel, the noise of each unmixed dye grows by \(1/\sqrt{1-c^2}\), where \(c\) is the cosine similarity of the two signatures. In 2020 Lily Park, Joanne Lannigan, and Maria Jaimes at Cytek published OMIP-069, the first 40-color fluorescent panel, run on a spectral instrument.</p>
+        <p><strong>Mass cytometry</strong>, described by Dmitry Bandura, Scott Tanner, and colleagues in Toronto in 2009, labels antibodies with heavy-metal isotopes instead of dyes and measures each cell by vaporizing it in a plasma and weighing its atoms in a time-of-flight mass spectrometer. Isotopes barely overlap, so forty or more markers can be measured, at the cost of a slower rate and of destroying the cells. Sean Bendall, Garry Nolan, and colleagues used it in 2011 to map human bone-marrow development across dozens of markers at once.</p>
+        <p><strong>Imaging flow cytometry</strong>, commercialized by Amnis in 2005, captures a small image of every cell in several channels, joining the throughput of flow to some of the information of a microscope.</p>
+        <p>Data with forty dimensions cannot be gated by hand on two-dimensional plots. Algorithms now do the first pass: SPADE (2011) builds trees of clusters, viSNE (2013) applies the t-SNE map to cytometry, and FlowSOM (2015) uses self-organizing maps, with analysts checking the results.</p>
+      </div>
+
+      <figure class="bench" id="fig-spectral">
+        <div class="bench-head"><span class="fig">Fig. 8.1</span><span class="label">Interactive</span><h4>Spectral signatures and unmixing</h4></div>
+        <div class="controls">
+          <div class="ctl"><label for="sp-a">First dye</label><select id="sp-a"></select></div>
+          <div class="ctl"><label for="sp-b">Second dye</label><select id="sp-b"></select></div>
+        </div>
+        <div class="chart-wrap"><svg role="img" aria-label="Signal of two dyes across 38 detector channels grouped by laser"></svg></div>
+        <div class="readouts"></div>
+        <figcaption class="caption">Each bar is one detector of a three-laser spectral analyzer with 38 channels; a dye's bars are its signature. APC and Alexa Fluor 647 have nearly the same signature, so unmixing them inflates noise many times; FITC and PE overlap in their emission but differ under the violet and red lasers, and unmix cleanly. The last readout is what a conventional instrument would see: the second dye's signal in the first dye's peak detector, as a share of the second dye's own peak. Spectral shapes are smooth approximations from typical excitation and emission peaks, not measured data.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===================================================== NOW -->
+    <section class="chapter" id="now" data-year="Now" data-short="Choosing a method">
+      <div class="chapter-head">
+        <span class="label kicker">Chapter 9 · Today</span>
+        <h2>Choosing a method</h2>
+      </div>
+      <div class="prose">
+        <p class="lede">The basic instrument has not changed since the 1970s: focus the cells, cross a beam, count photons. What changed is how many quantities can be measured on each cell and how much computing goes into reading them. The main forms of the technology now sit side by side.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="compare">
+          <thead><tr><th>Method</th><th>Markers per cell</th><th>Speed</th><th>Cells survive?</th><th>Main limit</th></tr></thead>
+          <tbody>
+            <tr><td>Conventional fluorescence</td><td>Typically up to 10 to 20</td><td>Tens of thousands per second</td><td>Yes, and can be sorted</td><td>Spillover and spreading between filtered detectors</td></tr>
+            <tr><td>Spectral fluorescence</td><td>About 40</td><td>Tens of thousands per second</td><td>Yes, and spectral sorters exist</td><td>Similar signatures, autofluorescence, and unmixing noise</td></tr>
+            <tr><td>Mass cytometry</td><td>About 40 to 50</td><td>Hundreds to about a thousand per second</td><td>No, cells are vaporized</td><td>Slow acquisition; no scatter; limited by available metal isotopes</td></tr>
+            <tr><td>Imaging flow</td><td>A handful of channels, plus images</td><td>Hundreds to thousands per second</td><td>Yes</td><td>Data volume and lower speed</td></tr>
+            <tr><td>Coulter impedance</td><td>Volume only</td><td>Thousands per second</td><td>Yes</td><td>No identity beyond size</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose">
+        <div class="callout">
+          <span class="label">The common thread</span>
+          <p>Every limit in this volume comes down to counting. Cells arrive at random, so coincidences and sort aborts follow Poisson statistics. Photons arrive at random, so dim signals blur and compensation spreads. Rare cells arrive at random, so finding one in a million needs a hundred million events. Better instruments do not escape these limits; they spend more photons, more drops, and more events against them.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== glossary -->
+    <section class="chapter" id="glossary" data-year="Ref" data-short="Glossary & sources">
+      <div class="chapter-head">
+        <span class="label kicker">Reference</span>
+        <h2>Glossary</h2>
+      </div>
+      <dl class="glossary">
+        <dt>Compensation</dt><dd>Removal of fluorescence spillover between detectors by inverting the spillover matrix.</dd>
+        <dt>Coefficient of variation (CV)</dt><dd>Standard deviation divided by the mean; for a peak, a measure of its sharpness.</dd>
+        <dt>Doublet</dt><dd>Two cells measured as one event, recognized by a large pulse area for its height.</dd>
+        <dt>Forward scatter</dt><dd>Light scattered at small angles to the beam, rising with cell size.</dd>
+        <dt>Hydrodynamic focusing</dt><dd>Narrowing of a sample stream inside a faster sheath stream in laminar flow.</dd>
+        <dt>MESF</dt><dd>Molecules of equivalent soluble fluorochrome: a calibrated unit of fluorescence intensity.</dd>
+        <dt>Minimal residual disease</dt><dd>Cancer cells remaining after treatment at levels too low to see by conventional methods.</dd>
+        <dt>Side scatter</dt><dd>Light scattered near 90 degrees, rising with internal complexity such as granules.</dd>
+        <dt>Sort envelope</dt><dd>The number of drops charged and deflected for one sorted cell.</dd>
+        <dt>Spillover spreading</dt><dd>Extra spread in a compensated parameter caused by photon noise of light spilled from another dye.</dd>
+        <dt>Stain index</dt><dd>Separation of a stained population from unstained cells, in units of twice the unstained spread.</dd>
+        <dt>Unmixing</dt><dd>Least-squares estimation of each dye's amount from a cell's full spectrum.</dd>
+      </dl>
+
+      <div class="chapter-head" style="margin-top:32px"><h2>Sources</h2></div>
+      <ol class="sources">
+        <li>Shapiro, H. M. (2003). <em>Practical Flow Cytometry</em>, 4th ed. Wiley-Liss; Robinson, J. P. &amp; Roederer, M. (2015). Flow cytometry strikes gold. <em>Science</em> 350.</li>
+        <li>Moldavan, A. (1934). Photo-electric technique for the counting of microscopical cells. <em>Science</em> 80.</li>
+        <li>Coulter, W. H. (1953). Means for counting particles suspended in a fluid. US Patent 2,656,508, granted 20 October 1953; DeBlois, R. W. &amp; Bean, C. P. (1970). Counting and sizing of submicron particles by the resistive pulse technique. <em>Review of Scientific Instruments</em> 41.</li>
+        <li>Crosland-Taylor, P. J. (1953). A device for counting small particles suspended in a fluid through a tube. <em>Nature</em> 171.</li>
+        <li>Kamentsky, L. A., Melamed, M. R. &amp; Derman, H. (1965). Spectrophotometer: new instrument for ultrarapid cell analysis. <em>Science</em> 150.</li>
+        <li>Van Dilla, M. A. et al. (1969). Cell microfluorometry: a method for rapid fluorescence measurement. <em>Science</em> 163; Dittrich, W. &amp; Göhde, W. (1969). Impulsfluorometrie bei Einzelzellen in Suspensionen. <em>Zeitschrift für Naturforschung B</em> 24.</li>
+        <li>Hulett, H. R., Bonner, W. A., Barrett, J. &amp; Herzenberg, L. A. (1969). Cell sorting: automated separation of mammalian cells as a function of intracellular fluorescence. <em>Science</em> 166; Bonner, W. A. et al. (1972). Fluorescence activated cell sorting. <em>Review of Scientific Instruments</em> 43.</li>
+        <li>Sweet, R. G. (1965). High frequency recording with electrostatically deflected ink jets. <em>Review of Scientific Instruments</em> 36; Fulwyler, M. J. (1965). Electronic separation of biological cells by volume. <em>Science</em> 150.</li>
+        <li>Rayleigh, Lord (1878). On the instability of jets. <em>Proceedings of the London Mathematical Society</em> 10.</li>
+        <li>Maecker, H. T., Frey, T., Nomura, L. E. &amp; Trotter, J. (2004). Selecting fluorochrome conjugates for maximum sensitivity. <em>Cytometry A</em> 62.</li>
+        <li>Bagwell, C. B. &amp; Adams, E. G. (1993). Fluorescence spectral overlap compensation for any number of flow cytometry parameters. <em>Annals of the New York Academy of Sciences</em> 677; Roederer, M. (2001). Spectral compensation for flow cytometry: visualization artifacts, limitations, and caveats. <em>Cytometry</em> 45.</li>
+        <li>Parks, D. R., Roederer, M. &amp; Moore, W. A. (2006). A new "Logicle" display method avoids deceptive effects of logarithmic scaling for low signals and compensated data. <em>Cytometry A</em> 69.</li>
+        <li>Dean, P. N. &amp; Jett, J. H. (1974). Mathematical analysis of DNA distributions derived from flow microfluorometry. <em>Journal of Cell Biology</em> 60; Krishan, A. (1975). Rapid flow cytofluorometric analysis of mammalian cell cycle by propidium iodide staining. <em>Journal of Cell Biology</em> 66.</li>
+        <li>Gottlieb, M. S. et al. (1981). Pneumocystis carinii pneumonia and mucosal candidiasis in previously healthy homosexual men: evidence of a new acquired cellular immunodeficiency. <em>New England Journal of Medicine</em> 305; Centers for Disease Control (1992). 1993 revised classification system for HIV infection and expanded surveillance case definition for AIDS. <em>MMWR</em> 41 (RR-17).</li>
+        <li>Sutherland, D. R. et al. (1996). The ISHAGE guidelines for CD34+ cell determination by flow cytometry. <em>Journal of Hematotherapy</em> 5.</li>
+        <li>Flores-Montero, J. et al. (2017). Next Generation Flow for highly sensitive and standardized detection of minimal residual disease in multiple myeloma. <em>Leukemia</em> 31.</li>
+        <li>Park, L. M., Lannigan, J. &amp; Jaimes, M. C. (2020). OMIP-069: forty-color full spectrum flow cytometry panel for deep immunophenotyping of major cell subsets in human peripheral blood. <em>Cytometry A</em> 97; Sony Corporation (2012), announcement of the SP6800 spectral cell analyzer; Cytek Biosciences, Aurora (2017).</li>
+        <li>Bandura, D. R. et al. (2009). Mass cytometry: technique for real time single cell multitarget immunoassay based on inductively coupled plasma time-of-flight mass spectrometry. <em>Analytical Chemistry</em> 81; Bendall, S. C. et al. (2011). Single-cell mass cytometry of differential immune and drug responses across a human hematopoietic continuum. <em>Science</em> 332.</li>
+        <li>Qiu, P. et al. (2011). Extracting a cellular hierarchy from high-dimensional cytometry data with SPADE. <em>Nature Biotechnology</em> 29; Amir, E. D. et al. (2013). viSNE enables visualization of high dimensional single-cell data. <em>Nature Biotechnology</em> 31; Van Gassen, S. et al. (2015). FlowSOM. <em>Cytometry A</em> 87.</li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">LearnAnything · Volume 12 · Figures simulate real mechanisms with illustrative data, as each caption states.</footer>
+
+<script src="../../assets/js/lab.js"></script>
+<script src="js/fc.js"></script>
+<script src="js/hero.js"></script>
+<script src="js/fluidics.js"></script>
+<script src="js/optics.js"></script>
+<script src="js/sorting.js"></script>
+<script>Lab.rail();</script>
+</body>
+</html>
